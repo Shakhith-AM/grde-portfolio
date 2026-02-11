@@ -99,6 +99,21 @@
     border-radius: 20px; color: var(--gold);
     letter-spacing: 0.5px; font-weight: 500;
   }
+  .region-select {
+    padding: 7px 12px; border-radius: 8px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    color: var(--text-primary); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer; outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238A8F9E' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .region-select:hover, .region-select:focus {
+    border-color: rgba(212,160,23,0.4);
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
 
   /* ===== LAYOUT ===== */
   .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
@@ -539,7 +554,21 @@
         <span class="logo-subtitle">An Architect's Blueprint for Wealth</span>
       </div>
     </div>
-    <span class="header-badge">v2.0</span>
+    <div class="header-right">
+      <select class="region-select" id="regionSelect">
+        <option value="IN">🇮🇳 India (₹)</option>
+        <option value="US">🇺🇸 USA ($)</option>
+        <option value="GB">🇬🇧 UK (£)</option>
+        <option value="EU">🇪🇺 Europe (€)</option>
+        <option value="AE">🇦🇪 UAE (AED)</option>
+        <option value="SG">🇸🇬 Singapore (S$)</option>
+        <option value="AU">🇦🇺 Australia (A$)</option>
+        <option value="JP">🇯🇵 Japan (¥)</option>
+        <option value="CA">🇨🇦 Canada (C$)</option>
+        <option value="MY">🇲🇾 Malaysia (RM)</option>
+      </select>
+      <span class="header-badge">v2.1</span>
+    </div>
   </div>
 </header>
 
@@ -717,7 +746,7 @@
         <thead>
           <tr>
             <th>Asset</th>
-            <th>Actual ₹</th>
+            <th id="thActualAmt">Actual ₹</th>
             <th>Actual %</th>
             <th>Target %</th>
             <th>Variance</th>
@@ -819,8 +848,8 @@
       Created by <strong>Shakhith A.M</strong> with the help of AI<br>
       An Architect's Blueprint for Wealth — The GRDE Framework
     </div>
-    <div class="footer-disclaimer">
-      <strong>⚠️ Disclaimer:</strong> This is an educational tool for portfolio allocation awareness. It does not constitute investment advice under SEBI (Investment Advisers) Regulations, 2013. No personalised recommendations are made. Consult a SEBI-registered investment adviser before making financial decisions. Past performance does not guarantee future results.
+    <div class="footer-disclaimer" id="footerDisclaimer">
+      <strong>⚠️ Disclaimer:</strong> This is an educational tool for portfolio allocation awareness. It does not constitute personalised investment advice. No specific financial recommendations are made. Please consult a qualified and registered financial adviser in your jurisdiction before making investment decisions. Past performance does not guarantee future results.
     </div>
   </div>
 </footer>
@@ -947,6 +976,11 @@ function updateDonut() {
       <span class="legend-value">${currentAlloc[k]}%</span>
     </div>
   `).join('');
+  
+  // Update donut center with portfolio total
+  const groups = getPortfolioTotals();
+  const total = groups.G + groups.R + groups.D + groups.E;
+  document.getElementById('donutTotal').textContent = total > 0 ? formatCurrency(total) : formatCurrency(getRegion().sampleTotal);
 }
 
 function updateBarChart() {
@@ -968,6 +1002,232 @@ function updateBarChart() {
 }
 
 // ===================================================================
+//  REGION / CURRENCY SYSTEM
+// ===================================================================
+const REGIONS = {
+  IN: {
+    symbol: '₹', code: 'INR', locale: 'en-IN', flag: '🇮🇳',
+    sampleTotal: 1000000,
+    formatLarge: (n) => {
+      if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
+      if (n >= 100000) return '₹' + (n / 100000).toFixed(2) + ' L';
+      return '₹' + n.toLocaleString('en-IN');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs', silverEtf: 'Silver ETFs',
+      reits: 'REITs', invits: 'InvITs',
+      liquid: 'Liquid Funds', fd: 'FD + POMIS', bonds: 'Bonds / NCDs',
+      mf: 'Mutual Funds', localEtf: 'Indian ETFs', intlEtf: 'US / Intl ETFs'
+    },
+    defaults: { goldEtf:90000, silverEtf:10000, reits:90000, invits:60000, liquid:100000, fd:150000, bonds:0, mf:250000, localEtf:200000, intlEtf:50000 }
+  },
+  US: {
+    symbol: '$', code: 'USD', locale: 'en-US', flag: '🇺🇸',
+    sampleTotal: 100000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return '$' + (n / 1000).toFixed(1) + 'K';
+      return '$' + n.toLocaleString('en-US');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (GLD/IAU)', silverEtf: 'Silver ETFs (SLV)',
+      reits: 'REITs (VNQ/SCHH)', invits: 'Real Estate Funds',
+      liquid: 'Money Market Funds', fd: 'CDs / T-Bills', bonds: 'Bond Funds (BND)',
+      mf: 'Index Funds', localEtf: 'US Equity ETFs', intlEtf: 'International ETFs'
+    },
+    defaults: { goldEtf:8000, silverEtf:2000, reits:10000, invits:5000, liquid:12000, fd:13000, bonds:0, mf:25000, localEtf:20000, intlEtf:5000 }
+  },
+  GB: {
+    symbol: '£', code: 'GBP', locale: 'en-GB', flag: '🇬🇧',
+    sampleTotal: 80000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return '£' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return '£' + (n / 1000).toFixed(1) + 'K';
+      return '£' + n.toLocaleString('en-GB');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (SGLN)', silverEtf: 'Silver ETFs (SSLN)',
+      reits: 'REITs (IUKP)', invits: 'Property Funds',
+      liquid: 'Money Market Funds', fd: 'Savings Bonds / ISA', bonds: 'Gilt Funds',
+      mf: 'OEIC / Unit Trusts', localEtf: 'UK Equity ETFs', intlEtf: 'Global ETFs'
+    },
+    defaults: { goldEtf:7000, silverEtf:1000, reits:8000, invits:4000, liquid:10000, fd:10000, bonds:0, mf:20000, localEtf:16000, intlEtf:4000 }
+  },
+  EU: {
+    symbol: '€', code: 'EUR', locale: 'de-DE', flag: '🇪🇺',
+    sampleTotal: 90000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return '€' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return '€' + (n / 1000).toFixed(1) + 'K';
+      return '€' + n.toLocaleString('de-DE');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (EGLN)', silverEtf: 'Silver ETFs',
+      reits: 'REITs / Property ETFs', invits: 'Real Estate Funds',
+      liquid: 'Money Market Funds', fd: 'Term Deposits', bonds: 'Bond Funds / Bunds',
+      mf: 'UCITS Funds', localEtf: 'Euro Equity ETFs', intlEtf: 'Global ETFs'
+    },
+    defaults: { goldEtf:8000, silverEtf:1000, reits:9000, invits:4500, liquid:11000, fd:11500, bonds:0, mf:22000, localEtf:18000, intlEtf:5000 }
+  },
+  AE: {
+    symbol: 'AED', code: 'AED', locale: 'en-AE', flag: '🇦🇪',
+    sampleTotal: 400000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return 'AED ' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return 'AED ' + (n / 1000).toFixed(1) + 'K';
+      return 'AED ' + n.toLocaleString('en-US');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs', silverEtf: 'Silver / Precious Metals',
+      reits: 'REITs', invits: 'Real Estate Funds',
+      liquid: 'Money Market Funds', fd: 'Fixed Deposits', bonds: 'Sukuk / Bonds',
+      mf: 'Mutual Funds', localEtf: 'UAE / GCC ETFs', intlEtf: 'International ETFs'
+    },
+    defaults: { goldEtf:35000, silverEtf:5000, reits:35000, invits:25000, liquid:40000, fd:55000, bonds:0, mf:100000, localEtf:80000, intlEtf:25000 }
+  },
+  SG: {
+    symbol: 'S$', code: 'SGD', locale: 'en-SG', flag: '🇸🇬',
+    sampleTotal: 130000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return 'S$' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return 'S$' + (n / 1000).toFixed(1) + 'K';
+      return 'S$' + n.toLocaleString('en-SG');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (GLD)', silverEtf: 'Silver ETFs',
+      reits: 'S-REITs', invits: 'Real Estate Funds',
+      liquid: 'Money Market Funds', fd: 'Fixed Deposits / SSB', bonds: 'Bond Funds (ABF)',
+      mf: 'Unit Trusts', localEtf: 'STI ETFs', intlEtf: 'Global ETFs'
+    },
+    defaults: { goldEtf:11000, silverEtf:2000, reits:12000, invits:7000, liquid:13000, fd:18000, bonds:0, mf:33000, localEtf:27000, intlEtf:7000 }
+  },
+  AU: {
+    symbol: 'A$', code: 'AUD', locale: 'en-AU', flag: '🇦🇺',
+    sampleTotal: 150000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return 'A$' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return 'A$' + (n / 1000).toFixed(1) + 'K';
+      return 'A$' + n.toLocaleString('en-AU');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (GOLD)', silverEtf: 'Silver / Precious Metals',
+      reits: 'A-REITs (VAP)', invits: 'Property Funds',
+      liquid: 'Cash / Money Market', fd: 'Term Deposits', bonds: 'Bond ETFs (VGB)',
+      mf: 'Managed Funds', localEtf: 'ASX ETFs (VAS)', intlEtf: 'International ETFs'
+    },
+    defaults: { goldEtf:13000, silverEtf:2000, reits:14000, invits:7500, liquid:15000, fd:20000, bonds:0, mf:38000, localEtf:32000, intlEtf:8500 }
+  },
+  JP: {
+    symbol: '¥', code: 'JPY', locale: 'ja-JP', flag: '🇯🇵',
+    sampleTotal: 15000000,
+    formatLarge: (n) => {
+      if (n >= 100000000) return '¥' + (n / 100000000).toFixed(2) + '億';
+      if (n >= 10000) return '¥' + (n / 10000).toFixed(0) + '万';
+      return '¥' + n.toLocaleString('ja-JP');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (1326)', silverEtf: 'Silver / Precious Metals',
+      reits: 'J-REITs (1343)', invits: 'Real Estate Funds',
+      liquid: 'MRF / Money Reserve', fd: 'Term Deposits / JGB', bonds: 'Bond Funds',
+      mf: 'Toushin (投信)', localEtf: 'TOPIX / Nikkei ETFs', intlEtf: 'Global ETFs'
+    },
+    defaults: { goldEtf:1300000, silverEtf:200000, reits:1400000, invits:700000, liquid:1500000, fd:2000000, bonds:0, mf:3800000, localEtf:3200000, intlEtf:900000 }
+  },
+  CA: {
+    symbol: 'C$', code: 'CAD', locale: 'en-CA', flag: '🇨🇦',
+    sampleTotal: 140000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return 'C$' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return 'C$' + (n / 1000).toFixed(1) + 'K';
+      return 'C$' + n.toLocaleString('en-CA');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs (CGL)', silverEtf: 'Silver ETFs (SVR)',
+      reits: 'REITs (XRE/VRE)', invits: 'Real Estate Funds',
+      liquid: 'HISA / Money Market', fd: 'GICs', bonds: 'Bond ETFs (XBB)',
+      mf: 'Mutual Funds', localEtf: 'TSX ETFs (XIU)', intlEtf: 'International ETFs'
+    },
+    defaults: { goldEtf:12000, silverEtf:2000, reits:13000, invits:7000, liquid:14000, fd:19000, bonds:0, mf:36000, localEtf:30000, intlEtf:7000 }
+  },
+  MY: {
+    symbol: 'RM', code: 'MYR', locale: 'ms-MY', flag: '🇲🇾',
+    sampleTotal: 450000,
+    formatLarge: (n) => {
+      if (n >= 1000000) return 'RM' + (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000) return 'RM' + (n / 1000).toFixed(1) + 'K';
+      return 'RM' + n.toLocaleString('en-MY');
+    },
+    labels: {
+      goldEtf: 'Gold ETFs / TH Gold', silverEtf: 'Silver / Precious Metals',
+      reits: 'M-REITs', invits: 'Property Trust Funds',
+      liquid: 'Money Market Funds', fd: 'Fixed Deposits', bonds: 'Sukuk / Bond Funds',
+      mf: 'Unit Trust Funds', localEtf: 'KLCI ETFs', intlEtf: 'Global ETFs'
+    },
+    defaults: { goldEtf:40000, silverEtf:5000, reits:40000, invits:25000, liquid:45000, fd:60000, bonds:0, mf:115000, localEtf:95000, intlEtf:25000 }
+  }
+};
+
+let currentRegion = 'IN';
+
+function getRegion() { return REGIONS[currentRegion]; }
+
+function formatCurrency(n) { return getRegion().formatLarge(n); }
+
+function applyRegion(regionCode) {
+  currentRegion = regionCode;
+  const r = getRegion();
+  
+  // Update input labels
+  const labelMap = {
+    'inp-goldEtf': r.labels.goldEtf, 'inp-silverEtf': r.labels.silverEtf,
+    'inp-reits': r.labels.reits, 'inp-invits': r.labels.invits,
+    'inp-liquid': r.labels.liquid, 'inp-fd': r.labels.fd, 'inp-bonds': r.labels.bonds,
+    'inp-mf': r.labels.mf, 'inp-inEtf': r.labels.localEtf, 'inp-usEtf': r.labels.intlEtf
+  };
+  Object.entries(labelMap).forEach(([id, label]) => {
+    const inp = document.getElementById(id);
+    if (inp) {
+      const labelEl = inp.closest('.input-group').querySelector('.input-label');
+      const dot = labelEl.querySelector('.input-dot');
+      const dotHTML = dot ? dot.outerHTML : '';
+      labelEl.innerHTML = dotHTML + ' ' + label;
+    }
+  });
+  
+  // Update placeholders
+  document.querySelectorAll('.portfolio-input').forEach(inp => {
+    inp.placeholder = r.symbol + ' 0';
+  });
+  
+  // Update default values
+  const defaultMap = {
+    'inp-goldEtf': r.defaults.goldEtf, 'inp-silverEtf': r.defaults.silverEtf,
+    'inp-reits': r.defaults.reits, 'inp-invits': r.defaults.invits,
+    'inp-liquid': r.defaults.liquid, 'inp-fd': r.defaults.fd, 'inp-bonds': r.defaults.bonds,
+    'inp-mf': r.defaults.mf, 'inp-inEtf': r.defaults.localEtf, 'inp-usEtf': r.defaults.intlEtf
+  };
+  Object.entries(defaultMap).forEach(([id, val]) => {
+    const inp = document.getElementById(id);
+    if (inp) inp.value = val > 0 ? val : '';
+  });
+  
+  // Update variance table header
+  document.getElementById('thActualAmt').textContent = 'Actual ' + r.symbol;
+  
+  // Update donut center
+  const total = r.sampleTotal;
+  document.getElementById('donutTotal').textContent = r.formatLarge(total);
+  
+  // Refresh everything
+  updateAll();
+}
+
+// Region selector handler
+document.getElementById('regionSelect').addEventListener('change', (e) => {
+  applyRegion(e.target.value);
+});
+
+// ===================================================================
 //  PORTFOLIO TRACKER
 // ===================================================================
 function parseVal(el) {
@@ -982,21 +1242,15 @@ function getPortfolioTotals() {
   return groups;
 }
 
-function formatINR(n) {
-  if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
-  if (n >= 100000) return '₹' + (n / 100000).toFixed(2) + ' L';
-  return '₹' + n.toLocaleString('en-IN');
-}
-
 function updateTracker() {
   const groups = getPortfolioTotals();
   const total = groups.G + groups.R + groups.D + groups.E;
 
-  document.getElementById('totalG').textContent = formatINR(groups.G);
-  document.getElementById('totalR').textContent = formatINR(groups.R);
-  document.getElementById('totalD').textContent = formatINR(groups.D);
-  document.getElementById('totalE').textContent = formatINR(groups.E);
-  document.getElementById('portfolioTotal').textContent = formatINR(total);
+  document.getElementById('totalG').textContent = formatCurrency(groups.G);
+  document.getElementById('totalR').textContent = formatCurrency(groups.R);
+  document.getElementById('totalD').textContent = formatCurrency(groups.D);
+  document.getElementById('totalE').textContent = formatCurrency(groups.E);
+  document.getElementById('portfolioTotal').textContent = formatCurrency(total);
 
   // Variance table
   const body = document.getElementById('varianceBody');
@@ -1014,7 +1268,7 @@ function updateTracker() {
     const sign = variance > 0 ? '+' : '';
     return `<tr>
       <td style="color:${color};font-weight:600;">${name}</td>
-      <td>${formatINR(groups[key])}</td>
+      <td>${formatCurrency(groups[key])}</td>
       <td>${actual.toFixed(1)}%</td>
       <td>${target}%</td>
       <td class="${cls}">${sign}${variance.toFixed(1)}%</td>
