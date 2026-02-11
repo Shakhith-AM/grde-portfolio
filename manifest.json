@@ -1,0 +1,27 @@
+{
+  "name": "Portfolio: GRDE Engine",
+  "short_name": "GRDE Engine",
+  "description": "An Architect's Blueprint for Wealth — Age-based portfolio allocation using the GRDE framework (Gold, Real Estate, Debt, Equity).",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0D0F14",
+  "theme_color": "#0D0F14",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "education"],
+  "lang": "en",
+  "dir": "ltr"
+}
