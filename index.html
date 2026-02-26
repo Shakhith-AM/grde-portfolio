@@ -1,1492 +1,1038 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio: GRDE Engine</title>
-<meta name="description" content="GRDE Portfolio Engine — An age-based asset allocation framework for Gold, Real Estate, Debt & Equity. An Architect's Blueprint for Wealth.">
-<meta name="theme-color" content="#0D0F14">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GRDE Engine">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --gold: #D4A017;
-    --gold-light: #F5E6B8;
-    --gold-bg: rgba(212,160,23,0.08);
-    --red: #C0392B;
-    --red-light: #F5C6C0;
-    --red-bg: rgba(192,57,43,0.08);
-    --blue: #2874A6;
-    --blue-light: #AED6F1;
-    --blue-bg: rgba(40,116,166,0.08);
-    --green: #1E8449;
-    --green-light: #A9DFBF;
-    --green-bg: rgba(30,132,73,0.08);
-    
-    --bg-primary: #0D0F14;
-    --bg-secondary: #141720;
-    --bg-card: #1A1E2A;
-    --bg-card-hover: #1F2436;
-    --border: rgba(255,255,255,0.06);
-    --border-hover: rgba(255,255,255,0.12);
-    --text-primary: #F0F0F0;
-    --text-secondary: #8A8F9E;
-    --text-muted: #5A5F6E;
-    --shadow: 0 4px 24px rgba(0,0,0,0.3);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-  
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    line-height: 1.6;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
-  /* ===== HEADER ===== */
-  .header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(13,15,20,0.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 0;
-  }
-  .header-inner {
-    max-width: 1200px; margin: 0 auto; padding: 0 24px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .logo-group { display: flex; align-items: center; gap: 14px; }
-  .logo-dots {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-    width: 36px; height: 36px;
-  }
-  .logo-dot {
-    width: 16px; height: 16px; border-radius: 50%;
-    box-shadow: 0 0 8px rgba(0,0,0,0.3);
-  }
-  .logo-dot.g { background: var(--gold); }
-  .logo-dot.r { background: var(--red); }
-  .logo-dot.d { background: var(--blue); }
-  .logo-dot.e { background: var(--green); }
-  .logo-text { display: flex; flex-direction: column; }
-  .logo-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px; font-weight: 600; letter-spacing: 0.5px;
-    color: var(--text-primary);
-  }
-  .logo-subtitle {
-    font-size: 10px; font-weight: 500; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text-muted);
-  }
-  .header-badge {
-    font-size: 11px; padding: 6px 14px;
-    background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.2);
-    border-radius: 20px; color: var(--gold);
-    letter-spacing: 0.5px; font-weight: 500;
-  }
-  .region-select {
-    padding: 7px 12px; border-radius: 8px;
-    background: var(--bg-secondary); border: 1px solid var(--border);
-    color: var(--text-primary); font-family: 'DM Sans', sans-serif;
-    font-size: 13px; cursor: pointer; outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none; appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238A8F9E' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 10px center;
-    padding-right: 30px;
-  }
-  .region-select:hover, .region-select:focus {
-    border-color: rgba(212,160,23,0.4);
-  }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-
-  /* ===== LAYOUT ===== */
-  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
-  
-  .section-label {
-    font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
-    text-transform: uppercase; color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px; font-weight: 600; color: var(--text-primary);
-    margin-bottom: 6px;
-  }
-  .section-desc {
-    font-size: 14px; color: var(--text-secondary); max-width: 600px;
-    margin-bottom: 32px; line-height: 1.7;
-  }
-
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-  .card:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow);
-  }
-  .card-title {
-    font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--text-secondary);
-    margin-bottom: 20px;
-  }
-
-  /* ===== AGE SLIDER ===== */
-  .age-section { margin-bottom: 48px; }
-  .age-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 36px;
-  }
-  .age-display {
-    display: flex; align-items: baseline; gap: 8px;
-    margin-bottom: 28px;
-  }
-  .age-number {
-    font-family: 'Playfair Display', serif;
-    font-size: 64px; font-weight: 700; color: var(--text-primary);
-    line-height: 1;
-  }
-  .age-label { font-size: 16px; color: var(--text-secondary); }
-
-  .slider-container { position: relative; margin-bottom: 24px; }
-  input[type="range"] {
-    -webkit-appearance: none; width: 100%; height: 6px;
-    background: linear-gradient(90deg, var(--green) 0%, var(--gold) 50%, var(--red) 100%);
-    border-radius: 3px; outline: none; cursor: pointer;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 24px; height: 24px;
-    background: #fff; border-radius: 50%; cursor: grab;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.1);
-    transition: transform 0.15s;
-  }
-  input[type="range"]::-webkit-slider-thumb:active {
-    cursor: grabbing; transform: scale(1.15);
-  }
-  input[type="range"]::-moz-range-thumb {
-    width: 24px; height: 24px;
-    background: #fff; border-radius: 50%; cursor: grab; border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  .slider-labels {
-    display: flex; justify-content: space-between;
-    font-size: 12px; color: var(--text-muted); margin-top: 8px;
-  }
-
-  /* ===== ALLOCATION BARS ===== */
-  .allocation-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-    margin-top: 32px;
-  }
-  .alloc-item {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 20px; text-align: center;
-    transition: all 0.3s;
-  }
-  .alloc-item:hover { border-color: var(--border-hover); }
-  .alloc-letter {
-    font-family: 'Playfair Display', serif;
-    font-size: 24px; font-weight: 700; margin-bottom: 4px;
-  }
-  .alloc-name {
-    font-size: 11px; font-weight: 500; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;
-  }
-  .alloc-pct {
-    font-size: 32px; font-weight: 700; margin-bottom: 10px;
-    transition: all 0.3s;
-  }
-  .alloc-bar-track {
-    width: 100%; height: 6px; background: rgba(255,255,255,0.06);
-    border-radius: 3px; overflow: hidden;
-  }
-  .alloc-bar-fill {
-    height: 100%; border-radius: 3px;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .alloc-item.gold .alloc-letter, .alloc-item.gold .alloc-pct { color: var(--gold); }
-  .alloc-item.gold .alloc-bar-fill { background: var(--gold); }
-  .alloc-item.real .alloc-letter, .alloc-item.real .alloc-pct { color: var(--red); }
-  .alloc-item.real .alloc-bar-fill { background: var(--red); }
-  .alloc-item.debt .alloc-letter, .alloc-item.debt .alloc-pct { color: var(--blue); }
-  .alloc-item.debt .alloc-bar-fill { background: var(--blue); }
-  .alloc-item.eqty .alloc-letter, .alloc-item.eqty .alloc-pct { color: var(--green); }
-  .alloc-item.eqty .alloc-bar-fill { background: var(--green); }
-
-  /* ===== CHARTS GRID ===== */
-  .charts-section { margin-bottom: 48px; }
-  .charts-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-  }
-
-  /* ===== PIE / DONUT CHART ===== */
-  .chart-container { position: relative; display: flex; justify-content: center; align-items: center; }
-  .donut-chart { position: relative; width: 220px; height: 220px; }
-  .donut-chart svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .donut-chart circle {
-    fill: none; stroke-width: 28;
-    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .donut-center {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .donut-center-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px; font-weight: 700;
-  }
-  .donut-center-label {
-    font-size: 11px; color: var(--text-muted); text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .chart-legend {
-    display: flex; flex-direction: column; gap: 12px;
-    margin-top: 20px;
-  }
-  .legend-item {
-    display: flex; align-items: center; gap: 10px; font-size: 13px;
-  }
-  .legend-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-  }
-  .legend-label { color: var(--text-secondary); }
-  .legend-value { margin-left: auto; font-weight: 600; color: var(--text-primary); }
-
-  /* ===== BAR CHART ===== */
-  .bar-chart { display: flex; flex-direction: column; gap: 16px; }
-  .bar-row { display: flex; align-items: center; gap: 12px; }
-  .bar-label {
-    width: 80px; font-size: 12px; font-weight: 500;
-    color: var(--text-secondary); text-align: right; flex-shrink: 0;
-  }
-  .bar-track {
-    flex: 1; height: 24px; background: rgba(255,255,255,0.04);
-    border-radius: 6px; overflow: hidden; position: relative;
-  }
-  .bar-fill {
-    height: 100%; border-radius: 6px;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex; align-items: center; padding-left: 10px;
-    font-size: 12px; font-weight: 600; color: #fff;
-    min-width: fit-content;
-  }
-
-  /* ===== ISR SECTION ===== */
-  .isr-section { margin-bottom: 48px; }
-  .isr-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-  }
-  .isr-gauge-container {
-    display: flex; flex-direction: column; align-items: center; gap: 24px;
-  }
-  .isr-gauge { position: relative; width: 200px; height: 200px; }
-  .isr-gauge svg { width: 100%; height: 100%; }
-  .isr-gauge-center {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .isr-score {
-    font-family: 'Playfair Display', serif;
-    font-size: 36px; font-weight: 700;
-  }
-  .isr-label-text {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--text-muted);
-  }
-  .isr-status-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 18px; border-radius: 20px;
-    font-size: 13px; font-weight: 600;
-    transition: all 0.3s;
-  }
-  .isr-status-badge.aggressive {
-    background: rgba(192,57,43,0.12); color: #E74C3C;
-    border: 1px solid rgba(231,76,60,0.2);
-  }
-  .isr-status-badge.moderate {
-    background: rgba(212,160,23,0.12); color: var(--gold);
-    border: 1px solid rgba(212,160,23,0.2);
-  }
-  .isr-status-badge.balanced {
-    background: rgba(30,132,73,0.12); color: #2ECC71;
-    border: 1px solid rgba(46,204,113,0.2);
-  }
-  .isr-status-badge.conservative {
-    background: rgba(40,116,166,0.12); color: #3498DB;
-    border: 1px solid rgba(52,152,219,0.2);
-  }
-  .isr-status-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .isr-status-badge.aggressive .isr-status-dot { background: #E74C3C; }
-  .isr-status-badge.moderate .isr-status-dot { background: var(--gold); }
-  .isr-status-badge.balanced .isr-status-dot { background: #2ECC71; }
-  .isr-status-badge.conservative .isr-status-dot { background: #3498DB; }
-
-  .isr-details { display: flex; flex-direction: column; gap: 16px; }
-  .isr-split-bar {
-    height: 14px; border-radius: 7px; overflow: hidden;
-    display: flex; margin-bottom: 8px;
-  }
-  .isr-split-stable {
-    background: linear-gradient(90deg, var(--gold), var(--blue));
-    transition: width 0.5s;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700; color: #fff;
-  }
-  .isr-split-growth {
-    background: var(--green);
-    transition: width 0.5s;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700; color: #fff;
-  }
-  .isr-split-labels {
-    display: flex; justify-content: space-between; font-size: 12px;
-    color: var(--text-secondary); margin-bottom: 20px;
-  }
-
-  .isr-comparison {
-    background: var(--bg-secondary); border-radius: var(--radius-sm);
-    padding: 16px; border: 1px solid var(--border);
-  }
-  .isr-comp-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 0;
-  }
-  .isr-comp-row + .isr-comp-row { border-top: 1px solid var(--border); }
-  .isr-comp-label { font-size: 13px; color: var(--text-secondary); }
-  .isr-comp-value { font-size: 14px; font-weight: 600; }
-
-  .isr-action {
-    padding: 16px; border-radius: var(--radius-sm);
-    font-size: 13px; line-height: 1.7;
-    border: 1px solid;
-  }
-  .isr-action.aggressive {
-    background: rgba(192,57,43,0.06); border-color: rgba(192,57,43,0.15);
-    color: #F1948A;
-  }
-  .isr-action.moderate {
-    background: rgba(212,160,23,0.06); border-color: rgba(212,160,23,0.15);
-    color: #F7DC6F;
-  }
-  .isr-action.balanced {
-    background: rgba(30,132,73,0.06); border-color: rgba(30,132,73,0.15);
-    color: #A9DFBF;
-  }
-  .isr-action.conservative {
-    background: rgba(40,116,166,0.06); border-color: rgba(40,116,166,0.15);
-    color: #AED6F1;
-  }
-
-  /* ===== PORTFOLIO TRACKER ===== */
-  .tracker-section { margin-bottom: 48px; }
-  .tracker-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-  }
-  .input-group { margin-bottom: 14px; }
-  .input-label {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 500; color: var(--text-secondary);
-    margin-bottom: 6px;
-  }
-  .input-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-  }
-  .input-field {
-    width: 100%; padding: 10px 14px;
-    background: var(--bg-secondary); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text-primary);
-    font-family: 'DM Sans', sans-serif; font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  .input-field:focus {
-    border-color: rgba(212,160,23,0.4);
-    box-shadow: 0 0 0 3px rgba(212,160,23,0.08);
-  }
-  .input-field::placeholder { color: var(--text-muted); }
-
-  .group-header {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 16px; padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-  .group-dot { width: 12px; height: 12px; border-radius: 50%; }
-  .group-label {
-    font-size: 14px; font-weight: 600;
-  }
-  .group-total {
-    margin-left: auto; font-size: 14px; font-weight: 600;
-    color: var(--text-secondary);
-  }
-
-  /* Variance Table */
-  .variance-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
-  .variance-table th {
-    font-size: 11px; font-weight: 600; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--text-muted);
-    padding: 8px 12px; text-align: left;
-  }
-  .variance-table td {
-    padding: 10px 12px; font-size: 13px;
-    background: var(--bg-secondary); color: var(--text-secondary);
-  }
-  .variance-table tr td:first-child { border-radius: 8px 0 0 8px; }
-  .variance-table tr td:last-child { border-radius: 0 8px 8px 0; }
-  .variance-positive { color: #2ECC71; }
-  .variance-negative { color: #E74C3C; }
-  .variance-neutral { color: var(--text-muted); }
-
-  /* ===== FOOTER ===== */
-  .footer {
-    border-top: 1px solid var(--border);
-    padding: 32px 0;
-    text-align: center;
-  }
-  .footer-inner {
-    max-width: 1200px; margin: 0 auto; padding: 0 24px;
-  }
-  .footer-brand {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    margin-bottom: 16px;
-  }
-  .footer-dots {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
-    width: 20px; height: 20px;
-  }
-  .footer-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .footer-text {
-    font-size: 12px; color: var(--text-muted); line-height: 1.8;
-  }
-  .footer-text a { color: var(--gold); text-decoration: none; }
-  .footer-disclaimer {
-    font-size: 11px; color: var(--text-muted); margin-top: 16px;
-    max-width: 700px; margin-left: auto; margin-right: auto;
-    padding: 12px 16px; background: rgba(255,255,255,0.02);
-    border-radius: 8px; border: 1px solid var(--border);
-    line-height: 1.7;
-  }
-
-  /* ===== TABS ===== */
-  .tabs {
-    display: flex; gap: 4px; margin-bottom: 32px;
-    background: var(--bg-secondary); padding: 4px;
-    border-radius: var(--radius-sm); width: fit-content;
-  }
-  .tab {
-    padding: 10px 20px; border-radius: 8px;
-    font-size: 13px; font-weight: 500; color: var(--text-muted);
-    cursor: pointer; transition: all 0.2s; border: none;
-    background: transparent; font-family: inherit;
-  }
-  .tab:hover { color: var(--text-secondary); }
-  .tab.active {
-    background: var(--bg-card); color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; animation: fadeIn 0.3s; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 768px) {
-    .allocation-grid { grid-template-columns: repeat(2, 1fr); }
-    .charts-grid, .isr-grid, .tracker-grid { grid-template-columns: 1fr; }
-    .age-number { font-size: 48px; }
-    .section-title { font-size: 22px; }
-    .card { padding: 20px; }
-    .age-card { padding: 24px; }
-    .header-badge { display: none; }
-    .tabs { width: 100%; }
-    .tab { flex: 1; text-align: center; padding: 10px 12px; font-size: 12px; }
-  }
-  @media (max-width: 480px) {
-    .allocation-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .alloc-pct { font-size: 24px; }
-    .container { padding: 20px 16px 60px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRDE Engine — An Architect's Blueprint for Wealth</title>
+    <meta name="description" content="GRDE Framework: Gold, Real Estate, Debt, Equity — Age-based portfolio allocation engine by Shakhith A.M.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0f172a; font-family: 'Poppins', sans-serif; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        #root { min-height: 100vh; }
+    </style>
 </head>
 <body>
+    <div id="root"></div>
+    <script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
 
-<!-- HEADER -->
-<header class="header">
-  <div class="header-inner">
-    <div class="logo-group">
-      <div class="logo-dots">
-        <div class="logo-dot g"></div>
-        <div class="logo-dot r"></div>
-        <div class="logo-dot d"></div>
-        <div class="logo-dot e"></div>
-      </div>
-      <div class="logo-text">
-        <span class="logo-title">Portfolio: GRDE Engine</span>
-        <span class="logo-subtitle">An Architect's Blueprint for Wealth</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <select class="region-select" id="regionSelect">
-        <option value="IN">🇮🇳 India (₹)</option>
-        <option value="US">🇺🇸 USA ($)</option>
-        <option value="GB">🇬🇧 UK (£)</option>
-        <option value="EU">🇪🇺 Europe (€)</option>
-        <option value="AE">🇦🇪 UAE (AED)</option>
-        <option value="SG">🇸🇬 Singapore (S$)</option>
-        <option value="AU">🇦🇺 Australia (A$)</option>
-        <option value="JP">🇯🇵 Japan (¥)</option>
-        <option value="CA">🇨🇦 Canada (C$)</option>
-        <option value="MY">🇲🇾 Malaysia (RM)</option>
-      </select>
-      <span class="header-badge">v2.1</span>
-    </div>
-  </div>
-</header>
 
-<main class="container">
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab active" data-tab="allocator">Allocator</button>
-    <button class="tab" data-tab="tracker">Portfolio Tracker</button>
-    <button class="tab" data-tab="isr">ISR Analysis</button>
-  </div>
-
-  <!-- ==================== TAB 1: ALLOCATOR ==================== -->
-  <div class="tab-content active" id="tab-allocator">
-    <div class="section-label">Age-Based Risk Engine</div>
-    <div class="section-title">Target Allocation</div>
-    <div class="section-desc">
-      Adjust your age to see how the GRDE framework adapts. Younger investors tilt toward equity for growth; older investors shift toward stability assets for peace of mind.
-    </div>
-
-    <div class="age-card">
-      <div class="age-display">
-        <span class="age-number" id="ageDisplay">50</span>
-        <span class="age-label">years old</span>
-      </div>
-      <div class="slider-container">
-        <input type="range" id="ageSlider" min="25" max="80" value="50" step="1">
-        <div class="slider-labels">
-          <span>25 — Higher Growth</span>
-          <span>80 — Higher Stability</span>
-        </div>
-      </div>
-
-      <div class="allocation-grid">
-        <div class="alloc-item gold">
-          <div class="alloc-letter">G</div>
-          <div class="alloc-name">Gold & Silver</div>
-          <div class="alloc-pct" id="allocG">10%</div>
-          <div class="alloc-bar-track"><div class="alloc-bar-fill" id="barG" style="width:10%"></div></div>
-        </div>
-        <div class="alloc-item real">
-          <div class="alloc-letter">R</div>
-          <div class="alloc-name">Real Estate</div>
-          <div class="alloc-pct" id="allocR">15%</div>
-          <div class="alloc-bar-track"><div class="alloc-bar-fill" id="barR" style="width:15%"></div></div>
-        </div>
-        <div class="alloc-item debt">
-          <div class="alloc-letter">D</div>
-          <div class="alloc-name">Debt</div>
-          <div class="alloc-pct" id="allocD">25%</div>
-          <div class="alloc-bar-track"><div class="alloc-bar-fill" id="barD" style="width:25%"></div></div>
-        </div>
-        <div class="alloc-item eqty">
-          <div class="alloc-letter">E</div>
-          <div class="alloc-name">Equity</div>
-          <div class="alloc-pct" id="allocE">50%</div>
-          <div class="alloc-bar-track"><div class="alloc-bar-fill" id="barE" style="width:50%"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CHARTS -->
-    <div class="charts-grid" style="margin-top:32px;">
-      <div class="card">
-        <div class="card-title">Allocation Breakdown</div>
-        <div class="chart-container" style="flex-direction:column;">
-          <div class="donut-chart">
-            <svg viewBox="0 0 200 200">
-              <circle id="donutE" cx="100" cy="100" r="75" stroke="var(--green)" />
-              <circle id="donutD" cx="100" cy="100" r="75" stroke="var(--blue)" />
-              <circle id="donutR" cx="100" cy="100" r="75" stroke="var(--red)" />
-              <circle id="donutG" cx="100" cy="100" r="75" stroke="var(--gold)" />
-            </svg>
-            <div class="donut-center">
-              <div class="donut-center-value" id="donutTotal">₹10L</div>
-              <div class="donut-center-label">Target</div>
-            </div>
-          </div>
-          <div class="chart-legend" id="pieLegend"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Component Comparison</div>
-        <div class="bar-chart" id="barChart"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== TAB 2: PORTFOLIO TRACKER ==================== -->
-  <div class="tab-content" id="tab-tracker">
-    <div class="section-label">Live Portfolio</div>
-    <div class="section-title">Track Your Holdings</div>
-    <div class="section-desc">
-      Enter your current holdings to see how your actual allocation compares to the GRDE target for your age.
-    </div>
-
-    <div class="tracker-grid">
-      <div class="card">
-        <div class="group-header">
-          <div class="group-dot" style="background:var(--gold)"></div>
-          <div class="group-label" style="color:var(--gold)">G — Gold & Silver</div>
-          <div class="group-total" id="totalG">₹0</div>
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--gold)"></div> Gold ETFs</div>
-          <input type="text" class="input-field portfolio-input" data-group="G" id="inp-goldEtf" placeholder="₹ 0" value="90000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--gold)"></div> Silver ETFs</div>
-          <input type="text" class="input-field portfolio-input" data-group="G" id="inp-silverEtf" placeholder="₹ 0" value="10000">
-        </div>
-
-        <div class="group-header" style="margin-top:24px;">
-          <div class="group-dot" style="background:var(--red)"></div>
-          <div class="group-label" style="color:var(--red)">R — Real Estate</div>
-          <div class="group-total" id="totalR">₹0</div>
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--red)"></div> REITs</div>
-          <input type="text" class="input-field portfolio-input" data-group="R" id="inp-reits" placeholder="₹ 0" value="90000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--red)"></div> InvITs</div>
-          <input type="text" class="input-field portfolio-input" data-group="R" id="inp-invits" placeholder="₹ 0" value="60000">
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="group-header">
-          <div class="group-dot" style="background:var(--blue)"></div>
-          <div class="group-label" style="color:var(--blue)">D — Debt</div>
-          <div class="group-total" id="totalD">₹0</div>
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--blue)"></div> Liquid Funds</div>
-          <input type="text" class="input-field portfolio-input" data-group="D" id="inp-liquid" placeholder="₹ 0" value="100000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--blue)"></div> FD + POMIS</div>
-          <input type="text" class="input-field portfolio-input" data-group="D" id="inp-fd" placeholder="₹ 0" value="150000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--blue)"></div> Bonds / NCDs</div>
-          <input type="text" class="input-field portfolio-input" data-group="D" id="inp-bonds" placeholder="₹ 0" value="0">
-        </div>
-
-        <div class="group-header" style="margin-top:24px;">
-          <div class="group-dot" style="background:var(--green)"></div>
-          <div class="group-label" style="color:var(--green)">E — Equity</div>
-          <div class="group-total" id="totalE">₹0</div>
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--green)"></div> Mutual Funds</div>
-          <input type="text" class="input-field portfolio-input" data-group="E" id="inp-mf" placeholder="₹ 0" value="250000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--green)"></div> Indian ETFs</div>
-          <input type="text" class="input-field portfolio-input" data-group="E" id="inp-inEtf" placeholder="₹ 0" value="200000">
-        </div>
-        <div class="input-group">
-          <div class="input-label"><div class="input-dot" style="background:var(--green)"></div> US / Intl ETFs</div>
-          <input type="text" class="input-field portfolio-input" data-group="E" id="inp-usEtf" placeholder="₹ 0" value="50000">
-        </div>
-      </div>
-    </div>
-
-    <!-- Variance Analysis -->
-    <div class="card" style="margin-top:20px;">
-      <div class="card-title">Variance Analysis — Actual vs Target</div>
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
-        <div style="font-size:14px;color:var(--text-secondary);">Total Portfolio:</div>
-        <div id="portfolioTotal" style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--text-primary);">₹10,00,000</div>
-      </div>
-      <table class="variance-table">
-        <thead>
-          <tr>
-            <th>Asset</th>
-            <th id="thActualAmt">Actual ₹</th>
-            <th>Actual %</th>
-            <th>Target %</th>
-            <th>Variance</th>
-          </tr>
-        </thead>
-        <tbody id="varianceBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ==================== TAB 3: ISR ANALYSIS ==================== -->
-  <div class="tab-content" id="tab-isr">
-    <div class="section-label">INVESTMENT SAFETY RATIO</div>
-    <div class="section-title">ISR Analysis</div>
-    <div class="section-desc">
-      Your ISR measures the proportion of stable, income-generating assets (G + R + D) against volatile growth assets (E). An ISR above 50% signals peace of mind.
-    </div>
-
-    <div class="isr-grid">
-      <div class="card">
-        <div class="card-title">Actual ISR — From Your Portfolio</div>
-        <div class="isr-gauge-container">
-          <div class="isr-gauge">
-            <svg viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="18" />
-              <circle id="isrArc" cx="100" cy="100" r="80" fill="none" stroke="var(--green)" stroke-width="18"
-                stroke-dasharray="0 502.65" stroke-linecap="round"
-                style="transform:rotate(-90deg);transform-origin:center;transition:all 0.6s cubic-bezier(0.4,0,0.2,1);" />
-            </svg>
-            <div class="isr-gauge-center">
-              <div class="isr-score" id="isrActualScore">50%</div>
-              <div class="isr-label-text">Actual ISR</div>
-            </div>
-          </div>
-          <div id="isrBadge" class="isr-status-badge balanced">
-            <div class="isr-status-dot"></div>
-            <span id="isrBadgeText">Balanced Portfolio</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Stability vs Growth Split</div>
-        <div class="isr-details">
-          <div class="isr-split-bar">
-            <div class="isr-split-stable" id="isrBarStable" style="width:50%"><span id="isrBarStableText">50%</span></div>
-            <div class="isr-split-growth" id="isrBarGrowth" style="width:50%"><span id="isrBarGrowthText">50%</span></div>
-          </div>
-          <div class="isr-split-labels">
-            <span>⬛ Stable (G+R+D)</span>
-            <span>Volatile (E) ⬛</span>
-          </div>
-
-          <div class="isr-comparison">
-            <div class="isr-comp-row">
-              <span class="isr-comp-label">Actual ISR</span>
-              <span class="isr-comp-value" id="isrCompActual" style="color:var(--green);">50.0%</span>
-            </div>
-            <div class="isr-comp-row">
-              <span class="isr-comp-label">Target ISR (Age <span id="isrCompAge">50</span>)</span>
-              <span class="isr-comp-value" id="isrCompTarget" style="color:var(--gold);">50.0%</span>
-            </div>
-            <div class="isr-comp-row">
-              <span class="isr-comp-label">Deviation</span>
-              <span class="isr-comp-value" id="isrCompDev">0.0%</span>
-            </div>
-          </div>
-
-          <div class="isr-action balanced" id="isrActionBox">
-            <strong>✅ Balanced Portfolio</strong><br>
-            Your ISR is well-aligned with your age-based target. G+R+D assets provide adequate INVESTMENT SAFETY RATIO while your equity allocation supports long-term growth. Maintain this allocation with periodic rebalancing.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ISR Components -->
-    <div class="card" style="margin-top:20px;">
-      <div class="card-title">ISR Component Breakdown</div>
-      <div id="isrComponentBars" class="bar-chart"></div>
-    </div>
-  </div>
-
-</main>
-
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <div class="footer-dots">
-        <div class="footer-dot" style="background:var(--gold)"></div>
-        <div class="footer-dot" style="background:var(--red)"></div>
-        <div class="footer-dot" style="background:var(--blue)"></div>
-        <div class="footer-dot" style="background:var(--green)"></div>
-      </div>
-      <span style="font-family:'Playfair Display',serif;font-size:14px;color:var(--text-secondary);">GRDE Engine</span>
-    </div>
-    <div class="footer-text">
-      Created by <strong>Shakhith A.M</strong> with the help of AI<br>
-      An Architect's Blueprint for Wealth — The GRDE Framework
-    </div>
-    <div class="footer-disclaimer" id="footerDisclaimer">
-      <strong>⚠️ Disclaimer:</strong> This is an educational tool for portfolio allocation awareness. It does not constitute personalised investment advice. No specific financial recommendations are made. Please consult a qualified and registered financial adviser in your jurisdiction before making investment decisions. Past performance does not guarantee future results.
-    </div>
-  </div>
-</footer>
-
-<script>
-// ===================================================================
-//  GRDE PORTFOLIO ENGINE — Core Logic
-// ===================================================================
-
-// Age-based allocation model
-// Linear interpolation between anchor points
-const ANCHORS = [
-  // age, G,  R,  D,  E
-  [25,   5,  8, 12, 75],
-  [30,   6, 10, 14, 70],
-  [35,   7, 12, 17, 64],
-  [40,   9, 15, 21, 55],
-  [45,  10, 15, 23, 52],
-  [50,  10, 15, 25, 50],
-  [55,  12, 16, 27, 45],
-  [60,  14, 17, 30, 39],
-  [65,  15, 18, 34, 33],
-  [70,  16, 18, 38, 28],
-  [75,  18, 18, 40, 24],
-  [80,  20, 18, 42, 20],
+// ─── GRDE Master Data ───
+const AGE_BANDS = [
+  { range: "25-30", G: 7, R: 15, D: 13, E: 65 },
+  { range: "30-35", G: 8, R: 15, D: 17, E: 60 },
+  { range: "35-40", G: 8, R: 15, D: 20, E: 57 },
+  { range: "40-45", G: 9, R: 15, D: 21, E: 55 },
+  { range: "45-50", G: 10, R: 15, D: 25, E: 50 },
+  { range: "50-55", G: 10, R: 15, D: 25, E: 50 },
+  { range: "55-60", G: 11, R: 14, D: 35, E: 40 },
+  { range: "60-65", G: 12, R: 13, D: 45, E: 30 },
+  { range: "65-70", G: 13, R: 12, D: 50, E: 25 },
+  { range: "70-75", G: 14, R: 11, D: 52, E: 23 },
+  { range: "75-80", G: 15, R: 10, D: 53, E: 22 },
 ];
 
-function getAllocation(age) {
-  age = Math.max(25, Math.min(80, age));
-  // Find bounding anchors
-  let lo = ANCHORS[0], hi = ANCHORS[ANCHORS.length - 1];
-  for (let i = 0; i < ANCHORS.length - 1; i++) {
-    if (age >= ANCHORS[i][0] && age <= ANCHORS[i + 1][0]) {
-      lo = ANCHORS[i]; hi = ANCHORS[i + 1]; break;
-    }
-  }
-  if (lo[0] === hi[0]) return { G: lo[1], R: lo[2], D: lo[3], E: lo[4] };
-  const t = (age - lo[0]) / (hi[0] - lo[0]);
-  const lerp = (a, b) => Math.round((a + (b - a) * t) * 10) / 10;
-  let g = lerp(lo[1], hi[1]), r = lerp(lo[2], hi[2]), d = lerp(lo[3], hi[3]);
-  let e = 100 - g - r - d;
-  e = Math.round(e * 10) / 10;
-  return { G: g, R: r, D: d, E: e };
-}
+const ASSET_TEMPLATE = [
+  { id: "g1", cat: "G", name: "Gold ETFs", splitPct: 90, finalPct: 0, desc: "Physical gold-backed ETFs" },
+  { id: "g2", cat: "G", name: "Silver ETFs", splitPct: 10, finalPct: 0, desc: "Silver-backed ETFs" },
+  { id: "r1", cat: "R", name: "REITs", splitPct: 60, finalPct: 0, desc: "Office / Retail / Mixed-use REITs" },
+  { id: "r2", cat: "R", name: "InvITs", splitPct: 40, finalPct: 0, desc: "Infrastructure Investment Trusts" },
+  { id: "d1", cat: "D", name: "Liquidity", splitPct: 33.3, finalPct: 0, desc: "Liquid / Ultra-short funds" },
+  { id: "d2", cat: "D", name: "Capital Protection", splitPct: 33.3, finalPct: 0, desc: "FD / POMIS / PPF" },
+  { id: "d3", cat: "D", name: "Income / Duration", splitPct: 33.4, finalPct: 0, desc: "Bonds / Target maturity funds" },
+  { id: "e1", cat: "E", name: "Indian Mutual Funds", splitPct: 32.5, finalPct: 0, desc: "Domestic MFs (65% × 50%)" },
+  { id: "e2", cat: "E", name: "Indian ETFs", splitPct: 32.5, finalPct: 0, desc: "Domestic equity ETFs (65% × 50%)" },
+  { id: "e3", cat: "E", name: "US Equity / ETFs", splitPct: 35, finalPct: 0, desc: "International equity exposure" },
+];
 
-// ===================================================================
-//  STATE
-// ===================================================================
-let currentAge = 50;
-let currentAlloc = getAllocation(50);
-
-// ===================================================================
-//  TABS
-// ===================================================================
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    // Refresh data on tab switch
-    updateAll();
-  });
-});
-
-// ===================================================================
-//  AGE SLIDER
-// ===================================================================
-const ageSlider = document.getElementById('ageSlider');
-const ageDisplay = document.getElementById('ageDisplay');
-
-ageSlider.addEventListener('input', () => {
-  currentAge = parseInt(ageSlider.value);
-  ageDisplay.textContent = currentAge;
-  currentAlloc = getAllocation(currentAge);
-  updateAll();
-});
-
-// ===================================================================
-//  UPDATE FUNCTIONS
-// ===================================================================
-function updateAll() {
-  updateAllocCards();
-  updateDonut();
-  updateBarChart();
-  updateTracker();
-  updateISR();
-}
-
-function updateAllocCards() {
-  const items = [
-    { id: 'G', key: 'G' }, { id: 'R', key: 'R' },
-    { id: 'D', key: 'D' }, { id: 'E', key: 'E' }
-  ];
-  items.forEach(({ id, key }) => {
-    const v = currentAlloc[key];
-    document.getElementById('alloc' + id).textContent = v + '%';
-    document.getElementById('bar' + id).style.width = v + '%';
-  });
-}
-
-function updateDonut() {
-  const circumference = 2 * Math.PI * 75; // ~471.24
-  const order = ['E', 'D', 'R', 'G'];
-  const ids = ['donutE', 'donutD', 'donutR', 'donutG'];
-  let offset = 0;
-  order.forEach((key, i) => {
-    const pct = currentAlloc[key] / 100;
-    const seg = circumference * pct;
-    const el = document.getElementById(ids[i]);
-    el.setAttribute('stroke-dasharray', `${seg} ${circumference - seg}`);
-    el.setAttribute('stroke-dashoffset', `${-offset}`);
-    offset += seg;
-  });
-
-  // Legend
-  const colors = { G: 'var(--gold)', R: 'var(--red)', D: 'var(--blue)', E: 'var(--green)' };
-  const names = { G: 'Gold & Silver', R: 'Real Estate', D: 'Debt', E: 'Equity' };
-  const legend = document.getElementById('pieLegend');
-  legend.innerHTML = ['G', 'R', 'D', 'E'].map(k => `
-    <div class="legend-item">
-      <div class="legend-dot" style="background:${colors[k]}"></div>
-      <span class="legend-label">${names[k]}</span>
-      <span class="legend-value">${currentAlloc[k]}%</span>
-    </div>
-  `).join('');
-  
-  // Update donut center with portfolio total
-  const groups = getPortfolioTotals();
-  const total = groups.G + groups.R + groups.D + groups.E;
-  document.getElementById('donutTotal').textContent = total > 0 ? formatCurrency(total) : formatCurrency(getRegion().sampleTotal);
-}
-
-function updateBarChart() {
-  const items = [
-    { label: 'Gold', key: 'G', color: 'var(--gold)' },
-    { label: 'Real Estate', key: 'R', color: 'var(--red)' },
-    { label: 'Debt', key: 'D', color: 'var(--blue)' },
-    { label: 'Equity', key: 'E', color: 'var(--green)' },
-  ];
-  const chart = document.getElementById('barChart');
-  chart.innerHTML = items.map(({ label, key, color }) => `
-    <div class="bar-row">
-      <div class="bar-label">${label}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${currentAlloc[key]}%;background:${color};">${currentAlloc[key]}%</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ===================================================================
-//  REGION / CURRENCY SYSTEM
-// ===================================================================
-const REGIONS = {
-  IN: {
-    symbol: '₹', code: 'INR', locale: 'en-IN', flag: '🇮🇳',
-    sampleTotal: 1000000,
-    formatLarge: (n) => {
-      if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
-      if (n >= 100000) return '₹' + (n / 100000).toFixed(2) + ' L';
-      return '₹' + n.toLocaleString('en-IN');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs', silverEtf: 'Silver ETFs',
-      reits: 'REITs', invits: 'InvITs',
-      liquid: 'Liquid Funds', fd: 'FD + POMIS', bonds: 'Bonds / NCDs',
-      mf: 'Mutual Funds', localEtf: 'Indian ETFs', intlEtf: 'US / Intl ETFs'
-    },
-    defaults: { goldEtf:90000, silverEtf:10000, reits:90000, invits:60000, liquid:100000, fd:150000, bonds:0, mf:250000, localEtf:200000, intlEtf:50000 }
-  },
-  US: {
-    symbol: '$', code: 'USD', locale: 'en-US', flag: '🇺🇸',
-    sampleTotal: 100000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return '$' + (n / 1000).toFixed(1) + 'K';
-      return '$' + n.toLocaleString('en-US');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (GLD/IAU)', silverEtf: 'Silver ETFs (SLV)',
-      reits: 'REITs (VNQ/SCHH)', invits: 'Real Estate Funds',
-      liquid: 'Money Market Funds', fd: 'CDs / T-Bills', bonds: 'Bond Funds (BND)',
-      mf: 'Index Funds', localEtf: 'US Equity ETFs', intlEtf: 'International ETFs'
-    },
-    defaults: { goldEtf:8000, silverEtf:2000, reits:10000, invits:5000, liquid:12000, fd:13000, bonds:0, mf:25000, localEtf:20000, intlEtf:5000 }
-  },
-  GB: {
-    symbol: '£', code: 'GBP', locale: 'en-GB', flag: '🇬🇧',
-    sampleTotal: 80000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return '£' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return '£' + (n / 1000).toFixed(1) + 'K';
-      return '£' + n.toLocaleString('en-GB');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (SGLN)', silverEtf: 'Silver ETFs (SSLN)',
-      reits: 'REITs (IUKP)', invits: 'Property Funds',
-      liquid: 'Money Market Funds', fd: 'Savings Bonds / ISA', bonds: 'Gilt Funds',
-      mf: 'OEIC / Unit Trusts', localEtf: 'UK Equity ETFs', intlEtf: 'Global ETFs'
-    },
-    defaults: { goldEtf:7000, silverEtf:1000, reits:8000, invits:4000, liquid:10000, fd:10000, bonds:0, mf:20000, localEtf:16000, intlEtf:4000 }
-  },
-  EU: {
-    symbol: '€', code: 'EUR', locale: 'de-DE', flag: '🇪🇺',
-    sampleTotal: 90000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return '€' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return '€' + (n / 1000).toFixed(1) + 'K';
-      return '€' + n.toLocaleString('de-DE');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (EGLN)', silverEtf: 'Silver ETFs',
-      reits: 'REITs / Property ETFs', invits: 'Real Estate Funds',
-      liquid: 'Money Market Funds', fd: 'Term Deposits', bonds: 'Bond Funds / Bunds',
-      mf: 'UCITS Funds', localEtf: 'Euro Equity ETFs', intlEtf: 'Global ETFs'
-    },
-    defaults: { goldEtf:8000, silverEtf:1000, reits:9000, invits:4500, liquid:11000, fd:11500, bonds:0, mf:22000, localEtf:18000, intlEtf:5000 }
-  },
-  AE: {
-    symbol: 'AED', code: 'AED', locale: 'en-AE', flag: '🇦🇪',
-    sampleTotal: 400000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return 'AED ' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return 'AED ' + (n / 1000).toFixed(1) + 'K';
-      return 'AED ' + n.toLocaleString('en-US');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs', silverEtf: 'Silver / Precious Metals',
-      reits: 'REITs', invits: 'Real Estate Funds',
-      liquid: 'Money Market Funds', fd: 'Fixed Deposits', bonds: 'Sukuk / Bonds',
-      mf: 'Mutual Funds', localEtf: 'UAE / GCC ETFs', intlEtf: 'International ETFs'
-    },
-    defaults: { goldEtf:35000, silverEtf:5000, reits:35000, invits:25000, liquid:40000, fd:55000, bonds:0, mf:100000, localEtf:80000, intlEtf:25000 }
-  },
-  SG: {
-    symbol: 'S$', code: 'SGD', locale: 'en-SG', flag: '🇸🇬',
-    sampleTotal: 130000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return 'S$' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return 'S$' + (n / 1000).toFixed(1) + 'K';
-      return 'S$' + n.toLocaleString('en-SG');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (GLD)', silverEtf: 'Silver ETFs',
-      reits: 'S-REITs', invits: 'Real Estate Funds',
-      liquid: 'Money Market Funds', fd: 'Fixed Deposits / SSB', bonds: 'Bond Funds (ABF)',
-      mf: 'Unit Trusts', localEtf: 'STI ETFs', intlEtf: 'Global ETFs'
-    },
-    defaults: { goldEtf:11000, silverEtf:2000, reits:12000, invits:7000, liquid:13000, fd:18000, bonds:0, mf:33000, localEtf:27000, intlEtf:7000 }
-  },
-  AU: {
-    symbol: 'A$', code: 'AUD', locale: 'en-AU', flag: '🇦🇺',
-    sampleTotal: 150000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return 'A$' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return 'A$' + (n / 1000).toFixed(1) + 'K';
-      return 'A$' + n.toLocaleString('en-AU');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (GOLD)', silverEtf: 'Silver / Precious Metals',
-      reits: 'A-REITs (VAP)', invits: 'Property Funds',
-      liquid: 'Cash / Money Market', fd: 'Term Deposits', bonds: 'Bond ETFs (VGB)',
-      mf: 'Managed Funds', localEtf: 'ASX ETFs (VAS)', intlEtf: 'International ETFs'
-    },
-    defaults: { goldEtf:13000, silverEtf:2000, reits:14000, invits:7500, liquid:15000, fd:20000, bonds:0, mf:38000, localEtf:32000, intlEtf:8500 }
-  },
-  JP: {
-    symbol: '¥', code: 'JPY', locale: 'ja-JP', flag: '🇯🇵',
-    sampleTotal: 15000000,
-    formatLarge: (n) => {
-      if (n >= 100000000) return '¥' + (n / 100000000).toFixed(2) + '億';
-      if (n >= 10000) return '¥' + (n / 10000).toFixed(0) + '万';
-      return '¥' + n.toLocaleString('ja-JP');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (1326)', silverEtf: 'Silver / Precious Metals',
-      reits: 'J-REITs (1343)', invits: 'Real Estate Funds',
-      liquid: 'MRF / Money Reserve', fd: 'Term Deposits / JGB', bonds: 'Bond Funds',
-      mf: 'Toushin (投信)', localEtf: 'TOPIX / Nikkei ETFs', intlEtf: 'Global ETFs'
-    },
-    defaults: { goldEtf:1300000, silverEtf:200000, reits:1400000, invits:700000, liquid:1500000, fd:2000000, bonds:0, mf:3800000, localEtf:3200000, intlEtf:900000 }
-  },
-  CA: {
-    symbol: 'C$', code: 'CAD', locale: 'en-CA', flag: '🇨🇦',
-    sampleTotal: 140000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return 'C$' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return 'C$' + (n / 1000).toFixed(1) + 'K';
-      return 'C$' + n.toLocaleString('en-CA');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs (CGL)', silverEtf: 'Silver ETFs (SVR)',
-      reits: 'REITs (XRE/VRE)', invits: 'Real Estate Funds',
-      liquid: 'HISA / Money Market', fd: 'GICs', bonds: 'Bond ETFs (XBB)',
-      mf: 'Mutual Funds', localEtf: 'TSX ETFs (XIU)', intlEtf: 'International ETFs'
-    },
-    defaults: { goldEtf:12000, silverEtf:2000, reits:13000, invits:7000, liquid:14000, fd:19000, bonds:0, mf:36000, localEtf:30000, intlEtf:7000 }
-  },
-  MY: {
-    symbol: 'RM', code: 'MYR', locale: 'ms-MY', flag: '🇲🇾',
-    sampleTotal: 450000,
-    formatLarge: (n) => {
-      if (n >= 1000000) return 'RM' + (n / 1000000).toFixed(2) + 'M';
-      if (n >= 1000) return 'RM' + (n / 1000).toFixed(1) + 'K';
-      return 'RM' + n.toLocaleString('en-MY');
-    },
-    labels: {
-      goldEtf: 'Gold ETFs / TH Gold', silverEtf: 'Silver / Precious Metals',
-      reits: 'M-REITs', invits: 'Property Trust Funds',
-      liquid: 'Money Market Funds', fd: 'Fixed Deposits', bonds: 'Sukuk / Bond Funds',
-      mf: 'Unit Trust Funds', localEtf: 'KLCI ETFs', intlEtf: 'Global ETFs'
-    },
-    defaults: { goldEtf:40000, silverEtf:5000, reits:40000, invits:25000, liquid:45000, fd:60000, bonds:0, mf:115000, localEtf:95000, intlEtf:25000 }
-  }
+const CAT_META = {
+  G: { label: "GOLD & SILVER", color: "#eab308", tag: "The Hedge" },
+  R: { label: "REAL ESTATE", color: "#ef4444", tag: "The Rent" },
+  D: { label: "DEBT", color: "#3b82f6", tag: "The Defense" },
+  E: { label: "EQUITY", color: "#22c55e", tag: "The Engine" },
 };
 
-let currentRegion = 'IN';
+const CATS = ["G", "R", "D", "E"];
 
-function getRegion() { return REGIONS[currentRegion]; }
-
-function formatCurrency(n) { return getRegion().formatLarge(n); }
-
-function applyRegion(regionCode) {
-  currentRegion = regionCode;
-  const r = getRegion();
-  
-  // Update input labels
-  const labelMap = {
-    'inp-goldEtf': r.labels.goldEtf, 'inp-silverEtf': r.labels.silverEtf,
-    'inp-reits': r.labels.reits, 'inp-invits': r.labels.invits,
-    'inp-liquid': r.labels.liquid, 'inp-fd': r.labels.fd, 'inp-bonds': r.labels.bonds,
-    'inp-mf': r.labels.mf, 'inp-inEtf': r.labels.localEtf, 'inp-usEtf': r.labels.intlEtf
-  };
-  Object.entries(labelMap).forEach(([id, label]) => {
-    const inp = document.getElementById(id);
-    if (inp) {
-      const labelEl = inp.closest('.input-group').querySelector('.input-label');
-      const dot = labelEl.querySelector('.input-dot');
-      const dotHTML = dot ? dot.outerHTML : '';
-      labelEl.innerHTML = dotHTML + ' ' + label;
-    }
-  });
-  
-  // Update placeholders
-  document.querySelectorAll('.portfolio-input').forEach(inp => {
-    inp.placeholder = r.symbol + ' 0';
-  });
-  
-  // Update default values
-  const defaultMap = {
-    'inp-goldEtf': r.defaults.goldEtf, 'inp-silverEtf': r.defaults.silverEtf,
-    'inp-reits': r.defaults.reits, 'inp-invits': r.defaults.invits,
-    'inp-liquid': r.defaults.liquid, 'inp-fd': r.defaults.fd, 'inp-bonds': r.defaults.bonds,
-    'inp-mf': r.defaults.mf, 'inp-inEtf': r.defaults.localEtf, 'inp-usEtf': r.defaults.intlEtf
-  };
-  Object.entries(defaultMap).forEach(([id, val]) => {
-    const inp = document.getElementById(id);
-    if (inp) inp.value = val > 0 ? val : '';
-  });
-  
-  // Update variance table header
-  document.getElementById('thActualAmt').textContent = 'Actual ' + r.symbol;
-  
-  // Update donut center
-  const total = r.sampleTotal;
-  document.getElementById('donutTotal').textContent = r.formatLarge(total);
-  
-  // Refresh everything
-  updateAll();
+function getAllocation(age) {
+  if (age < 25) return AGE_BANDS[0];
+  if (age >= 80) return AGE_BANDS[AGE_BANDS.length - 1];
+  const idx = Math.min(Math.floor((age - 25) / 5), AGE_BANDS.length - 1);
+  return AGE_BANDS[idx];
 }
 
-// Region selector handler
-document.getElementById('regionSelect').addEventListener('change', (e) => {
-  applyRegion(e.target.value);
-});
-
-// ===================================================================
-//  PORTFOLIO TRACKER
-// ===================================================================
-function parseVal(el) {
-  return parseFloat(el.value.replace(/[^0-9.]/g, '')) || 0;
+function getBand(age) {
+  if (age < 25) return "25-30";
+  if (age >= 80) return "75-80";
+  const lo = Math.floor(age / 5) * 5;
+  return `${lo}-${lo + 5}`;
 }
 
-function getPortfolioTotals() {
-  const groups = { G: 0, R: 0, D: 0, E: 0 };
-  document.querySelectorAll('.portfolio-input').forEach(inp => {
-    groups[inp.dataset.group] += parseVal(inp);
-  });
-  return groups;
+function fmtINR(val) {
+  if (!val && val !== 0) return "—";
+  const n = Math.abs(Number(val));
+  // Indian number formatting
+  if (n >= 10000000) return `${(val < 0 ? "-" : "")}₹${(n / 10000000).toFixed(2)} Cr`;
+  if (n >= 100000) return `${(val < 0 ? "-" : "")}₹${(n / 100000).toFixed(2)} L`;
+  return `${(val < 0 ? "-" : "")}₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 }
 
-function updateTracker() {
-  const groups = getPortfolioTotals();
-  const total = groups.G + groups.R + groups.D + groups.E;
+// ─── Components ───
 
-  document.getElementById('totalG').textContent = formatCurrency(groups.G);
-  document.getElementById('totalR').textContent = formatCurrency(groups.R);
-  document.getElementById('totalD').textContent = formatCurrency(groups.D);
-  document.getElementById('totalE').textContent = formatCurrency(groups.E);
-  document.getElementById('portfolioTotal').textContent = formatCurrency(total);
+function LogoDots({ size = 8 }) {
+  const colors = ["#ef4444", "#eab308", "#22c55e", "#3b82f6"];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: size * 0.25, width: size * 2.5, height: size * 2.5 }}>
+      {colors.map((c, i) => (
+        <div key={i} style={{ width: size, height: size, borderRadius: "50%", background: c }} />
+      ))}
+    </div>
+  );
+}
 
-  // Variance table
-  const body = document.getElementById('varianceBody');
-  const items = [
-    { name: 'Gold & Silver', key: 'G', color: 'var(--gold)' },
-    { name: 'Real Estate', key: 'R', color: 'var(--red)' },
-    { name: 'Debt', key: 'D', color: 'var(--blue)' },
-    { name: 'Equity', key: 'E', color: 'var(--green)' },
+function Header() {
+  return (
+    <header style={{
+      background: "#0c1425", padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between",
+      borderBottom: "1px solid #1e293b"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <LogoDots size={9} />
+        <div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
+            Portfolio: GRDE Engine
+          </div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 300, fontSize: 8, color: "#64748b", letterSpacing: 2.5, textTransform: "uppercase" }}>
+            An Architect's Blueprint for Wealth
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{
+          background: "#1e293b", border: "1px solid #334155", borderRadius: 14, padding: "5px 14px",
+          fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#f1f5f9"
+        }}>
+          IN India (₹) ▾
+        </div>
+        <div style={{
+          background: "#7c2d12", borderRadius: 12, padding: "4px 12px",
+          fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 10, color: "#fb923c"
+        }}>
+          v2.1
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function TabBar({ active, onChange, isUnlocked }) {
+  const tabs = [
+    { id: "allocator", label: "Allocator", locked: false },
+    { id: "tracker", label: "Portfolio Tracker", locked: !isUnlocked },
+    { id: "isr", label: "ISR Analysis", locked: !isUnlocked },
   ];
-  body.innerHTML = items.map(({ name, key, color }) => {
-    const actual = total > 0 ? (groups[key] / total * 100) : 0;
-    const target = currentAlloc[key];
-    const variance = actual - target;
-    const cls = Math.abs(variance) < 1 ? 'variance-neutral' : (variance > 0 ? 'variance-positive' : 'variance-negative');
-    const sign = variance > 0 ? '+' : '';
-    return `<tr>
-      <td style="color:${color};font-weight:600;">${name}</td>
-      <td>${formatCurrency(groups[key])}</td>
-      <td>${actual.toFixed(1)}%</td>
-      <td>${target}%</td>
-      <td class="${cls}">${sign}${variance.toFixed(1)}%</td>
-    </tr>`;
-  }).join('');
+  return (
+    <div style={{
+      display: "inline-flex", background: "#1a2744", borderRadius: 16, padding: 3, margin: "20px 0 0 0"
+    }}>
+      {tabs.map(t => (
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          style={{
+            background: active === t.id ? "#3b82f6" : "transparent",
+            color: active === t.id ? "#fff" : "#64748b",
+            border: "none", borderRadius: 13, padding: "7px 18px", cursor: "pointer",
+            fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12,
+            display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s"
+          }}
+        >
+          {t.label}
+          {t.locked && <span style={{ fontSize: 10 }}>🔒</span>}
+        </button>
+      ))}
+    </div>
+  );
 }
 
-// Format inputs on change
-document.querySelectorAll('.portfolio-input').forEach(inp => {
-  inp.addEventListener('input', () => updateAll());
-  inp.addEventListener('focus', function() {
-    this.value = this.value.replace(/[^0-9]/g, '');
-  });
-  inp.addEventListener('blur', function() {
-    const v = parseFloat(this.value.replace(/[^0-9.]/g, '')) || 0;
-    this.value = v > 0 ? v : '';
-  });
-});
-
-// ===================================================================
-//  ISR — FULLY INTERACTIVE
-// ===================================================================
-function updateISR() {
-  const groups = getPortfolioTotals();
-  const total = groups.G + groups.R + groups.D + groups.E;
-  
-  // Actual ISR from portfolio
-  const stableAmt = groups.G + groups.R + groups.D;
-  const actualISR = total > 0 ? (stableAmt / total * 100) : 0;
-  
-  // Target ISR from age
-  const targetISR = currentAlloc.G + currentAlloc.R + currentAlloc.D;
-  const deviation = actualISR - targetISR;
-
-  // Update gauge arc
-  const circumference = 2 * Math.PI * 80; // ~502.65
-  const arcLength = (actualISR / 100) * circumference;
-  const isrArc = document.getElementById('isrArc');
-  isrArc.setAttribute('stroke-dasharray', `${arcLength} ${circumference - arcLength}`);
-
-  // Color the arc based on status
-  const status = getISRStatus(actualISR);
-  const statusColors = {
-    aggressive: '#E74C3C', moderate: 'var(--gold)',
-    balanced: '#2ECC71', conservative: '#3498DB'
-  };
-  isrArc.setAttribute('stroke', statusColors[status]);
-
-  // Score
-  document.getElementById('isrActualScore').textContent = actualISR.toFixed(1) + '%';
-  document.getElementById('isrActualScore').style.color = statusColors[status];
-
-  // Badge
-  const badge = document.getElementById('isrBadge');
-  badge.className = 'isr-status-badge ' + status;
-  const statusLabels = {
-    aggressive: '⚠ Aggressive — High Risk',
-    moderate: '◐ Moderate Risk',
-    balanced: '✓ Balanced Portfolio',
-    conservative: '◈ Conservative — Very Stable'
-  };
-  document.getElementById('isrBadgeText').textContent = statusLabels[status];
-
-  // Split bar
-  document.getElementById('isrBarStable').style.width = actualISR + '%';
-  document.getElementById('isrBarGrowth').style.width = (100 - actualISR) + '%';
-  document.getElementById('isrBarStableText').textContent = actualISR.toFixed(0) + '%';
-  document.getElementById('isrBarGrowthText').textContent = (100 - actualISR).toFixed(0) + '%';
-
-  // Comparison table
-  document.getElementById('isrCompActual').textContent = actualISR.toFixed(1) + '%';
-  document.getElementById('isrCompActual').style.color = statusColors[status];
-  document.getElementById('isrCompTarget').textContent = targetISR.toFixed(1) + '%';
-  document.getElementById('isrCompAge').textContent = currentAge;
-  
-  const devEl = document.getElementById('isrCompDev');
-  const devSign = deviation > 0 ? '+' : '';
-  devEl.textContent = devSign + deviation.toFixed(1) + '%';
-  devEl.style.color = Math.abs(deviation) < 3 ? '#2ECC71' : (deviation > 0 ? '#3498DB' : '#E74C3C');
-
-  // Action plan
-  const actionBox = document.getElementById('isrActionBox');
-  actionBox.className = 'isr-action ' + status;
-  actionBox.innerHTML = getActionPlan(status, actualISR, targetISR, deviation);
-
-  // Component bars
-  const compChart = document.getElementById('isrComponentBars');
-  const compData = [
-    { label: 'Gold (G)', pct: total > 0 ? (groups.G / total * 100) : 0, color: 'var(--gold)', type: 'stable' },
-    { label: 'Real Estate (R)', pct: total > 0 ? (groups.R / total * 100) : 0, color: 'var(--red)', type: 'stable' },
-    { label: 'Debt (D)', pct: total > 0 ? (groups.D / total * 100) : 0, color: 'var(--blue)', type: 'stable' },
-    { label: 'Equity (E)', pct: total > 0 ? (groups.E / total * 100) : 0, color: 'var(--green)', type: 'growth' },
-  ];
-  compChart.innerHTML = compData.map(({ label, pct, color, type }) => `
-    <div class="bar-row">
-      <div class="bar-label">${label}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${pct}%;background:${color};">${pct.toFixed(1)}%</div>
+function CategoryCard({ cat, pct }) {
+  const m = CAT_META[cat];
+  return (
+    <div style={{
+      background: "#162032", border: "1px solid #334155", borderRadius: 10, padding: "16px 8px 12px",
+      textAlign: "center", flex: 1, minWidth: 100, transition: "transform 0.2s, box-shadow 0.2s",
+    }}
+    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 4px 20px ${m.color}22`; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+    >
+      <div style={{ fontFamily: "'Lora', serif", fontSize: 28, color: m.color, fontWeight: 600 }}>{cat}</div>
+      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", letterSpacing: 1, marginTop: 2 }}>{m.label}</div>
+      <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: m.color, marginTop: 8, fontWeight: 500 }}>{pct}%</div>
+      <div style={{ width: "60%", height: 3, background: "#2d3a4f", borderRadius: 2, margin: "8px auto 0", overflow: "hidden" }}>
+        <div style={{ width: `${(pct / 55) * 100}%`, height: "100%", background: m.color, borderRadius: 2 }} />
       </div>
     </div>
-  `).join('') + `
-    <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--text-muted);">
-      <span>◼ Stable Components: <strong style="color:var(--text-secondary)">${actualISR.toFixed(1)}%</strong></span>
-      <span>◼ Growth Components: <strong style="color:var(--text-secondary)">${(100 - actualISR).toFixed(1)}%</strong></span>
+  );
+}
+
+function DonutChart({ data, size = 180 }) {
+  const cx = size / 2, cy = size / 2, r = size * 0.42, inner = size * 0.26;
+  let cumulative = 0;
+  const paths = data.map(({ pct, color }) => {
+    const startAngle = (cumulative / 100) * 360 - 90;
+    cumulative += pct;
+    const endAngle = (cumulative / 100) * 360 - 90;
+    const start = { x: cx + r * Math.cos((startAngle * Math.PI) / 180), y: cy + r * Math.sin((startAngle * Math.PI) / 180) };
+    const end = { x: cx + r * Math.cos((endAngle * Math.PI) / 180), y: cy + r * Math.sin((endAngle * Math.PI) / 180) };
+    const largeArc = pct > 50 ? 1 : 0;
+    const iStart = { x: cx + inner * Math.cos((endAngle * Math.PI) / 180), y: cy + inner * Math.sin((endAngle * Math.PI) / 180) };
+    const iEnd = { x: cx + inner * Math.cos((startAngle * Math.PI) / 180), y: cy + inner * Math.sin((startAngle * Math.PI) / 180) };
+    const d = `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y} L ${iStart.x} ${iStart.y} A ${inner} ${inner} 0 ${largeArc} 0 ${iEnd.x} ${iEnd.y} Z`;
+    return <path key={color} d={d} fill={color} stroke="#1e293b" strokeWidth={2} />;
+  });
+  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>{paths}</svg>;
+}
+
+function GaugeChart({ value, size = 200 }) {
+  const cx = size / 2, cy = size * 0.55, r = size * 0.38;
+  const segments = [
+    { start: 180, end: 144, color: "#ef4444" }, { start: 144, end: 126, color: "#f97316" },
+    { start: 126, end: 90, color: "#eab308" }, { start: 90, end: 54, color: "#84cc16" },
+    { start: 54, end: 0, color: "#22c55e" },
+  ];
+  const needleAngle = 180 - (value / 100) * 180;
+  const needleRad = (needleAngle * Math.PI) / 180;
+  const nx = cx + (r - 12) * Math.cos(needleRad);
+  const ny = cy - (r - 12) * Math.sin(needleRad);
+
+  return (
+    <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.65}`}>
+      {segments.map((s, i) => {
+        const s1 = ((180 - s.start) * Math.PI) / 180, s2 = ((180 - s.end) * Math.PI) / 180;
+        const x1 = cx + r * Math.cos(s1), y1 = cy - r * Math.sin(s1);
+        const x2 = cx + r * Math.cos(s2), y2 = cy - r * Math.sin(s2);
+        const la = s.start - s.end > 180 ? 1 : 0;
+        return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2}`} fill="none" stroke={s.color} strokeWidth={10} strokeLinecap="round" />;
+      })}
+      <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#f1f5f9" strokeWidth={2.5} strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r={5} fill="#f1f5f9" />
+    </svg>
+  );
+}
+
+function HorizontalBar({ label, pct, targetPct, color, maxPct = 55 }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+      <div style={{ width: 80, fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>{label}</div>
+      <div style={{ flex: 1, position: "relative", height: 22 }}>
+        <div style={{ position: "absolute", inset: 0, background: "#1e293b", borderRadius: 4 }} />
+        <div style={{
+          position: "absolute", top: 0, left: 0, bottom: 0, width: `${(pct / maxPct) * 100}%`,
+          background: color, borderRadius: 4, display: "flex", alignItems: "center", paddingLeft: 8, minWidth: 32
+        }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 9, color: "#fff" }}>{pct.toFixed(1)}%</span>
+        </div>
+        {targetPct && (
+          <div style={{
+            position: "absolute", top: -4, bottom: -4, left: `${(targetPct / maxPct) * 100}%`,
+            width: 1, borderLeft: "2px dashed rgba(255,255,255,0.3)"
+          }} />
+        )}
+      </div>
     </div>
-  `;
+  );
 }
 
-function getISRStatus(isr) {
-  if (isr < 40) return 'aggressive';
-  if (isr < 50) return 'moderate';
-  if (isr <= 60) return 'balanced';
-  return 'conservative';
-}
+// ─── LOCK OVERLAY ───
+function LockOverlay({ onUnlock }) {
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [processing, setProcessing] = useState(false);
 
-function getActionPlan(status, actual, target, dev) {
   const plans = {
-    aggressive: `
-      <strong>⚠️ Aggressive Allocation — Action Required</strong><br><br>
-      Your ISR of <strong>${actual.toFixed(1)}%</strong> is below the 40% threshold, meaning over 60% of your portfolio is in volatile equity. 
-      While this maximises growth potential, it exposes you to significant short-term drawdowns.<br><br>
-      <strong>Suggested Actions:</strong> Increase allocation to Debt instruments (liquid funds, bonds) and consider adding Gold or REITs to bring your ISR closer to the ${target.toFixed(0)}% target for age ${currentAge}.
-    `,
-    moderate: `
-      <strong>◐ Moderate Risk — Fine-Tuning Recommended</strong><br><br>
-      Your ISR of <strong>${actual.toFixed(1)}%</strong> is approaching the balanced zone but still below 50%. 
-      Your equity tilt supports growth, but a small shift toward stable assets would improve resilience.<br><br>
-      <strong>Suggested Actions:</strong> A modest rebalance — shift ${Math.abs(dev).toFixed(0)}-${(Math.abs(dev)+5).toFixed(0)}% from equity toward debt or gold — would align you with the ${target.toFixed(0)}% target for age ${currentAge}.
-    `,
-    balanced: `
-      <strong>✅ Balanced Portfolio — Well Aligned</strong><br><br>
-      Your ISR of <strong>${actual.toFixed(1)}%</strong> sits in the ideal 50-60% range. Your stable assets (G+R+D) provide reliable income and downside protection, while equity drives long-term growth.<br><br>
-      <strong>Recommendation:</strong> Maintain this allocation with periodic rebalancing. You're ${Math.abs(dev) < 3 ? 'right on target' : dev > 0 ? 'slightly conservative — consider if you want more growth exposure' : 'slightly growth-tilted — consider if you need more stability'} for age ${currentAge}.
-    `,
-    conservative: `
-      <strong>◈ Conservative Allocation — Stability Prioritised</strong><br><br>
-      Your ISR of <strong>${actual.toFixed(1)}%</strong> exceeds 60%, heavily favouring income stability. 
-      While this minimises volatility, it may limit long-term capital appreciation, especially if you have a longer investment horizon.<br><br>
-      <strong>Suggested Actions:</strong> If your timeline permits, gradually increasing equity by ${Math.abs(dev).toFixed(0)}-${(Math.abs(dev)+5).toFixed(0)}% could improve returns while maintaining adequate safety for age ${currentAge}.
-    `
+    monthly: { label: "₹299/mo", amount: 29900, desc: "Monthly • Cancel anytime", period: "monthly" },
+    annual: { label: "₹2,499/yr", amount: 249900, desc: "Annual • Save ₹1,089/yr", period: "annual" },
   };
-  return plans[status];
-}
 
-// ===================================================================
-//  INIT
-// ===================================================================
-updateAll();
+  const handleRazorpayCheckout = () => {
+    const plan = plans[selectedPlan];
+    setProcessing(true);
 
-// ===================================================================
-//  PWA: Service Worker Registration
-// ===================================================================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.log('SW registration failed:', err));
-  });
-}
+    // ─── RAZORPAY CHECKOUT ───
+    // Replace 'rzp_test_XXXXXXXXXXXX' with your actual Razorpay Key ID
+    // For testing: use Razorpay Test Mode key from Dashboard → Settings → API Keys
+    // For production: use Live Mode key
 
-// ===================================================================
-//  PWA: Install Prompt
-// ===================================================================
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallBanner();
-});
+    const options = {
+      key: "rzp_test_XXXXXXXXXXXX",  // ← YOUR RAZORPAY KEY ID HERE
+      amount: plan.amount,  // Amount in paise (29900 = ₹299)
+      currency: "INR",
+      name: "GRDE Engine",
+      description: selectedPlan === "monthly" ? "GRDE Engine — Monthly Subscription" : "GRDE Engine — Annual Subscription (Save ₹1,089)",
+      image: "",  // Optional: your logo URL
+      // order_id: "order_XXXXX",  // ← In production: create order via backend API first
+      handler: function (response) {
+        // Payment successful!
+        // response.razorpay_payment_id — save this
+        // response.razorpay_order_id — if using orders
+        // response.razorpay_signature — verify on backend
 
-function showInstallBanner() {
-  if (document.getElementById('installBanner')) return;
-  const banner = document.createElement('div');
-  banner.id = 'installBanner';
-  banner.style.cssText = `
-    position:fixed;bottom:0;left:0;right:0;z-index:9999;
-    background:var(--bg-card);border-top:1px solid var(--border);
-    padding:16px 24px;display:flex;align-items:center;gap:14px;
-    backdrop-filter:blur(20px);animation:slideUp 0.4s ease;
-  `;
-  banner.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:28px;height:28px;flex-shrink:0;">
-      <div style="width:12px;height:12px;border-radius:50%;background:var(--gold)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;background:var(--red)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;background:var(--blue)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;background:var(--green)"></div>
-    </div>
-    <div style="flex:1;">
-      <div style="font-size:14px;font-weight:600;color:var(--text-primary);">Install GRDE Engine</div>
-      <div style="font-size:12px;color:var(--text-secondary);">Add to home screen for quick access</div>
-    </div>
-    <button id="installBtn" style="
-      padding:8px 20px;border-radius:8px;border:none;cursor:pointer;
-      background:var(--gold);color:#000;font-weight:600;font-size:13px;
-      font-family:inherit;
-    ">Install</button>
-    <button id="dismissBtn" style="
-      padding:8px 12px;border:none;cursor:pointer;background:transparent;
-      color:var(--text-muted);font-size:18px;font-family:inherit;
-    ">✕</button>
-  `;
-  document.body.appendChild(banner);
-  
-  document.getElementById('installBtn').addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      banner.remove();
+        console.log("Payment successful:", response.razorpay_payment_id);
+
+        // In production: verify payment on your backend before unlocking
+        // For now: unlock directly
+        setProcessing(false);
+        onUnlock();
+      },
+      prefill: {
+        name: "",
+        email: "",
+        contact: "",
+      },
+      notes: {
+        plan: selectedPlan,
+        product: "grde_engine_v2.1",
+      },
+      theme: {
+        color: "#3b82f6",
+      },
+      modal: {
+        ondismiss: function () {
+          setProcessing(false);
+        },
+      },
+    };
+
+    // Check if Razorpay script is loaded
+    if (typeof window !== "undefined" && window.Razorpay) {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      // Razorpay script not loaded — fallback
+      alert(
+        "Razorpay checkout loading...\n\n" +
+        "To enable payments:\n" +
+        "1. Add this script to your HTML <head>:\n" +
+        '   <script src="https://checkout.razorpay.com/v1/checkout.js"><\/script>\n\n' +
+        "2. Replace 'rzp_test_XXXXXXXXXXXX' in the code with your Razorpay Key ID\n\n" +
+        "Simulating success for testing..."
+      );
+      setProcessing(false);
+      onUnlock();
     }
-  });
-  document.getElementById('dismissBtn').addEventListener('click', () => banner.remove());
+  };
+
+  return (
+    <div style={{
+      position: "absolute", inset: 0, zIndex: 50, display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", backdropFilter: "blur(8px)", background: "rgba(15,23,42,0.85)", borderRadius: 12
+    }}>
+      <div style={{
+        background: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "36px 44px",
+        textAlign: "center", maxWidth: 420, boxShadow: "0 20px 60px rgba(0,0,0,0.5)"
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+        <h3 style={{ fontFamily: "'Lora', serif", fontSize: 22, color: "#f1f5f9", margin: "0 0 8px" }}>
+          Unlock Full Access
+        </h3>
+        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: "0 0 20px" }}>
+          Enter your actual holdings, track variances against GRDE targets, and generate professional PDF reports to discuss with your financial advisor.
+        </p>
+        <div style={{
+          background: "#0f172a", borderRadius: 10, padding: 16, marginBottom: 20, border: "1px solid #2d3a4f"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-around" }}>
+            {[
+              { icon: "📊", label: "Full Tracker" },
+              { icon: "📄", label: "PDF Reports" },
+              { icon: "🔄", label: "Rebalancing" },
+              { icon: "📈", label: "ISR Analysis" },
+            ].map(f => (
+              <div key={f.label} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 20 }}>{f.icon}</div>
+                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b", marginTop: 4 }}>{f.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {!showPayment ? (
+          <div>
+            <button
+              onClick={() => setShowPayment(true)}
+              style={{
+                background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#fff", border: "none",
+                borderRadius: 10, padding: "12px 32px", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Poppins', sans-serif", width: "100%", transition: "transform 0.15s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            >
+              Unlock for ₹299/month
+            </button>
+            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", marginTop: 8 }}>
+              or ₹2,499/year (save ₹1,089) • Cancel anytime
+            </div>
+          </div>
+        ) : (
+          <div>
+            {/* Plan Selection */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              {Object.entries(plans).map(([key, plan]) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedPlan(key)}
+                  style={{
+                    flex: 1, background: selectedPlan === key ? "#0f172a" : "#1e293b",
+                    border: selectedPlan === key ? "2px solid #3b82f6" : "1px solid #334155",
+                    borderRadius: 10, padding: "12px 10px", cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 16, color: selectedPlan === key ? "#3b82f6" : "#94a3b8" }}>
+                    {plan.label}
+                  </div>
+                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>
+                    {plan.desc}
+                  </div>
+                  {key === "annual" && (
+                    <div style={{
+                      fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#22c55e", marginTop: 4,
+                      background: "#22c55e15", padding: "2px 8px", borderRadius: 4, display: "inline-block"
+                    }}>
+                      BEST VALUE — Save ₹1,089/yr
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Pay Button */}
+            <button
+              onClick={handleRazorpayCheckout}
+              disabled={processing}
+              style={{
+                background: processing ? "#334155" : "linear-gradient(135deg, #22c55e, #16a34a)",
+                color: "#fff", border: "none", borderRadius: 10,
+                padding: "12px 24px", fontSize: 13, fontWeight: 600,
+                cursor: processing ? "wait" : "pointer",
+                fontFamily: "'Poppins', sans-serif", width: "100%",
+                transition: "transform 0.15s",
+                boxShadow: processing ? "none" : "0 4px 15px rgba(34,197,94,0.3)"
+              }}
+            >
+              {processing ? "Processing..." : `Pay ${plans[selectedPlan].label} — Proceed to Checkout`}
+            </button>
+
+            {/* Security note */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 10 }}>
+              <span style={{ fontSize: 10 }}>🔒</span>
+              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b" }}>
+                Secured by Razorpay • UPI, Cards, Net Banking accepted
+              </span>
+            </div>
+
+            <button
+              onClick={() => setShowPayment(false)}
+              style={{
+                background: "transparent", color: "#64748b", border: "none",
+                padding: "8px", fontSize: 11, cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginTop: 6
+              }}
+            >
+              ← Back
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-// Add slideUp animation
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`;
-document.head.appendChild(styleSheet);
-</script>
+
+// ─── TAB: ALLOCATOR ───
+function AllocatorTab() {
+  const [age, setAge] = useState(50);
+  const alloc = getAllocation(age);
+  const band = getBand(age);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
+          Age-Based Risk Engine
+        </div>
+        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
+          Target Allocation
+        </h2>
+        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", lineHeight: 1.5, margin: 0 }}>
+          Adjust your age to see how the GRDE framework adapts. Younger investors tilt toward equity for growth; older investors shift toward stability assets for peace of mind.
+        </p>
+      </div>
+
+      {/* Age Slider Card */}
+      <div style={{
+        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "24px 28px", margin: "18px 0"
+      }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 20 }}>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: 42, color: "#f1f5f9", fontWeight: 600 }}>{age}</span>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: "#94a3b8" }}>years old</span>
+          <span style={{
+            fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#3b82f6", background: "#1e3a5f",
+            padding: "3px 10px", borderRadius: 8, marginLeft: 10
+          }}>Band: {band}</span>
+        </div>
+        <div style={{ position: "relative", margin: "0 0 10px" }}>
+          <div style={{
+            position: "absolute", top: 6, left: 0, right: 0, height: 6, borderRadius: 3,
+            background: "linear-gradient(to right, #22c55e 0%, #22c55e 45%, #eab308 55%, #eab308 70%, #ef4444 85%, #ef4444 100%)"
+          }} />
+          <input
+            type="range" min={25} max={80} value={age}
+            onChange={e => setAge(Number(e.target.value))}
+            style={{
+              width: "100%", position: "relative", zIndex: 2, opacity: 0, height: 20, cursor: "pointer"
+            }}
+          />
+          <div style={{
+            position: "absolute", top: 1, width: 16, height: 16, borderRadius: "50%", background: "#fff",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.3)", border: "2px solid #94a3b8",
+            left: `${((age - 25) / (80 - 25)) * 100}%`, transform: "translateX(-50%)", pointerEvents: "none", zIndex: 3
+          }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>25 — Higher Growth</span>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>80 — Higher Stability</span>
+        </div>
+
+        {/* Category Cards */}
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          {CATS.map(cat => <CategoryCard key={cat} cat={cat} pct={alloc[cat]} />)}
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div style={{ display: "flex", gap: 14 }}>
+        {/* Donut */}
+        <div style={{
+          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 20
+        }}>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9", marginBottom: 14 }}>
+            ALLOCATION BREAKDOWN
+          </div>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <DonutChart data={CATS.map(cat => ({ pct: alloc[cat], color: CAT_META[cat].color }))} size={170} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
+            {CATS.map(cat => (
+              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT_META[cat].color }} />
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#94a3b8" }}>
+                  {CAT_META[cat].label} {alloc[cat]}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Horizontal bars */}
+        <div style={{
+          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 20
+        }}>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9", marginBottom: 14 }}>
+            COMPONENT COMPARISON
+          </div>
+          {CATS.map(cat => (
+            <HorizontalBar key={cat} label={CAT_META[cat].label.split(" ")[0]} pct={alloc[cat]} color={CAT_META[cat].color} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── TAB: PORTFOLIO TRACKER ───
+function TrackerTab() {
+  const [totalPortfolio, setTotalPortfolio] = useState("");
+  const [age, setAge] = useState(50);
+  const [values, setValues] = useState({});
+  const [reportDate, setReportDate] = useState(new Date().toISOString().slice(0, 7));
+  const alloc = getAllocation(age);
+
+  const total = Number(totalPortfolio) || 0;
+
+  // Compute assets with targets
+  const assets = ASSET_TEMPLATE.map(a => {
+    const catPct = alloc[a.cat];
+    const finalPct = catPct * a.splitPct / 100;
+    const targetVal = total * finalPct / 100;
+    const currentVal = Number(values[a.id]) || 0;
+    const variance = currentVal - targetVal;
+    return { ...a, finalPct, targetVal, currentVal, variance };
+  });
+
+  // Category aggregates
+  const catSummary = {};
+  CATS.forEach(cat => {
+    const catAssets = assets.filter(a => a.cat === cat);
+    const currentTotal = catAssets.reduce((s, a) => s + a.currentVal, 0);
+    const targetTotal = catAssets.reduce((s, a) => s + a.targetVal, 0);
+    const targetPct = alloc[cat];
+    const currentPct = total > 0 ? (currentTotal / total) * 100 : 0;
+    catSummary[cat] = { currentTotal, targetTotal, targetPct, currentPct, diff: currentPct - targetPct };
+  });
+
+  const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
+
+  const handleValueChange = (id, val) => {
+    setValues(prev => ({ ...prev, [id]: val }));
+  };
+
+  const generatePDF = () => {
+    // In production: call backend to generate PDF using reportlab
+    // For demo: show what would be generated
+    alert(
+      `PDF Report would be generated:\n\n` +
+      `Date: ${reportDate}\n` +
+      `Total Portfolio: ${fmtINR(total)}\n` +
+      `Age: ${age} (Band: ${getBand(age)})\n\n` +
+      CATS.map(cat => `${cat}: ${catSummary[cat].currentPct.toFixed(1)}% (Target: ${catSummary[cat].targetPct}%)`).join("\n") +
+      `\n\nISR: ${(catSummary.G.currentPct + catSummary.R.currentPct + catSummary.D.currentPct).toFixed(1)}%\n\n` +
+      `In production, this triggers server-side PDF generation using ReportLab with the dark theme design.`
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
+          Portfolio Tracker
+        </div>
+        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
+          Asset Holdings
+        </h2>
+      </div>
+
+      {/* Input Row */}
+      <div style={{
+        display: "flex", gap: 14, marginBottom: 18, flexWrap: "wrap"
+      }}>
+        <div style={{ flex: "1 1 200px" }}>
+          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
+            Total Portfolio Value (₹)
+          </label>
+          <input
+            type="number" value={totalPortfolio} onChange={e => setTotalPortfolio(e.target.value)}
+            placeholder="e.g. 3500000"
+            style={{
+              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
+              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
+              outline: "none", boxSizing: "border-box"
+            }}
+          />
+        </div>
+        <div style={{ flex: "0 0 120px" }}>
+          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
+            Your Age
+          </label>
+          <input
+            type="number" min={25} max={80} value={age} onChange={e => setAge(Number(e.target.value))}
+            style={{
+              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
+              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
+              outline: "none", boxSizing: "border-box"
+            }}
+          />
+        </div>
+        <div style={{ flex: "0 0 140px" }}>
+          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
+            Report Month
+          </label>
+          <input
+            type="month" value={reportDate} onChange={e => setReportDate(e.target.value)}
+            style={{
+              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
+              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
+              outline: "none", boxSizing: "border-box"
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Asset Table */}
+      <div style={{
+        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, overflow: "hidden"
+      }}>
+        {/* Table Header */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
+          gap: 8, padding: "10px 16px", background: "#162032", alignItems: "center"
+        }}>
+          {["", "Sub-Category", "Current (₹)", "Target (₹)", "Split %", "Variance"].map((h, i) => (
+            <div key={i} style={{
+              fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 9, color: "#64748b",
+              textAlign: i >= 2 ? "right" : "left"
+            }}>{h}</div>
+          ))}
+        </div>
+
+        {/* Rows grouped by category */}
+        {CATS.map(cat => (
+          <div key={cat}>
+            {/* Category header */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "10px 16px",
+              background: "#131c30", borderTop: "1px solid #2d3a4f"
+            }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: 18, color: CAT_META[cat].color, fontWeight: 600 }}>{cat}</span>
+              <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#f1f5f9" }}>
+                {CAT_META[cat].label} ({alloc[cat]}%)
+              </span>
+              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginLeft: "auto" }}>
+                {CAT_META[cat].tag}
+              </span>
+            </div>
+
+            {/* Asset rows */}
+            {assets.filter(a => a.cat === cat).map((a, i) => (
+              <div key={a.id} style={{
+                display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
+                gap: 8, padding: "8px 16px", alignItems: "center",
+                background: i % 2 === 0 ? "transparent" : "#0f172a11",
+                borderTop: "1px solid #1e293b"
+              }}>
+                <div>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: CAT_META[cat].color }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#f1f5f9" }}>{a.name}</div>
+                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b" }}>{a.desc}</div>
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    value={values[a.id] || ""}
+                    onChange={e => handleValueChange(a.id, e.target.value)}
+                    placeholder="0"
+                    style={{
+                      width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 6,
+                      padding: "6px 8px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 11,
+                      textAlign: "right", outline: "none", boxSizing: "border-box"
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
+                    onBlur={e => e.currentTarget.style.borderColor = "#334155"}
+                  />
+                </div>
+                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>
+                  {total > 0 ? fmtINR(a.targetVal) : "—"}
+                </div>
+                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>
+                  {a.finalPct.toFixed(1)}%
+                </div>
+                <div style={{
+                  fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, textAlign: "right",
+                  color: a.currentVal === 0 ? "#64748b" : a.variance >= 0 ? "#22c55e" : "#ef4444"
+                }}>
+                  {a.currentVal > 0 ? `${a.variance >= 0 ? "+" : ""}${fmtINR(a.variance)}` : "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+
+        {/* Total row */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
+          gap: 8, padding: "12px 16px", background: "#162032", borderTop: "2px solid #334155", alignItems: "center"
+        }}>
+          <div />
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#f1f5f9" }}>
+            TOTAL
+          </div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#f1f5f9", textAlign: "right" }}>
+            {fmtINR(actualTotal)}
+          </div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#94a3b8", textAlign: "right" }}>
+            {fmtINR(total)}
+          </div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>100%</div>
+          <div style={{
+            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, textAlign: "right",
+            color: actualTotal - total >= 0 ? "#22c55e" : "#ef4444"
+          }}>
+            {actualTotal > 0 ? fmtINR(actualTotal - total) : "—"}
+          </div>
+        </div>
+      </div>
+
+      {/* Category Summary Cards */}
+      <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+        {CATS.map(cat => {
+          const s = catSummary[cat];
+          return (
+            <div key={cat} style={{
+              flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: 14
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'Lora', serif", fontSize: 18, color: CAT_META[cat].color }}>{cat}</span>
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b" }}>{CAT_META[cat].label}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 16, color: "#f1f5f9" }}>
+                  {s.currentPct.toFixed(1)}%
+                </span>
+                <span style={{
+                  fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 10,
+                  color: s.diff >= 0 ? "#22c55e" : "#ef4444"
+                }}>
+                  {s.diff >= 0 ? "+" : ""}{s.diff.toFixed(2)}%
+                </span>
+              </div>
+              <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 4 }}>
+                Target: {s.targetPct}%
+              </div>
+              <div style={{ width: "100%", height: 3, background: "#2d3a4f", borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min((s.currentPct / 55) * 100, 100)}%`, height: "100%", background: CAT_META[cat].color, borderRadius: 2, transition: "width 0.4s" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Generate PDF Button */}
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <button
+          onClick={generatePDF}
+          disabled={total === 0}
+          style={{
+            background: total > 0 ? "linear-gradient(135deg, #3b82f6, #2563eb)" : "#334155",
+            color: total > 0 ? "#fff" : "#64748b",
+            border: "none", borderRadius: 12, padding: "14px 40px", fontSize: 14, fontWeight: 600,
+            cursor: total > 0 ? "pointer" : "not-allowed",
+            fontFamily: "'Poppins', sans-serif", transition: "transform 0.15s",
+            boxShadow: total > 0 ? "0 4px 20px rgba(59,130,246,0.3)" : "none"
+          }}
+        >
+          📄 Generate PDF Report
+        </button>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", marginTop: 6 }}>
+          Download a professional report for your financial advisor
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── TAB: ISR ANALYSIS ───
+function ISRTab() {
+  const [age, setAge] = useState(50);
+  const alloc = getAllocation(age);
+  const band = getBand(age);
+  const isr = alloc.G + alloc.R + alloc.D;
+  const growth = alloc.E;
+
+  return (
+    <div>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
+          Income-Stability Ratio
+        </div>
+        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
+          ISR Analysis
+        </h2>
+        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", margin: 0 }}>
+          ISR = (G + R + D) / Total — measures the stable/income portion of your portfolio
+        </p>
+      </div>
+
+      {/* Gauge Card */}
+      <div style={{
+        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "20px 28px",
+        margin: "18px 0", textAlign: "center"
+      }}>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 13, color: "#f1f5f9", marginBottom: 10, textAlign: "left" }}>
+          Portfolio Stability Gauge
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>Age:</span>
+          <input
+            type="range" min={25} max={80} value={age}
+            onChange={e => setAge(Number(e.target.value))}
+            style={{ flex: 1, cursor: "pointer", accentColor: "#3b82f6" }}
+          />
+          <span style={{
+            fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: "#f1f5f9",
+            background: "#0f172a", padding: "4px 12px", borderRadius: 8, minWidth: 30, textAlign: "center"
+          }}>{age}</span>
+        </div>
+        <GaugeChart value={isr} size={260} />
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 32, color: "#f1f5f9", marginTop: -10 }}>
+          {isr}%
+        </div>
+        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#64748b" }}>
+          Income-Stability Ratio
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#ef4444" }}>Volatile</span>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#22c55e" }}>Stable</span>
+        </div>
+      </div>
+
+      {/* Stable vs Growth */}
+      <div style={{ display: "flex", gap: 14, marginBottom: 18 }}>
+        <div style={{
+          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 24, textAlign: "center"
+        }}>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 36, color: "#22c55e" }}>{isr}%</div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#94a3b8", marginTop: 4 }}>STABLE (G + R + D)</div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>Income-generating assets</div>
+        </div>
+        <div style={{
+          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 24, textAlign: "center"
+        }}>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 36, color: "#f59e0b" }}>{growth}%</div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#94a3b8", marginTop: 4 }}>GROWTH (E)</div>
+          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>Equity / volatile assets</div>
+        </div>
+      </div>
+
+      {/* Age Matrix */}
+      <div style={{
+        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, overflow: "hidden"
+      }}>
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid #2d3a4f" }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9" }}>
+            Age-Based Allocation Matrix
+          </span>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#3b82f6", marginLeft: 10 }}>
+            Current band: {band}
+          </span>
+        </div>
+        {/* Header */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "90px 1fr 1fr 1fr 1fr", gap: 0, padding: "8px 16px",
+          background: "#162032"
+        }}>
+          {["Age Band", "G (Gold)", "R (Real Est.)", "D (Debt)", "E (Equity)"].map((h, i) => (
+            <div key={i} style={{
+              fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 10,
+              color: ["#64748b", "#eab308", "#ef4444", "#3b82f6", "#22c55e"][i]
+            }}>{h}</div>
+          ))}
+        </div>
+        {AGE_BANDS.map((row, i) => {
+          const isCurrent = row.range === band;
+          return (
+            <div key={i} style={{
+              display: "grid", gridTemplateColumns: "90px 1fr 1fr 1fr 1fr", gap: 0, padding: "7px 16px",
+              background: isCurrent ? "#1e3a5f" : i % 2 === 0 ? "transparent" : "#131c30",
+              borderLeft: isCurrent ? "3px solid #3b82f6" : "3px solid transparent"
+            }}>
+              <div style={{
+                fontFamily: "'Poppins', sans-serif", fontWeight: isCurrent ? 700 : 400, fontSize: 11,
+                color: isCurrent ? "#3b82f6" : "#94a3b8"
+              }}>
+                {isCurrent ? "▸ " : ""}{row.range}
+              </div>
+              {CATS.map(cat => (
+                <div key={cat} style={{
+                  fontFamily: "'Poppins', sans-serif", fontWeight: isCurrent ? 700 : 400, fontSize: 11,
+                  color: isCurrent ? "#f1f5f9" : "#94a3b8"
+                }}>{row[cat]}%</div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+function GRDEApp() {
+  const [activeTab, setActiveTab] = useState("allocator");
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh", background: "#0f172a",
+      fontFamily: "'Poppins', sans-serif"
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+        input[type="range"] { -webkit-appearance: auto; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+      `}</style>
+
+      <Header />
+
+      <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px 40px" }}>
+        <TabBar active={activeTab} onChange={handleTabChange} isUnlocked={isUnlocked} />
+
+        <div style={{ marginTop: 20, position: "relative" }}>
+          {activeTab === "allocator" && <AllocatorTab />}
+
+          {activeTab === "tracker" && (
+            <div style={{ position: "relative", minHeight: 400 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(6px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+                <TrackerTab />
+              </div>
+              {!isUnlocked && <LockOverlay onUnlock={() => setIsUnlocked(true)} />}
+            </div>
+          )}
+
+          {activeTab === "isr" && (
+            <div style={{ position: "relative", minHeight: 400 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(6px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+                <ISRTab />
+              </div>
+              {!isUnlocked && <LockOverlay onUnlock={() => setIsUnlocked(true)} />}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          borderTop: "1px solid #2d3a4f", marginTop: 32, paddingTop: 16,
+          display: "flex", justifyContent: "space-between"
+        }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>
+            GRDE Engine v2.1 — An Architect's Blueprint for Wealth
+          </span>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>
+            by Shakhith A.M. | i3d Studio, Coimbatore
+          </span>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(GRDEApp));
+    </script>
 </body>
 </html>
