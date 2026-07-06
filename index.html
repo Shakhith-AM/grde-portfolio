@@ -217,6 +217,226 @@ function generateCode() {
   return `GRDE-${seg(4)}-${seg(4)}`;
 }
 
+/* ─── PULSE: Google Sheets live feed ──────────────────────────
+   Replace SHEET_ID with your actual Google Sheet ID after setup.
+   Tab 1 (gid=0) → ALERTS  |  Tab 2 (gid=1) → CALENDAR
+   ─────────────────────────────────────────────────────────── */
+const SHEET_ID     = "2PACX-1vRpKhD5egQ1nOY2PteSvLGT10cde2GNZWKYOkP2fUiE_ZfEs1xajzJ84MiKyKzDj1jTNB8wa1U5S7Dc";
+const ALERTS_URL   = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1153377084&single=true&output=csv`;
+const CALENDAR_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=674599408&single=true&output=csv`;
+
+const FALLBACK_ALERTS = [
+  { type:"green",  cat:"G", message:"Gold holding steady above ₹72,000/10g — hedge intact",              date:"Jul 2026" },
+  { type:"yellow", cat:"D", message:"RBI policy meeting this month — hold on fresh long-duration debt",   date:"Jul 2026" },
+  { type:"red",    cat:"R", message:"IRB InvIT Q1 distribution lower than expected — monitor closely",    date:"Jul 2026" },
+  { type:"green",  cat:"E", message:"Nifty Midcap momentum strong — continue SIPs as planned",            date:"Jul 2026" },
+];
+const FALLBACK_CALENDAR = [
+  { asset:"Mindspace REIT",      type:"Distribution", date:"Aug 2026",  amount:"~₹5.2/unit",  notes:"Quarterly payout" },
+  { asset:"KRT REIT",            type:"Distribution", date:"Aug 2026",  amount:"~₹4.8/unit",  notes:"Quarterly payout" },
+  { asset:"Nexus REIT",          type:"Distribution", date:"Sep 2026",  amount:"~₹3.9/unit",  notes:"Quarterly payout" },
+  { asset:"IndiGrid InvIT",      type:"Distribution", date:"Sep 2026",  amount:"~₹3.8/unit",  notes:"Quarterly payout" },
+  { asset:"IRB InvIT",           type:"Distribution", date:"Oct 2026",  amount:"~₹2.1/unit",  notes:"Quarterly payout" },
+  { asset:"Bonds / Target Mat.", type:"Maturity",     date:"Mar 2027",  amount:"Principal",    notes:"Plan reinvestment" },
+  { asset:"FD + POMIS",          type:"Interest",     date:"Monthly",   amount:"Fixed credit", notes:"Auto-credited" },
+];
+
+function parseCSV(text) {
+  const lines = text.trim().split("\n").filter(Boolean);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map(h => h.replace(/"/g,"").trim().toLowerCase());
+  return lines.slice(1).map(line => {
+    const vals = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+    const obj = {};
+    headers.forEach((h,i) => { obj[h] = (vals[i]||"").replace(/"/g,"").trim(); });
+    return obj;
+  });
+}
+function daysUntil(dateStr) {
+  if (!dateStr || dateStr.toLowerCase()==="monthly") return null;
+  const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  const parts = dateStr.trim().split(" ");
+  if (parts.length < 2) return null;
+  const mon = months[parts[0].toLowerCase().slice(0,3)];
+  const yr  = parseInt(parts[1]);
+  if (mon===undefined||isNaN(yr)) return null;
+  const diff = new Date(yr,mon,1) - new Date();
+  return Math.ceil(diff/(1000*60*60*24));
+}
+const typeColor = t => { const tl=(t||"").toLowerCase(); return tl==="red"?"var(--danger)":tl==="green"?"var(--good)":"var(--gold)"; };
+const typeIcon  = t => { const tl=(t||"").toLowerCase(); return tl==="red"?"🔴":tl==="green"?"🟢":"🟡"; };
+const calColor  = t => { const tl=(t||"").toLowerCase(); return tl==="distribution"?"var(--good)":tl==="maturity"?"var(--gold)":"var(--d-color)"; };
+
+/* ─── TICKER ──────────────────────────────────────────────── */
+function PulseTicker({ alerts }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!alerts||!alerts.length) return;
+    const t = setInterval(() => setIdx(i => (i+1)%alerts.length), 4000);
+    return () => clearInterval(t);
+  }, [alerts]);
+  if (!alerts||!alerts.length) return null;
+  const a = alerts[idx];
+  const t = (a.type||"").toLowerCase();
+  const c = typeColor(t);
+  return (
+    <div className="no-print" style={{
+      position:"fixed", bottom:0, left:0, right:0, zIndex:100,
+      background:"linear-gradient(180deg,rgba(10,14,20,0),rgba(10,14,20,0.97) 28%)",
+      borderTop:`1px solid ${c}44`, padding:"10px 24px",
+      display:"flex", alignItems:"center", gap:12, backdropFilter:"blur(8px)"
+    }}>
+      <span className="mono" style={{ fontSize:9, color:c, letterSpacing:"0.22em", flexShrink:0 }}>PULSE</span>
+      <span style={{ fontSize:13 }}>{typeIcon(t)}</span>
+      <span className="mono" style={{ fontSize:11, color:"var(--text)", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+        {a.message||a["message"]}
+      </span>
+      {(a.cat) && <span className="mono" style={{ fontSize:9, color:CAT_META[a.cat]?.hex||"var(--gold)", flexShrink:0, letterSpacing:"0.14em" }}>{a.cat}</span>}
+      <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", flexShrink:0 }}>{a.date}</span>
+    </div>
+  );
+}
+
+/* ─── PULSE TAB ──────────────────────────────────────────── */
+function PulseTab() {
+  const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
+  const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
+  const [loading,  setLoading]  = useState(false);
+  const [lastFetch, setLastFetch] = useState(null);
+  const [live, setLive]         = useState(false);
+
+  const fetchData = async () => {
+    
+    setLoading(true);
+    try {
+      const [aR,cR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL)]);
+      const [aT,cT] = await Promise.all([aR.text(),cR.text()]);
+      const pA=parseCSV(aT), pC=parseCSV(cT);
+      if (pA.length) setAlerts(pA);
+      if (pC.length) setCalendar(pC);
+      setLive(true); setLastFetch(new Date());
+    } catch(e) {}
+    setLoading(false);
+  };
+  useEffect(()=>{ fetchData(); },[]);
+
+  const upcoming = [...calendar]
+    .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
+    .sort((a,b)=>(daysUntil(a.date)||999)-(daysUntil(b.date)||999));
+
+  return (
+    <div style={{ paddingBottom: 60 }}>
+      <div className="label">Live Intelligence</div>
+      <h2 style={{ fontSize:30, margin:"8px 0 4px" }}>
+        Market <span style={{ color:"var(--gold)", fontStyle:"italic" }}>Pulse</span>
+      </h2>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:20 }}>
+        <p style={{ fontSize:13, color:"var(--text)", margin:0 }}>Curated alerts and portfolio calendar — updated by i3D Studio monthly.</p>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          {lastFetch && <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>LIVE · {lastFetch.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}</span>}
+          {!live && <span className="mono" style={{ fontSize:9, color:"var(--gold)", background:"rgba(212,168,67,0.08)", border:"1px solid var(--gold-dim)", borderRadius:4, padding:"3px 8px" }}>SAMPLE DATA</span>}
+          <button onClick={fetchData} disabled={loading} className="mono" style={{
+            background:"transparent", border:"1px solid var(--border-2)", color:"var(--text-dim)",
+            borderRadius:6, padding:"5px 12px", fontSize:9, cursor:loading?"wait":"pointer",
+            letterSpacing:"0.14em", textTransform:"uppercase"
+          }}>{loading?"Fetching…":"↻ Refresh"}</button>
+        </div>
+      </div>
+
+      {/* Upcoming 90 days */}
+      {upcoming.length>0 && (
+        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10 }}>
+            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Upcoming · Next 90 Days</span>
+            <span className="mono" style={{ fontSize:9, color:"var(--good)", background:"rgba(82,168,106,0.1)", border:"1px solid var(--good)", borderRadius:4, padding:"2px 8px" }}>{upcoming.length} EVENT{upcoming.length>1?"S":""}</span>
+          </div>
+          {upcoming.map((c,i) => {
+            const days=daysUntil(c.date); const urgent=days!==null&&days<=30;
+            return (
+              <div key={i} style={{
+                display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
+                padding:"12px 18px", alignItems:"center",
+                borderTop:i>0?"1px solid var(--border)":"none",
+                background:urgent?"rgba(212,168,67,0.04)":"transparent"
+              }}>
+                <div>
+                  <div style={{ fontSize:12, color:"var(--white)", fontWeight:500 }}>{c.asset}</div>
+                  <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:3 }}>{c.notes}</div>
+                </div>
+                <span className="mono" style={{ fontSize:9, color:calColor(c.type), background:`${calColor(c.type)}18`, border:`1px solid ${calColor(c.type)}`, borderRadius:4, padding:"3px 8px", textTransform:"uppercase", textAlign:"center" }}>{c.type}</span>
+                <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{c.amount}</div>
+                <div style={{ textAlign:"right" }}>
+                  <div className="mono" style={{ fontSize:11, color:urgent?"var(--danger)":"var(--text)", fontWeight:urgent?600:400 }}>{c.date}</div>
+                  {days!==null && <div className="mono" style={{ fontSize:9, color:urgent?"var(--danger)":"var(--text-dim)", marginTop:2 }}>{days<=0?"This month":`in ${days}d`}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Alerts */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Market Alerts</span>
+        </div>
+        {alerts.map((a,i) => (
+          <div key={i} style={{
+            display:"flex", alignItems:"flex-start", gap:14, padding:"14px 18px",
+            borderTop:i>0?"1px solid var(--border)":"none",
+            borderLeft:`3px solid ${typeColor(a.type)}`,
+            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
+          }}>
+            <span style={{ fontSize:14, marginTop:1, flexShrink:0 }}>{typeIcon(a.type)}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                {a.cat && <span style={{ fontFamily:"Cinzel", fontSize:10, fontWeight:600, color:CAT_META[a.cat]?.hex||"var(--gold)", background:`${CAT_META[a.cat]?.hex||"#d4a843"}18`, padding:"2px 8px", borderRadius:4 }}>{a.cat}</span>}
+                <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>{a.date}</span>
+              </div>
+              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.5 }}>{a.message}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Full Calendar */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden" }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Portfolio Calendar</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>Distributions · Maturities · Interest</span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
+          {["Asset","Event Type","Amount","Date"].map((h,i)=>(
+            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
+          ))}
+        </div>
+        {calendar.map((c,i) => {
+          const days=daysUntil(c.date); const soon=days!==null&&days<=30;
+          return (
+            <div key={i} style={{
+              display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
+              padding:"11px 18px", alignItems:"center",
+              borderTop:"1px solid var(--border)",
+              background:soon?"rgba(212,168,67,0.04)":i%2===0?"transparent":"rgba(15,31,58,0.3)"
+            }}>
+              <div>
+                <div style={{ fontSize:12, color:soon?"var(--gold-pale)":"var(--white)" }}>{c.asset}</div>
+                <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:2 }}>{c.notes}</div>
+              </div>
+              <span className="mono" style={{ fontSize:9, color:calColor(c.type), letterSpacing:"0.1em", textTransform:"uppercase" }}>{c.type}</span>
+              <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{c.amount}</div>
+              <div style={{ textAlign:"right" }}>
+                <div className="mono" style={{ fontSize:11, color:soon?"var(--gold)":"var(--text)" }}>{c.date}</div>
+                {days!==null && <div className="mono" style={{ fontSize:9, color:soon?"var(--danger)":"var(--text-dim)", marginTop:1 }}>{days<=0?"This month":`${days}d`}</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Helpers ──────────────────────────────────────────────── */
 function getAllocation(age) {
   if (age < 25) return AGE_BANDS[0];
@@ -346,6 +566,7 @@ function Header({ unlocked, onLock, currency, onCurrencyChange }) {
 function TabBar({ active, onChange, isUnlocked, isOwner }) {
   const tabs = [
     { id: "allocator", label: "Allocator", locked: false },
+    { id: "pulse",     label: "Pulse",             locked: !isUnlocked, pulse: true },
     { id: "tracker",   label: "Portfolio Tracker", locked: !isUnlocked },
     { id: "isr",       label: "ISR Analysis", locked: !isUnlocked },
     ...(isOwner ? [{ id: "codes", label: "Codes", locked: false, owner: true }] : []),
@@ -368,6 +589,7 @@ function TabBar({ active, onChange, isUnlocked, isOwner }) {
             {t.label}
             {t.locked && <span style={{ fontSize: 9 }}>🔒</span>}
             {t.owner && !a && <span style={{ fontSize: 9, color: "var(--gold)" }}>★</span>}
+            {t.pulse && !a && <span style={{ fontSize: 9 }}>📡</span>}
           </button>
         );
       })}
@@ -1285,8 +1507,16 @@ function GRDEApp() {
     try { return localStorage.getItem(UNLOCK_KEY) || ""; } catch(e) { return ""; }
   });
   const [currency, setCurrency] = useState(CCY);
+  const [tickerAlerts, setTickerAlerts] = useState(FALLBACK_ALERTS);
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
+
+  useEffect(() => {
+    // Sheet connected — live fetch enabled
+    fetch(ALERTS_URL).then(r => r.text()).then(t => {
+      const p = parseCSV(t); if (p.length) setTickerAlerts(p);
+    }).catch(()=>{});
+  }, []);
 
   const handleUnlock = (kind) => {
     setUnlock(kind);
@@ -1356,6 +1586,15 @@ function GRDEApp() {
           )}
 
           {activeTab === "codes" && isOwner && <CodesTab />}
+
+          {activeTab === "pulse" && (
+            <div style={{ position: "relative", minHeight: 460 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+                <PulseTab />
+              </div>
+              {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -1384,6 +1623,7 @@ function GRDEApp() {
           </div>
         </footer>
       </main>
+      {isUnlocked && <PulseTicker alerts={tickerAlerts} />}
     </div>
   );
 }
