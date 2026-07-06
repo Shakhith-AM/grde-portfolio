@@ -3,39 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRDE Engine — An Architect's Blueprint for Wealth</title>
-    <meta name="description" content="GRDE Framework: Gold, Real Estate, Debt, Equity — Age-based portfolio allocation engine by Shakhith A.M.">
+   <title>GRDE Portfolio Engine — i3D · An Architect's Blueprint to Wealth Creation</title>
+    <meta name="description" content="GRDE Framework — Gold, Real Estate, Debt, Equity. Age-based portfolio allocation engine by Shakhith A.M., i3D Studio.">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a1628">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Access is gated by unlock code only. No payment SDK required. -->
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0f172a; font-family: 'Poppins', sans-serif; }
+        :root {
+            --bg:        #0a0e14;   /* near-black, matches grde.in */
+            --card:      #0f1620;
+            --card-2:    #131c28;
+            --border:    #1f2a3a;
+            --border-2:  #2a3a52;
+            --gold:      #d4a843;   /* GRDE gold */
+            --gold-pale: #e8d49a;
+            --gold-dim:  #8a7029;
+            --text:      #b8c0cc;
+            --text-dim:  #6a7588;
+            --white:     #f0ece4;   /* warm cream like site headline */
+            --g-color:   #d4a843;   /* G — Gold */
+            --r-color:   #d6604d;   /* R — Red (REITs, matches grde.in) */
+            --d-color:   #4a7fb8;   /* D — Steel blue */
+            --e-color:   #52a86a;   /* E — Green */
+            --danger:    #d6604d;
+            --good:      #52a86a;
+        }
+        html, body { background: var(--bg); }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            background:
+              radial-gradient(1200px 600px at 80% -10%, rgba(212,168,67,0.05), transparent 60%),
+              radial-gradient(900px 500px at -10% 110%, rgba(74,127,184,0.04), transparent 60%),
+              var(--bg);
+        }
+        body::before {
+            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+              linear-gradient(to right, rgba(212,168,67,0.014) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(212,168,67,0.014) 1px, transparent 1px);
+            background-size: 52px 52px;
+        }
+        h1, h2, h3, h4 { font-family: 'Cinzel', serif; font-weight: 500; color: var(--white); letter-spacing: 0.01em; }
+        .serif { font-family: 'Cinzel', serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        #root { min-height: 100vh; }
+        input[type="range"] { -webkit-appearance: auto; accent-color: var(--gold); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+        #root { min-height: 100vh; position: relative; z-index: 1; }
+        .glass {
+            background: linear-gradient(135deg, rgba(19,28,40,0.85), rgba(10,14,20,0.95));
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+        /* ── Mobile tweaks ── */
+        @media (max-width: 480px) {
+          .grde-header { padding: 12px 16px !important; gap: 8px; }
+          .grde-chip-currency, .grde-chip-version { display: none !important; }
+          .grde-tabs { width: 100%; justify-content: space-between; }
+          .grde-tab { flex: 1; padding: 10px 6px !important; font-size: 10px !important; letter-spacing: 0.08em !important; }
+          .grde-main { padding: 16px 16px 32px !important; }
+          .grde-hero h1 { font-size: 28px !important; }
+        }
+
+        /* ── Print / Save as PDF ── */
+        @media print {
+          @page { size: A4; margin: 14mm 12mm; }
+          html, body {
+            background: #ffffff !important;
+            color: #1a1a1a !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body::before { display: none !important; }
+          h1, h2, h3, h4 { color: #1a1a1a !important; }
+          .grde-header, .grde-tabs, .grde-hero, .no-print { display: none !important; }
+          .grde-main { padding: 0 !important; }
+          .glass {
+            background: #ffffff !important;
+            border: 1px solid #d4d4d4 !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+          }
+          /* Make all dark surfaces white & text readable */
+          * {
+            color: #1a1a1a !important;
+            text-shadow: none !important;
+          }
+          .mono { color: #555 !important; }
+          /* Keep accent colours (gold/red/green/blue) visible */
+          [style*="--gold"], [style*="#d4a843"], [style*="#c8a84b"] { color: #b8881f !important; }
+          /* Convert inputs into plain readable text */
+          input, select, textarea {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px solid #bbb !important;
+            color: #1a1a1a !important;
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            padding: 2px 4px !important;
+            box-shadow: none !important;
+          }
+          button { display: none !important; }
+          a { color: #1a1a1a !important; text-decoration: none !important; }
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+const { useState, useEffect, useMemo, useRef } = React;
 
+/* ─────────────────────────────────────────────────────────────
+   GRDE MASTER DATA — synced with GRDE_Model_Complete.pdf
+   ───────────────────────────────────────────────────────────── */
 
-// ─── GRDE Master Data ───
 const AGE_BANDS = [
-  { range: "25-30", G: 7, R: 15, D: 13, E: 65 },
-  { range: "30-35", G: 8, R: 15, D: 17, E: 60 },
-  { range: "35-40", G: 8, R: 15, D: 20, E: 57 },
-  { range: "40-45", G: 9, R: 15, D: 21, E: 55 },
+  { range: "25-30", G: 7,  R: 15, D: 13, E: 65 },
+  { range: "30-35", G: 8,  R: 15, D: 17, E: 60 },
+  { range: "35-40", G: 8,  R: 15, D: 20, E: 57 },
+  { range: "40-45", G: 9,  R: 15, D: 21, E: 55 },
   { range: "45-50", G: 10, R: 15, D: 25, E: 50 },
   { range: "50-55", G: 10, R: 15, D: 25, E: 50 },
   { range: "55-60", G: 11, R: 14, D: 35, E: 40 },
@@ -43,127 +146,231 @@ const AGE_BANDS = [
   { range: "65-70", G: 13, R: 12, D: 50, E: 25 },
   { range: "70-75", G: 14, R: 11, D: 52, E: 23 },
   { range: "75-80", G: 15, R: 10, D: 53, E: 22 },
+  { range: "80-85", G: 16, R: 9,  D: 54, E: 21 },
+  { range: "85-90", G: 17, R: 8,  D: 55, E: 20 },
+  { range: "90-95", G: 18, R: 7,  D: 55, E: 20 },
+  { range: "95-100",G: 18, R: 7,  D: 55, E: 20 },
 ];
 
+/* Asset template mirrors GRDE_MASTER table from the PDF.
+   finalPct (% of total portfolio) is computed from cat × subCat × split.
+   For the Allocator/Tracker UI we keep the *sub-category aware* split so
+   targets reconcile with the PDF's "FINAL PORTFOLIO %" column. */
 const ASSET_TEMPLATE = [
-  { id: "g1", cat: "G", name: "Gold ETFs", splitPct: 90, finalPct: 0, desc: "Physical gold-backed ETFs" },
-  { id: "g2", cat: "G", name: "Silver ETFs", splitPct: 10, finalPct: 0, desc: "Silver-backed ETFs" },
-  { id: "r1", cat: "R", name: "REITs", splitPct: 60, finalPct: 0, desc: "Office / Retail / Mixed-use REITs" },
-  { id: "r2", cat: "R", name: "InvITs", splitPct: 40, finalPct: 0, desc: "Infrastructure Investment Trusts" },
-  { id: "d1", cat: "D", name: "Liquidity", splitPct: 33.3, finalPct: 0, desc: "Liquid / Ultra-short funds" },
-  { id: "d2", cat: "D", name: "Capital Protection", splitPct: 33.3, finalPct: 0, desc: "FD / POMIS / PPF" },
-  { id: "d3", cat: "D", name: "Income / Duration", splitPct: 33.4, finalPct: 0, desc: "Bonds / Target maturity funds" },
-  { id: "e1", cat: "E", name: "Indian Mutual Funds", splitPct: 32.5, finalPct: 0, desc: "Domestic MFs (65% × 50%)" },
-  { id: "e2", cat: "E", name: "Indian ETFs", splitPct: 32.5, finalPct: 0, desc: "Domestic equity ETFs (65% × 50%)" },
-  { id: "e3", cat: "E", name: "US Equity / ETFs", splitPct: 35, finalPct: 0, desc: "International equity exposure" },
+  // ── G  (Gold & Silver = 10%) ──
+  { id: "g_gold",   cat: "G", sub: "Gold",                name: "Gold ETFs",            desc: "Physical gold-backed ETFs",    catFrac: 0.90 },
+  { id: "g_silver", cat: "G", sub: "Silver",              name: "Silver ETFs",          desc: "Silver-backed ETFs",           catFrac: 0.10 },
+
+  // ── R  (Real Estate = 15%) ──
+  // REIT bucket (60% of R): Office 50% · Retail 22.5% · Data Centre 27.5%
+  { id: "r_mind",   cat: "R", sub: "REITs · Office",      name: "Mindspace REIT",       desc: "Office (25% of REIT bucket)",  catFrac: 0.60 * 0.25  },
+  { id: "r_krt",    cat: "R", sub: "REITs · Office",      name: "KRT REIT",             desc: "Office (25% of REIT bucket)",  catFrac: 0.60 * 0.25  },
+  { id: "r_nexus",  cat: "R", sub: "REITs · Retail",      name: "Nexus REIT",           desc: "Retail / malls (22.5%)",       catFrac: 0.60 * 0.225 },
+  { id: "r_dc",     cat: "R", sub: "REITs · Data Centre", name: "Data Centre REITs",    desc: "Data-centre REITs (27.5%)",    catFrac: 0.60 * 0.275 },
+  { id: "r_indi",   cat: "R", sub: "InvITs",              name: "IndiGrid InvIT",       desc: "Power transmission",           catFrac: 0.40 * 0.70  },
+  { id: "r_irb",    cat: "R", sub: "InvITs",              name: "IRB InvIT",            desc: "Roads / highways",             catFrac: 0.40 * 0.30  },
+
+  // ── D  (Debt = 25%) ──
+  { id: "d_liq",    cat: "D", sub: "Liquidity",           name: "Liquid + Ultra-short", desc: "Liquid / ultra-short funds",   catFrac: 0.40 },
+  { id: "d_cap",    cat: "D", sub: "Capital Protection",  name: "FD + POMIS",           desc: "Fixed deposit / POMIS / PPF",  catFrac: 0.30 },
+  { id: "d_inc",    cat: "D", sub: "Income / Duration",   name: "Bonds / Target Maturity", desc: "Bonds / target maturity",   catFrac: 0.30 },
+
+  // ── E  (Equity = 50%) — Indian 60% · US 35% · Healthcare 5% ──
+  { id: "e_mf",     cat: "E", sub: "Indian Equity",       name: "Indian Mutual Funds",  desc: "Domestic equity MFs (60% × 50%)",  catFrac: 0.60 * 0.50 },
+  { id: "e_etfin",  cat: "E", sub: "Indian Equity",       name: "Indian ETFs",          desc: "Domestic equity ETFs (60% × 50%)", catFrac: 0.60 * 0.50 },
+  { id: "e_etfus",  cat: "E", sub: "US Equity",           name: "US ETFs",              desc: "International equity (35%)",       catFrac: 0.35 },
+  { id: "e_hc",     cat: "E", sub: "Healthcare",          name: "Mirae Asset Healthcare Fund", desc: "Sector fund — healthcare (5%)", catFrac: 0.05 },
 ];
 
 const CAT_META = {
-  G: { label: "GOLD & SILVER", color: "#eab308", tag: "The Hedge" },
-  R: { label: "REAL ESTATE", color: "#ef4444", tag: "The Rent" },
-  D: { label: "DEBT", color: "#3b82f6", tag: "The Defense" },
-  E: { label: "EQUITY", color: "#22c55e", tag: "The Engine" },
+  G: { label: "GOLD & SILVER", color: "var(--g-color)", hex: "#c8a84b", tag: "The Hedge" },
+  R: { label: "REAL ESTATE",   color: "var(--r-color)", hex: "#d6604d", tag: "The Rent"  },
+  D: { label: "DEBT",          color: "var(--d-color)", hex: "#4a7fb8", tag: "The Defense" },
+  E: { label: "EQUITY",        color: "var(--e-color)", hex: "#52a86a", tag: "The Engine" },
 };
-
 const CATS = ["G", "R", "D", "E"];
 
+/* ─── Access control ─────────────────────────────────────────
+   Owner bypass — your personal master code (change before deploy)
+   Subscriber codes — codes you issue to paying users
+   ─────────────────────────────────────────────────────────── */
+const OWNER_CODE = "I3D-SHAKHITH-2026";        // ← personal bypass
+const SUBSCRIBER_CODES = [                      // ← codes issued on payment
+  "GRDE-WELCOME-001",
+  "GRDE-FOUNDER-2026",
+];
+
+const UNLOCK_KEY    = "grde_unlocked_v3";
+const TRACKER_KEY   = "grde_tracker_v3";
+const ISSUED_KEY    = "grde_issued_codes_v1";
+
+/* ─── Issued codes (owner-generated, persisted to localStorage) ─── */
+function loadIssuedCodes() {
+  try { return JSON.parse(localStorage.getItem(ISSUED_KEY) || "[]"); } catch(e) { return []; }
+}
+function saveIssuedCodes(arr) {
+  try { localStorage.setItem(ISSUED_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+function generateCode() {
+  const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,0,1
+  const seg = (n) => Array.from({length:n}, () => A[Math.floor(Math.random()*A.length)]).join("");
+  return `GRDE-${seg(4)}-${seg(4)}`;
+}
+
+/* ─── Helpers ──────────────────────────────────────────────── */
 function getAllocation(age) {
   if (age < 25) return AGE_BANDS[0];
-  if (age >= 80) return AGE_BANDS[AGE_BANDS.length - 1];
+  if (age >= 100) return AGE_BANDS[AGE_BANDS.length - 1];
   const idx = Math.min(Math.floor((age - 25) / 5), AGE_BANDS.length - 1);
   return AGE_BANDS[idx];
 }
-
 function getBand(age) {
   if (age < 25) return "25-30";
-  if (age >= 80) return "75-80";
+  if (age >= 100) return "95-100";
   const lo = Math.floor(age / 5) * 5;
   return `${lo}-${lo + 5}`;
 }
-
 function fmtINR(val) {
-  if (!val && val !== 0) return "—";
-  const n = Math.abs(Number(val));
-  // Indian number formatting
-  if (n >= 10000000) return `${(val < 0 ? "-" : "")}₹${(n / 10000000).toFixed(2)} Cr`;
-  if (n >= 100000) return `${(val < 0 ? "-" : "")}₹${(n / 100000).toFixed(2)} L`;
-  return `${(val < 0 ? "-" : "")}₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+  if (val == null || isNaN(val)) return "—";
+  const c = CURRENCIES[CCY];
+  const conv = Number(val) / c.rate;
+  const n = Math.abs(conv);
+  const sign = conv < 0 ? "-" : "";
+  for (const [thresh, suffix] of c.units) {
+    if (n >= thresh) return `${sign}${c.symbol}${(n / thresh).toFixed(2)} ${suffix}`;
+  }
+  return `${sign}${c.symbol}${n.toLocaleString(c.locale, { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 }
 
-// ─── Components ───
+/* ─── Currency engine (display in selected ccy; storage stays in INR) ── */
+const CURRENCIES = {
+  INR: { symbol: "₹",  code: "INR", flag: "IN", locale: "en-IN", rate: 1,    units: [[1e7, "Cr"], [1e5, "L"]] },
+  USD: { symbol: "$",  code: "USD", flag: "US", locale: "en-US", rate: 83,   units: [[1e9, "B"], [1e6, "M"], [1e3, "K"]] },
+  EUR: { symbol: "€",  code: "EUR", flag: "EU", locale: "en-IE", rate: 90,   units: [[1e9, "B"], [1e6, "M"], [1e3, "K"]] },
+  GBP: { symbol: "£",  code: "GBP", flag: "GB", locale: "en-GB", rate: 105,  units: [[1e9, "B"], [1e6, "M"], [1e3, "K"]] },
+  AED: { symbol: "د.إ", code: "AED", flag: "AE", locale: "en-AE", rate: 22.6,units: [[1e9, "B"], [1e6, "M"], [1e3, "K"]] },
+};
+const CCY_KEY = "grde_ccy_v1";
+let CCY = (() => { try { return localStorage.getItem(CCY_KEY) || "INR"; } catch(e) { return "INR"; } })();
+function setCCY(c) { CCY = c; try { localStorage.setItem(CCY_KEY, c); } catch(e) {} }
+function ccySym() { return CURRENCIES[CCY].symbol; }
+function ccyCode() { return CURRENCIES[CCY].code; }
+function ccyFlag() { return CURRENCIES[CCY].flag; }
+/** INR (canonical storage) → number to show in input field, in active currency. */
+function inrToInput(inr) {
+  if (inr === "" || inr == null || isNaN(Number(inr))) return "";
+  const v = Number(inr) / CURRENCIES[CCY].rate;
+  return Math.round(v * 100) / 100;
+}
+/** Input value (in active currency) → INR for storage. "" stays "". */
+function inputToInr(v) {
+  if (v === "" || v == null) return "";
+  const n = Number(v);
+  if (isNaN(n)) return "";
+  return n * CURRENCIES[CCY].rate;
+}
 
-function LogoDots({ size = 8 }) {
-  const colors = ["#ef4444", "#eab308", "#22c55e", "#3b82f6"];
+/* ─── Visual primitives ────────────────────────────────────── */
+function Brand() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: size * 0.25, width: size * 2.5, height: size * 2.5 }}>
-      {colors.map((c, i) => (
-        <div key={i} style={{ width: size, height: size, borderRadius: "50%", background: c }} />
-      ))}
+    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      {/* GRDE 4-square mark — Gold / Red / Blue / Green */}
+      <div style={{
+        width: 36, height: 36, display: "grid",
+        gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr",
+        gap: 3, padding: 0
+      }}>
+        <div style={{ background: "var(--g-color)", borderRadius: 3 }} />
+        <div style={{ background: "var(--r-color)", borderRadius: 3 }} />
+        <div style={{ background: "var(--d-color)", borderRadius: 3 }} />
+        <div style={{ background: "var(--e-color)", borderRadius: 3 }} />
+      </div>
+      <div>
+        <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 18, color: "var(--white)", letterSpacing: "0.18em" }}>
+          GRDE
+        </div>
+        <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.22em", textTransform: "uppercase", marginTop: 2 }}>
+          The Beaver Dam Method
+        </div>
+      </div>
     </div>
   );
 }
 
-function Header() {
+function Header({ unlocked, onLock, currency, onCurrencyChange }) {
   return (
-    <header style={{
-      background: "#0c1425", padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between",
-      borderBottom: "1px solid #1e293b"
+    <header className="grde-header" style={{
+      borderBottom: "1px solid var(--border)",
+      background: "linear-gradient(180deg, rgba(15,31,58,0.6), rgba(10,22,40,0.2))",
+      padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between"
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <LogoDots size={9} />
-        <div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
-            Portfolio: GRDE Engine
-          </div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 300, fontSize: 8, color: "#64748b", letterSpacing: 2.5, textTransform: "uppercase" }}>
-            An Architect's Blueprint for Wealth
-          </div>
-        </div>
-      </div>
+      <Brand />
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{
-          background: "#1e293b", border: "1px solid #334155", borderRadius: 14, padding: "5px 14px",
-          fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#f1f5f9"
-        }}>
-          IN India (₹) ▾
-        </div>
-        <div style={{
-          background: "#7c2d12", borderRadius: 12, padding: "4px 12px",
-          fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 10, color: "#fb923c"
-        }}>
-          v2.1
-        </div>
+        <select
+          value={currency}
+          onChange={e => onCurrencyChange(e.target.value)}
+          className="mono grde-chip-currency"
+          title="Switch display currency (live FX)"
+          style={{
+            background: "rgba(200,168,75,0.08)", border: "1px solid var(--gold-dim)",
+            color: "var(--gold-pale)", borderRadius: 12, padding: "4px 10px",
+            fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase",
+            cursor: "pointer", outline: "none", appearance: "none",
+            paddingRight: 22, backgroundImage:
+              "linear-gradient(45deg, transparent 50%, var(--gold-pale) 50%), linear-gradient(135deg, var(--gold-pale) 50%, transparent 50%)",
+            backgroundPosition: "calc(100% - 12px) 50%, calc(100% - 7px) 50%",
+            backgroundSize: "5px 5px, 5px 5px", backgroundRepeat: "no-repeat",
+          }}
+        >
+          {Object.values(CURRENCIES).map(c => (
+            <option key={c.code} value={c.code} style={{ background: "#0a1628", color: "#e8e2d2" }}>
+              {c.flag} · {c.symbol} {c.code}
+            </option>
+          ))}
+        </select>
+        <div className="mono grde-chip-version" style={{
+          background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)",
+          borderRadius: 12, padding: "4px 12px", fontSize: 10, letterSpacing: "0.16em"
+        }}>v3.0</div>
+        {unlocked && (
+          <button onClick={onLock} title="Lock session" className="mono" style={{
+            background: "transparent", border: "1px solid var(--border)", color: "var(--text-dim)",
+            borderRadius: 12, padding: "4px 10px", fontSize: 10, letterSpacing: "0.14em", cursor: "pointer"
+          }}>● UNLOCKED</button>
+        )}
       </div>
     </header>
   );
 }
 
-function TabBar({ active, onChange, isUnlocked }) {
+function TabBar({ active, onChange, isUnlocked, isOwner }) {
   const tabs = [
     { id: "allocator", label: "Allocator", locked: false },
-    { id: "tracker", label: "Portfolio Tracker", locked: !isUnlocked },
-    { id: "isr", label: "ISR Analysis", locked: !isUnlocked },
+    { id: "tracker",   label: "Portfolio Tracker", locked: !isUnlocked },
+    { id: "isr",       label: "ISR Analysis", locked: !isUnlocked },
+    ...(isOwner ? [{ id: "codes", label: "Codes", locked: false, owner: true }] : []),
   ];
   return (
-    <div style={{
-      display: "inline-flex", background: "#1a2744", borderRadius: 16, padding: 3, margin: "20px 0 0 0"
+    <div className="grde-tabs" style={{
+      display: "inline-flex", gap: 4, background: "var(--card)",
+      border: "1px solid var(--border)", borderRadius: 999, padding: 4
     }}>
-      {tabs.map(t => (
-        <button
-          key={t.id}
-          onClick={() => onChange(t.id)}
-          style={{
-            background: active === t.id ? "#3b82f6" : "transparent",
-            color: active === t.id ? "#fff" : "#64748b",
-            border: "none", borderRadius: 13, padding: "7px 18px", cursor: "pointer",
-            fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12,
-            display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s"
-          }}
-        >
-          {t.label}
-          {t.locked && <span style={{ fontSize: 10 }}>🔒</span>}
-        </button>
-      ))}
+      {tabs.map(t => {
+        const a = active === t.id;
+        return (
+          <button key={t.id} onClick={() => onChange(t.id)} className="mono grde-tab" style={{
+            background: a ? "linear-gradient(180deg, #c8a84b, #896e2f)" : (t.owner ? "rgba(212,168,67,0.08)" : "transparent"),
+            color: a ? "#0a1628" : "var(--text-dim)",
+            border: "none", borderRadius: 999, padding: "8px 18px", cursor: "pointer",
+            fontSize: 11, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase",
+            display: "inline-flex", alignItems: "center", gap: 6, transition: "all 0.2s"
+          }}>
+            {t.label}
+            {t.locked && <span style={{ fontSize: 9 }}>🔒</span>}
+            {t.owner && !a && <span style={{ fontSize: 9, color: "var(--gold)" }}>★</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -171,298 +378,457 @@ function TabBar({ active, onChange, isUnlocked }) {
 function CategoryCard({ cat, pct }) {
   const m = CAT_META[cat];
   return (
-    <div style={{
-      background: "#162032", border: "1px solid #334155", borderRadius: 10, padding: "16px 8px 12px",
-      textAlign: "center", flex: 1, minWidth: 100, transition: "transform 0.2s, box-shadow 0.2s",
+    <div className="glass" style={{
+      flex: 1, minWidth: 110, borderRadius: 10, padding: "18px 10px 14px", textAlign: "center",
+      transition: "transform .2s, box-shadow .2s"
     }}
-    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 4px 20px ${m.color}22`; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
-    >
-      <div style={{ fontFamily: "'Lora', serif", fontSize: 28, color: m.color, fontWeight: 600 }}>{cat}</div>
-      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", letterSpacing: 1, marginTop: 2 }}>{m.label}</div>
-      <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: m.color, marginTop: 8, fontWeight: 500 }}>{pct}%</div>
-      <div style={{ width: "60%", height: 3, background: "#2d3a4f", borderRadius: 2, margin: "8px auto 0", overflow: "hidden" }}>
-        <div style={{ width: `${(pct / 55) * 100}%`, height: "100%", background: m.color, borderRadius: 2 }} />
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 6px 24px ${m.hex}22`; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+      <div style={{ fontFamily: "Cinzel", fontSize: 30, color: m.hex, fontWeight: 600 }}>{cat}</div>
+      <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", marginTop: 2 }}>{m.label}</div>
+      <div style={{ fontFamily: "Cinzel", fontSize: 22, color: m.hex, marginTop: 10, fontWeight: 500 }}>{pct}%</div>
+      <div style={{ width: "60%", height: 2, background: "var(--border)", borderRadius: 2, margin: "10px auto 0", overflow: "hidden" }}>
+        <div style={{ width: `${(pct / 65) * 100}%`, height: "100%", background: m.hex, borderRadius: 2 }} />
       </div>
     </div>
   );
 }
 
 function DonutChart({ data, size = 180 }) {
-  const cx = size / 2, cy = size / 2, r = size * 0.42, inner = size * 0.26;
-  let cumulative = 0;
-  const paths = data.map(({ pct, color }) => {
-    const startAngle = (cumulative / 100) * 360 - 90;
-    cumulative += pct;
-    const endAngle = (cumulative / 100) * 360 - 90;
-    const start = { x: cx + r * Math.cos((startAngle * Math.PI) / 180), y: cy + r * Math.sin((startAngle * Math.PI) / 180) };
-    const end = { x: cx + r * Math.cos((endAngle * Math.PI) / 180), y: cy + r * Math.sin((endAngle * Math.PI) / 180) };
-    const largeArc = pct > 50 ? 1 : 0;
-    const iStart = { x: cx + inner * Math.cos((endAngle * Math.PI) / 180), y: cy + inner * Math.sin((endAngle * Math.PI) / 180) };
-    const iEnd = { x: cx + inner * Math.cos((startAngle * Math.PI) / 180), y: cy + inner * Math.sin((startAngle * Math.PI) / 180) };
-    const d = `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y} L ${iStart.x} ${iStart.y} A ${inner} ${inner} 0 ${largeArc} 0 ${iEnd.x} ${iEnd.y} Z`;
-    return <path key={color} d={d} fill={color} stroke="#1e293b" strokeWidth={2} />;
-  });
-  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>{paths}</svg>;
-}
-
-function GaugeChart({ value, size = 200 }) {
-  const cx = size / 2, cy = size * 0.55, r = size * 0.38;
-  const segments = [
-    { start: 180, end: 144, color: "#ef4444" }, { start: 144, end: 126, color: "#f97316" },
-    { start: 126, end: 90, color: "#eab308" }, { start: 90, end: 54, color: "#84cc16" },
-    { start: 54, end: 0, color: "#22c55e" },
-  ];
-  const needleAngle = 180 - (value / 100) * 180;
-  const needleRad = (needleAngle * Math.PI) / 180;
-  const nx = cx + (r - 12) * Math.cos(needleRad);
-  const ny = cy - (r - 12) * Math.sin(needleRad);
-
+  const cx = size / 2, cy = size / 2, r = size * 0.42, inner = size * 0.27;
+  let cum = 0;
   return (
-    <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.65}`}>
-      {segments.map((s, i) => {
-        const s1 = ((180 - s.start) * Math.PI) / 180, s2 = ((180 - s.end) * Math.PI) / 180;
-        const x1 = cx + r * Math.cos(s1), y1 = cy - r * Math.sin(s1);
-        const x2 = cx + r * Math.cos(s2), y2 = cy - r * Math.sin(s2);
-        const la = s.start - s.end > 180 ? 1 : 0;
-        return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2}`} fill="none" stroke={s.color} strokeWidth={10} strokeLinecap="round" />;
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {data.map(({ pct, color }, i) => {
+        const sA = (cum / 100) * 360 - 90; cum += pct;
+        const eA = (cum / 100) * 360 - 90;
+        const s = { x: cx + r * Math.cos((sA * Math.PI) / 180), y: cy + r * Math.sin((sA * Math.PI) / 180) };
+        const e = { x: cx + r * Math.cos((eA * Math.PI) / 180), y: cy + r * Math.sin((eA * Math.PI) / 180) };
+        const la = pct > 50 ? 1 : 0;
+        const iS = { x: cx + inner * Math.cos((eA * Math.PI) / 180), y: cy + inner * Math.sin((eA * Math.PI) / 180) };
+        const iE = { x: cx + inner * Math.cos((sA * Math.PI) / 180), y: cy + inner * Math.sin((sA * Math.PI) / 180) };
+        const d = `M ${s.x} ${s.y} A ${r} ${r} 0 ${la} 1 ${e.x} ${e.y} L ${iS.x} ${iS.y} A ${inner} ${inner} 0 ${la} 0 ${iE.x} ${iE.y} Z`;
+        return <path key={i} d={d} fill={color} stroke="#0a1628" strokeWidth={2} />;
       })}
-      <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#f1f5f9" strokeWidth={2.5} strokeLinecap="round" />
-      <circle cx={cx} cy={cy} r={5} fill="#f1f5f9" />
     </svg>
   );
 }
 
-function HorizontalBar({ label, pct, targetPct, color, maxPct = 55 }) {
+function GaugeChart({ value, size = 240 }) {
+  const cx = size / 2, cy = size * 0.58, r = size * 0.4;
+  const segs = [
+    { s: 180, e: 144, c: "#d97a6c" }, { s: 144, e: 108, c: "#d4a04b" },
+    { s: 108, e: 72,  c: "#c8a84b" }, { s: 72,  e: 36,  c: "#7fa86b" },
+    { s: 36,  e: 0,   c: "#6bb88a" },
+  ];
+  const ang = 180 - (Math.max(0, Math.min(100, value)) / 100) * 180;
+  const rad = (ang * Math.PI) / 180;
+  const nx = cx + (r - 14) * Math.cos(rad);
+  const ny = cy - (r - 14) * Math.sin(rad);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-      <div style={{ width: 80, fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>{label}</div>
+    <svg width={size} height={size * 0.7} viewBox={`0 0 ${size} ${size * 0.7}`}>
+      {segs.map((g, i) => {
+        const a1 = ((180 - g.s) * Math.PI) / 180, a2 = ((180 - g.e) * Math.PI) / 180;
+        const x1 = cx + r * Math.cos(a1), y1 = cy - r * Math.sin(a1);
+        const x2 = cx + r * Math.cos(a2), y2 = cy - r * Math.sin(a2);
+        return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`} fill="none" stroke={g.c} strokeWidth={11} strokeLinecap="round" />;
+      })}
+      <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="var(--gold-pale)" strokeWidth={2.5} strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r={5} fill="var(--gold)" />
+    </svg>
+  );
+}
+
+function HBar({ label, pct, color, max = 65 }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+      <div className="mono" style={{ width: 80, fontSize: 10, color: "var(--text-dim)", textAlign: "right", letterSpacing: "0.12em" }}>{label}</div>
       <div style={{ flex: 1, position: "relative", height: 22 }}>
-        <div style={{ position: "absolute", inset: 0, background: "#1e293b", borderRadius: 4 }} />
+        <div style={{ position: "absolute", inset: 0, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4 }} />
         <div style={{
-          position: "absolute", top: 0, left: 0, bottom: 0, width: `${(pct / maxPct) * 100}%`,
-          background: color, borderRadius: 4, display: "flex", alignItems: "center", paddingLeft: 8, minWidth: 32
+          position: "absolute", top: 0, left: 0, bottom: 0, width: `${(pct / max) * 100}%`,
+          background: `linear-gradient(90deg, ${color}cc, ${color})`, borderRadius: 4,
+          display: "flex", alignItems: "center", paddingLeft: 8, minWidth: 40
         }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 9, color: "#fff" }}>{pct.toFixed(1)}%</span>
+          <span className="mono" style={{ fontWeight: 500, fontSize: 10, color: "#0a1628" }}>{pct.toFixed(1)}%</span>
         </div>
-        {targetPct && (
-          <div style={{
-            position: "absolute", top: -4, bottom: -4, left: `${(targetPct / maxPct) * 100}%`,
-            width: 1, borderLeft: "2px dashed rgba(255,255,255,0.3)"
-          }} />
-        )}
       </div>
     </div>
   );
 }
 
-// ─── LOCK OVERLAY ───
-function LockOverlay({ onUnlock }) {
-  const [showPayment, setShowPayment] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState("annual");
-  const [processing, setProcessing] = useState(false);
+/* ─── CODES TAB: owner-only generator ──────────────────────── */
+function CodesTab() {
+  const [codes, setCodes] = useState(() => loadIssuedCodes());
+  const [toast, setToast] = useState("");
 
-  const plans = {
-    monthly: { label: "₹299/mo", amount: 29900, desc: "Monthly • Cancel anytime", period: "monthly" },
-    annual: { label: "₹2,499/yr", amount: 249900, desc: "Annual • Save ₹1,089/yr", period: "annual" },
+  const persist = (next) => { setCodes(next); saveIssuedCodes(next); };
+  const flash = (msg) => { setToast(msg); setTimeout(() => setToast(""), 1400); };
+
+  const issueOne = () => {
+    const next = [{ code: generateCode(), createdAt: Date.now(), active: true, label: "" }, ...codes];
+    persist(next); flash("Code generated");
+  };
+  const issueBatch = (n) => {
+    const fresh = Array.from({length:n}, () => ({ code: generateCode(), createdAt: Date.now(), active: true, label: "" }));
+    persist([...fresh, ...codes]); flash(`${n} codes generated`);
+  };
+  const toggleActive = (i) => {
+    const next = codes.map((c, idx) => idx === i ? { ...c, active: !c.active } : c);
+    persist(next);
+  };
+  const removeCode = (i) => {
+    if (!window.confirm("Permanently remove this code?")) return;
+    persist(codes.filter((_, idx) => idx !== i));
+  };
+  const updateLabel = (i, label) => {
+    persist(codes.map((c, idx) => idx === i ? { ...c, label } : c));
+  };
+  const copyOne = async (code) => {
+    try { await navigator.clipboard.writeText(code); flash("Copied " + code); }
+    catch(e) { flash("Copy failed — long-press to copy"); }
+  };
+  const buildMessage = (code) => (
+`Hi! Here's your i3D *GRDE Portfolio Engine* access 🔐
+
+Access code: *${code}*
+
+How to unlock:
+1. Open: ${location.origin}/grde.html
+2. Tap "I have an access code"
+3. Paste the code above and tap Unlock
+
+The code unlocks the full GRDE framework on your device. Save it — you'll only need to enter it once per device.
+
+— i3D Studio`
+  );
+  const shareWhatsApp = async (code) => {
+    const msg = buildMessage(code);
+    try { await navigator.clipboard.writeText(msg); } catch(e) {}
+    flash("Message copied — opening WhatsApp");
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+  const copyAll = async () => {
+    const list = codes.filter(c => c.active).map(c => c.code).join("\n");
+    try { await navigator.clipboard.writeText(list); flash(`Copied ${codes.filter(c=>c.active).length} active codes`); }
+    catch(e) { flash("Copy failed"); }
+  };
+  const exportCSV = () => {
+    const rows = [["Code","Status","Label","Issued"]].concat(
+      codes.map(c => [c.code, c.active?"active":"revoked", c.label||"", new Date(c.createdAt).toISOString()])
+    );
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type:"text/csv" }));
+    const a = document.createElement("a"); a.href = url; a.download = `grde-codes-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
   };
 
-  const handleRazorpayCheckout = () => {
-    const plan = plans[selectedPlan];
-    setProcessing(true);
+  const fmtDate = (ts) => new Date(ts).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+  const activeCount = codes.filter(c => c.active).length;
 
-    // ─── RAZORPAY CHECKOUT ───
-    // Replace 'rzp_test_XXXXXXXXXXXX' with your actual Razorpay Key ID
-    // For testing: use Razorpay Test Mode key from Dashboard → Settings → API Keys
-    // For production: use Live Mode key
+  return (
+    <div>
+      <div className="label" style={{ marginBottom: 8 }}>Owner Console</div>
+      <h2 className="serif" style={{ fontSize: 26, fontWeight: 500, margin: "0 0 6px" }}>
+        Subscriber <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Codes</span>
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 18 }}>
+        Generate access codes to share with paying subscribers. Codes work immediately on this device — share them after payment.
+      </p>
 
-    const options = {
-      key: "rzp_test_XXXXXXXXXXXX",  // ← YOUR RAZORPAY KEY ID HERE
-      amount: plan.amount,  // Amount in paise (29900 = ₹299)
-      currency: "INR",
-      name: "GRDE Engine",
-      description: selectedPlan === "monthly" ? "GRDE Engine — Monthly Subscription" : "GRDE Engine — Annual Subscription (Save ₹1,089)",
-      image: "",  // Optional: your logo URL
-      // order_id: "order_XXXXX",  // ← In production: create order via backend API first
-      handler: function (response) {
-        // Payment successful!
-        // response.razorpay_payment_id — save this
-        // response.razorpay_order_id — if using orders
-        // response.razorpay_signature — verify on backend
+      {/* Action bar */}
+      <div className="glass" style={{ borderRadius: 10, padding: 14, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 14 }}>
+        <button onClick={issueOne} className="mono" style={{
+          background: "linear-gradient(180deg, #c8a84b, #896e2f)", color: "#0a1628", border: "none",
+          borderRadius: 999, padding: "10px 18px", fontSize: 11, fontWeight: 600, letterSpacing: "0.16em",
+          textTransform: "uppercase", cursor: "pointer"
+        }}>+ Generate</button>
+        <button onClick={() => issueBatch(5)} className="mono" style={{
+          background: "transparent", color: "var(--gold-pale)", border: "1px solid var(--gold-dim)",
+          borderRadius: 999, padding: "10px 14px", fontSize: 10, letterSpacing: "0.16em",
+          textTransform: "uppercase", cursor: "pointer"
+        }}>Batch × 5</button>
+        <button onClick={copyAll} disabled={!activeCount} className="mono" style={{
+          background: "transparent", color: "var(--text)", border: "1px solid var(--border)",
+          borderRadius: 999, padding: "10px 14px", fontSize: 10, letterSpacing: "0.16em",
+          textTransform: "uppercase", cursor: activeCount?"pointer":"not-allowed", opacity: activeCount?1:0.4
+        }}>Copy All Active</button>
+        <button onClick={exportCSV} disabled={!codes.length} className="mono" style={{
+          background: "transparent", color: "var(--text)", border: "1px solid var(--border)",
+          borderRadius: 999, padding: "10px 14px", fontSize: 10, letterSpacing: "0.16em",
+          textTransform: "uppercase", cursor: codes.length?"pointer":"not-allowed", opacity: codes.length?1:0.4
+        }}>Export CSV</button>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 14, fontSize: 11, color: "var(--text-dim)" }} className="mono">
+          <span><span style={{ color: "var(--good)" }}>{activeCount}</span> active</span>
+          <span><span style={{ color: "var(--text)" }}>{codes.length}</span> total</span>
+        </div>
+      </div>
 
-        console.log("Payment successful:", response.razorpay_payment_id);
+      {toast && (
+        <div className="mono" style={{
+          background: "rgba(82,168,106,0.12)", border: "1px solid var(--good)", color: "var(--good)",
+          borderRadius: 8, padding: "8px 12px", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase",
+          marginBottom: 12, textAlign: "center"
+        }}>✓ {toast}</div>
+      )}
 
-        // In production: verify payment on your backend before unlocking
-        // For now: unlock directly
-        setProcessing(false);
-        onUnlock();
-      },
-      prefill: {
-        name: "",
-        email: "",
-        contact: "",
-      },
-      notes: {
-        plan: selectedPlan,
-        product: "grde_engine_v2.1",
-      },
-      theme: {
-        color: "#3b82f6",
-      },
-      modal: {
-        ondismiss: function () {
-          setProcessing(false);
-        },
-      },
-    };
+      {/* Codes list */}
+      {codes.length === 0 ? (
+        <div className="glass" style={{ borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
+          <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>⌗</div>
+          <div style={{ color: "var(--text-dim)", fontSize: 13 }}>No codes issued yet — tap <strong style={{ color: "var(--gold)" }}>+ Generate</strong> to create your first.</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {codes.map((c, i) => (
+            <div key={i} className="glass" style={{
+              borderRadius: 10, padding: "12px 14px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10,
+              opacity: c.active ? 1 : 0.5
+            }}>
+              <code style={{
+                fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 500,
+                color: c.active ? "var(--gold-pale)" : "var(--text-dim)",
+                letterSpacing: "0.08em", textDecoration: c.active ? "none" : "line-through"
+              }}>{c.code}</code>
+              <input
+                type="text" placeholder="Note (e.g., Ravi · ₹299)"
+                value={c.label || ""} onChange={e => updateLabel(i, e.target.value)}
+                style={{
+                  flex: "1 1 140px", minWidth: 0, background: "var(--card-2)",
+                  border: "1px solid var(--border)", borderRadius: 6, padding: "6px 10px",
+                  color: "var(--text)", fontSize: 11, fontFamily: "Inter, sans-serif"
+                }}
+              />
+              <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+                {fmtDate(c.createdAt)}
+              </span>
+              <button onClick={() => copyOne(c.code)} title="Copy" className="mono" style={{
+                background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
+              }}>COPY</button>
+              <button onClick={() => shareWhatsApp(c.code)} title="Send via WhatsApp" className="mono" style={{
+                background: "rgba(37,211,102,0.12)", border: "1px solid #25D366", color: "#25D366",
+                borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
+              }}>WHATSAPP</button>
+              <button onClick={() => toggleActive(i)} title={c.active ? "Revoke" : "Reactivate"} className="mono" style={{
+                background: "transparent", border: "1px solid var(--border)", color: "var(--text-dim)",
+                borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
+              }}>{c.active ? "REVOKE" : "ENABLE"}</button>
+              <button onClick={() => removeCode(i)} title="Delete" style={{
+                background: "transparent", border: "none", color: "var(--danger)",
+                cursor: "pointer", fontSize: 14, padding: "4px 6px"
+              }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
 
-    // Check if Razorpay script is loaded
-    if (typeof window !== "undefined" && window.Razorpay) {
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      <p className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", textAlign: "center", marginTop: 18 }}>
+        Codes are stored on this device only. To share access across devices, paste the same code into the unlock screen.
+      </p>
+    </div>
+  );
+}
+
+/* ─── UPI_ID — change this to your actual GPay / PhonePe UPI ID ─── */
+const OWNER_UPI   = "shakhith-1@okicici";
+const OWNER_PHONE = "919363113693";
+const MONTHLY_AMT = 299;
+const ANNUAL_AMT  = 2499;
+
+/* ─── LOCK OVERLAY: UPI payment + passcode access ─── */
+function LockOverlay({ onUnlock }) {
+  const [view, setView]   = useState("home");   // "home" | "pay" | "code"
+  const [plan, setPlan]   = useState("monthly");
+  const [code, setCode]   = useState("");
+  const [err, setErr]     = useState("");
+
+  const amt = plan === "monthly" ? MONTHLY_AMT : ANNUAL_AMT;
+
+  /* UPI deep-link — works on mobile (GPay / PhonePe / Paytm) */
+  const openUPI = () => {
+    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=GRDE+Engine&am=${amt}&cu=INR&tn=GRDE+${plan}+access`;
+    window.location.href = upiUrl;
+  };
+
+  /* WhatsApp message after payment */
+  const openWhatsApp = () => {
+    const msg =
+`Hi Shakhith, I've paid ₹${amt} for GRDE Engine ${plan} access.
+Please share my access code.
+
+UPI ID used: ${OWNER_UPI}
+Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
+
+— Sent from grde.in`;
+    window.open(`https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const submitCode = () => {
+    const c = code.trim().toUpperCase();
+    const issued = loadIssuedCodes().filter(x => x.active).map(x => x.code.toUpperCase());
+    if (c === OWNER_CODE.toUpperCase() || SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c) || issued.includes(c)) {
+      onUnlock(c === OWNER_CODE.toUpperCase() ? "owner" : "subscriber");
     } else {
-      // Razorpay script not loaded — fallback
-      alert(
-        "Razorpay checkout loading...\n\n" +
-        "To enable payments:\n" +
-        "1. Add this script to your HTML <head>:\n" +
-        '   <script src="https://checkout.razorpay.com/v1/checkout.js"><\/script>\n\n' +
-        "2. Replace 'rzp_test_XXXXXXXXXXXX' in the code with your Razorpay Key ID\n\n" +
-        "Simulating success for testing..."
-      );
-      setProcessing(false);
-      onUnlock();
+      setErr("Invalid access code. Please verify and try again.");
     }
   };
 
   return (
     <div style={{
-      position: "absolute", inset: 0, zIndex: 50, display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", backdropFilter: "blur(8px)", background: "rgba(15,23,42,0.85)", borderRadius: 12
+      position: "absolute", inset: 0, zIndex: 50, display: "grid", placeItems: "center",
+      backdropFilter: "blur(10px)", background: "rgba(10,22,40,0.78)", borderRadius: 12, padding: 24
     }}>
-      <div style={{
-        background: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "36px 44px",
-        textAlign: "center", maxWidth: 420, boxShadow: "0 20px 60px rgba(0,0,0,0.5)"
+      <div className="glass" style={{
+        borderRadius: 14, padding: "32px 36px", maxWidth: 480, width: "100%", textAlign: "center",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.6)", borderColor: "var(--gold-dim)"
       }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
-        <h3 style={{ fontFamily: "'Lora', serif", fontSize: 22, color: "#f1f5f9", margin: "0 0 8px" }}>
-          Unlock Full Access
-        </h3>
-        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: "0 0 20px" }}>
-          Enter your actual holdings, track variances against GRDE targets, and generate professional PDF reports to discuss with your financial advisor.
-        </p>
-        <div style={{
-          background: "#0f172a", borderRadius: 10, padding: 16, marginBottom: 20, border: "1px solid #2d3a4f"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-around" }}>
-            {[
-              { icon: "📊", label: "Full Tracker" },
-              { icon: "📄", label: "PDF Reports" },
-              { icon: "🔄", label: "Rebalancing" },
-              { icon: "📈", label: "ISR Analysis" },
-            ].map(f => (
-              <div key={f.label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 20 }}>{f.icon}</div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b", marginTop: 4 }}>{f.label}</div>
-              </div>
+
+        {/* ── HOME ── */}
+        {view === "home" && (<>
+          <div style={{
+            width: 56, height: 56, margin: "0 auto 14px", borderRadius: 14,
+            background: "linear-gradient(135deg, #c8a84b, #896e2f)", display: "grid", placeItems: "center",
+            color: "#0a1628", fontSize: 26
+          }}>🔒</div>
+          <h3 style={{ fontFamily: "Cinzel", fontSize: 22, color: "var(--white)", margin: "0 0 8px" }}>
+            Unlock <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Full Access</span>
+          </h3>
+          <p style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.6, margin: "0 0 22px" }}>
+            Enter your actual holdings, track variances against GRDE targets, and access ISR analysis.
+          </p>
+          {/* Feature chips */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
+            {["Full Tracker", "PDF Reports", "Rebalancing", "ISR Analysis"].map(f => (
+              <span key={f} className="mono" style={{
+                fontSize: 9, letterSpacing: "0.14em", color: "var(--gold-pale)",
+                background: "rgba(212,168,67,0.08)", border: "1px solid var(--gold-dim)",
+                borderRadius: 999, padding: "4px 10px"
+              }}>{f}</span>
             ))}
           </div>
-        </div>
+          <button onClick={() => setView("pay")} className="mono" style={{
+            width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
+            color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer",
+            marginBottom: 10
+          }}>Subscribe via UPI</button>
+          <button onClick={() => setView("code")} className="mono" style={{
+            width: "100%", background: "transparent", color: "var(--text-dim)",
+            border: "1px solid var(--border)", borderRadius: 10, padding: "11px 22px",
+            fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", cursor: "pointer"
+          }}>I have an access code</button>
+        </>)}
 
-        {!showPayment ? (
-          <div>
-            <button
-              onClick={() => setShowPayment(true)}
-              style={{
-                background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "#fff", border: "none",
-                borderRadius: 10, padding: "12px 32px", fontSize: 14, fontWeight: 600, cursor: "pointer",
-                fontFamily: "'Poppins', sans-serif", width: "100%", transition: "transform 0.15s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
-              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-            >
-              Unlock for ₹299/month
-            </button>
-            <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", marginTop: 8 }}>
-              or ₹2,499/year (save ₹1,089) • Cancel anytime
+        {/* ── PAY ── */}
+        {view === "pay" && (<>
+          <div className="label" style={{ marginBottom: 10 }}>Choose Plan</div>
+          <h3 style={{ fontFamily: "Cinzel", fontSize: 20, color: "var(--white)", margin: "0 0 18px" }}>
+            Pay via <span style={{ color: "var(--gold)", fontStyle: "italic" }}>UPI</span>
+          </h3>
+
+          {/* Plan selector */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+            {[
+              { key: "monthly", label: "₹299 / mo", sub: "Monthly · Cancel anytime" },
+              { key: "annual",  label: "₹2,499 / yr", sub: "Annual · Save ₹1,089/yr", badge: "BEST VALUE" }
+            ].map(p => (
+              <button key={p.key} onClick={() => setPlan(p.key)} style={{
+                flex: 1, background: plan === p.key ? "rgba(200,168,75,0.12)" : "transparent",
+                border: `2px solid ${plan === p.key ? "var(--gold)" : "var(--border)"}`,
+                borderRadius: 10, padding: "14px 8px", cursor: "pointer", textAlign: "center"
+              }}>
+                <div style={{ fontFamily: "Cinzel", fontSize: 17, color: "var(--gold)", fontWeight: 600 }}>{p.label}</div>
+                <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 4, letterSpacing: "0.12em" }}>{p.sub}</div>
+                {p.badge && (
+                  <div className="mono" style={{
+                    fontSize: 8, color: "var(--good)", background: "rgba(82,168,106,0.12)",
+                    border: "1px solid var(--good)", borderRadius: 4, padding: "2px 6px",
+                    display: "inline-block", marginTop: 6, letterSpacing: "0.12em"
+                  }}>{p.badge}</div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* UPI Pay button */}
+          <button onClick={openUPI} className="mono" style={{
+            width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
+            color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase",
+            cursor: "pointer", marginBottom: 10
+          }}>Pay ₹{amt} via GPay / PhonePe / UPI</button>
+
+          {/* UPI ID manual copy */}
+          <div className="glass" style={{ borderRadius: 8, padding: "10px 14px", marginBottom: 10, textAlign: "left" }}>
+            <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em", marginBottom: 4 }}>UPI ID (manual payment)</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>{OWNER_UPI}</code>
+              <button onClick={() => { navigator.clipboard.writeText(OWNER_UPI); }} className="mono" style={{
+                background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
+              }}>COPY</button>
             </div>
           </div>
-        ) : (
-          <div>
-            {/* Plan Selection */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              {Object.entries(plans).map(([key, plan]) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedPlan(key)}
-                  style={{
-                    flex: 1, background: selectedPlan === key ? "#0f172a" : "#1e293b",
-                    border: selectedPlan === key ? "2px solid #3b82f6" : "1px solid #334155",
-                    borderRadius: 10, padding: "12px 10px", cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                >
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 16, color: selectedPlan === key ? "#3b82f6" : "#94a3b8" }}>
-                    {plan.label}
-                  </div>
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>
-                    {plan.desc}
-                  </div>
-                  {key === "annual" && (
-                    <div style={{
-                      fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#22c55e", marginTop: 4,
-                      background: "#22c55e15", padding: "2px 8px", borderRadius: 4, display: "inline-block"
-                    }}>
-                      BEST VALUE — Save ₹1,089/yr
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
 
-            {/* Pay Button */}
-            <button
-              onClick={handleRazorpayCheckout}
-              disabled={processing}
-              style={{
-                background: processing ? "#334155" : "linear-gradient(135deg, #22c55e, #16a34a)",
-                color: "#fff", border: "none", borderRadius: 10,
-                padding: "12px 24px", fontSize: 13, fontWeight: 600,
-                cursor: processing ? "wait" : "pointer",
-                fontFamily: "'Poppins', sans-serif", width: "100%",
-                transition: "transform 0.15s",
-                boxShadow: processing ? "none" : "0 4px 15px rgba(34,197,94,0.3)"
-              }}
-            >
-              {processing ? "Processing..." : `Pay ${plans[selectedPlan].label} — Proceed to Checkout`}
-            </button>
+          {/* After payment — WhatsApp */}
+          <button onClick={openWhatsApp} className="mono" style={{
+            width: "100%", background: "rgba(37,211,102,0.10)", border: "1px solid #25D366",
+            color: "#25D366", borderRadius: 10, padding: "11px 22px",
+            fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", cursor: "pointer", marginBottom: 14
+          }}>✓ Paid — Send Screenshot on WhatsApp</button>
 
-            {/* Security note */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 10 }}>
-              <span style={{ fontSize: 10 }}>🔒</span>
-              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b" }}>
-                Secured by Razorpay • UPI, Cards, Net Banking accepted
-              </span>
-            </div>
-
-            <button
-              onClick={() => setShowPayment(false)}
-              style={{
-                background: "transparent", color: "#64748b", border: "none",
-                padding: "8px", fontSize: 11, cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginTop: 6
-              }}
-            >
-              ← Back
-            </button>
+          <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.12em", lineHeight: 1.7, marginBottom: 14 }}>
+            After payment, send your screenshot on WhatsApp.<br />
+            You'll receive your access code within a few hours.
           </div>
-        )}
+
+          <button onClick={() => setView("home")} style={{
+            background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 11, cursor: "pointer"
+          }}>← Back</button>
+        </>)}
+
+        {/* ── CODE ENTRY ── */}
+        {view === "code" && (<>
+          <div style={{
+            width: 48, height: 48, margin: "0 auto 14px", borderRadius: 12,
+            background: "rgba(200,168,75,0.1)", border: "1px solid var(--gold-dim)",
+            display: "grid", placeItems: "center", fontSize: 22
+          }}>⌗</div>
+          <h3 style={{ fontFamily: "Cinzel", fontSize: 20, color: "var(--white)", margin: "0 0 8px" }}>
+            Enter <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Access Code</span>
+          </h3>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 18px", lineHeight: 1.6 }}>
+            Paste the code you received from i3D Studio after payment.
+          </p>
+          <input
+            autoFocus value={code} onChange={e => { setCode(e.target.value); setErr(""); }}
+            onKeyDown={e => e.key === "Enter" && submitCode()}
+            placeholder="GRDE-XXXX-XXXX"
+            className="mono" style={{
+              width: "100%", background: "var(--bg)", border: `1px solid ${err ? "var(--danger)" : "var(--border-2)"}`,
+              borderRadius: 10, padding: "12px 14px", color: "var(--white)",
+              fontSize: 14, letterSpacing: "0.18em", textAlign: "center", textTransform: "uppercase",
+              marginBottom: 10
+            }} />
+          {err && <div style={{ color: "var(--danger)", fontSize: 11, marginBottom: 10 }}>{err}</div>}
+          <button onClick={submitCode} className="mono" style={{
+            width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
+            color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase",
+            cursor: "pointer", marginBottom: 10
+          }}>Unlock</button>
+          <button onClick={() => { setView("home"); setErr(""); setCode(""); }} style={{
+            background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 11, cursor: "pointer"
+          }}>← Back</button>
+        </>)}
+
       </div>
     </div>
   );
 }
 
-
-// ─── TAB: ALLOCATOR ───
+/* ─── TAB: ALLOCATOR ─────────────────────────────────────── */
 function AllocatorTab() {
   const [age, setAge] = useState(50);
   const alloc = getAllocation(age);
@@ -470,76 +836,49 @@ function AllocatorTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 6 }}>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
-          Age-Based Risk Engine
-        </div>
-        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
-          Target Allocation
-        </h2>
-        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", lineHeight: 1.5, margin: 0 }}>
-          Adjust your age to see how the GRDE framework adapts. Younger investors tilt toward equity for growth; older investors shift toward stability assets for peace of mind.
-        </p>
-      </div>
+      <div className="label">Age-Based Risk Engine</div>
+      <h2 style={{ fontSize: 30, margin: "8px 0 6px" }}>
+        Target&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Allocation</span>
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6, margin: 0, maxWidth: 720 }}>
+        Adjust your age to see how the GRDE framework adapts. Younger investors tilt toward equity for growth;
+        older investors shift toward stability assets for income and peace of mind.
+      </p>
 
-      {/* Age Slider Card */}
-      <div style={{
-        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "24px 28px", margin: "18px 0"
-      }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 20 }}>
-          <span style={{ fontFamily: "'Lora', serif", fontSize: 42, color: "#f1f5f9", fontWeight: 600 }}>{age}</span>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: "#94a3b8" }}>years old</span>
-          <span style={{
-            fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#3b82f6", background: "#1e3a5f",
-            padding: "3px 10px", borderRadius: 8, marginLeft: 10
-          }}>Band: {band}</span>
-        </div>
-        <div style={{ position: "relative", margin: "0 0 10px" }}>
-          <div style={{
-            position: "absolute", top: 6, left: 0, right: 0, height: 6, borderRadius: 3,
-            background: "linear-gradient(to right, #22c55e 0%, #22c55e 45%, #eab308 55%, #eab308 70%, #ef4444 85%, #ef4444 100%)"
-          }} />
-          <input
-            type="range" min={25} max={80} value={age}
-            onChange={e => setAge(Number(e.target.value))}
-            style={{
-              width: "100%", position: "relative", zIndex: 2, opacity: 0, height: 20, cursor: "pointer"
-            }}
-          />
-          <div style={{
-            position: "absolute", top: 1, width: 16, height: 16, borderRadius: "50%", background: "#fff",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.3)", border: "2px solid #94a3b8",
-            left: `${((age - 25) / (80 - 25)) * 100}%`, transform: "translateX(-50%)", pointerEvents: "none", zIndex: 3
-          }} />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>25 — Higher Growth</span>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>80 — Higher Stability</span>
+      <div className="glass" style={{ borderRadius: 12, padding: "24px 28px", margin: "20px 0" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "Cinzel", fontSize: 46, color: "var(--white)", fontWeight: 600 }}>{age}</span>
+          <span className="mono" style={{ fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase" }}>years old</span>
+          <span className="mono" style={{
+            fontSize: 10, color: "var(--gold)", background: "rgba(200,168,75,0.10)",
+            border: "1px solid var(--gold-dim)", padding: "4px 10px", borderRadius: 999,
+            letterSpacing: "0.18em", textTransform: "uppercase", marginLeft: 6
+          }}>Band {band}</span>
         </div>
 
-        {/* Category Cards */}
-        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <input type="range" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))}
+          style={{ width: "100%", cursor: "pointer", accentColor: "var(--gold)" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+          <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em" }}>25 — HIGHER GROWTH</span>
+          <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em" }}>100 — HIGHER STABILITY</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
           {CATS.map(cat => <CategoryCard key={cat} cat={cat} pct={alloc[cat]} />)}
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div style={{ display: "flex", gap: 14 }}>
-        {/* Donut */}
-        <div style={{
-          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 20
-        }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9", marginBottom: 14 }}>
-            ALLOCATION BREAKDOWN
-          </div>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+        <div className="glass" style={{ flex: "1 1 320px", borderRadius: 12, padding: 22 }}>
+          <div className="label" style={{ marginBottom: 12 }}>Allocation Breakdown</div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <DonutChart data={CATS.map(cat => ({ pct: alloc[cat], color: CAT_META[cat].color }))} size={170} />
+            <DonutChart data={CATS.map(cat => ({ pct: alloc[cat], color: CAT_META[cat].hex }))} size={180} />
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
             {CATS.map(cat => (
-              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT_META[cat].color }} />
-                <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#94a3b8" }}>
+              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT_META[cat].hex }} />
+                <span className="mono" style={{ fontSize: 9, color: "var(--text)", letterSpacing: "0.12em" }}>
                   {CAT_META[cat].label} {alloc[cat]}%
                 </span>
               </div>
@@ -547,15 +886,10 @@ function AllocatorTab() {
           </div>
         </div>
 
-        {/* Horizontal bars */}
-        <div style={{
-          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 20
-        }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9", marginBottom: 14 }}>
-            COMPONENT COMPARISON
-          </div>
+        <div className="glass" style={{ flex: "1 1 320px", borderRadius: 12, padding: 22 }}>
+          <div className="label" style={{ marginBottom: 16 }}>Component Comparison</div>
           {CATS.map(cat => (
-            <HorizontalBar key={cat} label={CAT_META[cat].label.split(" ")[0]} pct={alloc[cat]} color={CAT_META[cat].color} />
+            <HBar key={cat} label={CAT_META[cat].label.split(" ")[0]} pct={alloc[cat]} color={CAT_META[cat].hex} />
           ))}
         </div>
       </div>
@@ -563,188 +897,226 @@ function AllocatorTab() {
   );
 }
 
-
-// ─── TAB: PORTFOLIO TRACKER ───
+/* ─── TAB: PORTFOLIO TRACKER ─────────────────────────────── */
 function TrackerTab() {
-  const [totalPortfolio, setTotalPortfolio] = useState("");
-  const [age, setAge] = useState(50);
-  const [values, setValues] = useState({});
-  const [reportDate, setReportDate] = useState(new Date().toISOString().slice(0, 7));
-  const alloc = getAllocation(age);
+  const loadSaved = () => {
+    try { const s = localStorage.getItem(TRACKER_KEY); if (s) return JSON.parse(s); } catch(e) {}
+    return null;
+  };
+  const saved = loadSaved();
+  const [totalPortfolio, setTotalPortfolio] = useState(saved?.totalPortfolio ?? "");
+  const [age, setAge] = useState(saved?.age ?? 50);
+  const [values, setValues] = useState(saved?.values ?? {});
+  const [reportDate, setReportDate] = useState(saved?.reportDate ?? new Date().toISOString().slice(0, 7));
+  const [saveStatus, setSaveStatus] = useState("");
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(TRACKER_KEY, JSON.stringify({ totalPortfolio, age, values, reportDate }));
+      setSaveStatus("✓ Saved"); const t = setTimeout(() => setSaveStatus(""), 1200); return () => clearTimeout(t);
+    } catch (e) {}
+  }, [totalPortfolio, age, values, reportDate]);
+
+  const alloc = getAllocation(age);
   const total = Number(totalPortfolio) || 0;
 
-  // Compute assets with targets
   const assets = ASSET_TEMPLATE.map(a => {
-    const catPct = alloc[a.cat];
-    const finalPct = catPct * a.splitPct / 100;
+    const finalPct = alloc[a.cat] * a.catFrac;       // % of total portfolio
     const targetVal = total * finalPct / 100;
     const currentVal = Number(values[a.id]) || 0;
     const variance = currentVal - targetVal;
     return { ...a, finalPct, targetVal, currentVal, variance };
   });
 
-  // Category aggregates
-  const catSummary = {};
-  CATS.forEach(cat => {
-    const catAssets = assets.filter(a => a.cat === cat);
-    const currentTotal = catAssets.reduce((s, a) => s + a.currentVal, 0);
-    const targetTotal = catAssets.reduce((s, a) => s + a.targetVal, 0);
-    const targetPct = alloc[cat];
-    const currentPct = total > 0 ? (currentTotal / total) * 100 : 0;
-    catSummary[cat] = { currentTotal, targetTotal, targetPct, currentPct, diff: currentPct - targetPct };
-  });
-
   const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
 
-  const handleValueChange = (id, val) => {
-    setValues(prev => ({ ...prev, [id]: val }));
+  // Use the actual sum of entered holdings when it's available; only fall
+  // back to the user-typed portfolio value when nothing has been entered yet.
+  // This lets the G/R/D/E summary cards reflect the tracker inputs even when
+  // the "Total Portfolio Value" field is left blank.
+  const denom = actualTotal > 0 ? actualTotal : total;
+
+  const catSummary = {};
+  CATS.forEach(cat => {
+    const ca = assets.filter(a => a.cat === cat);
+    const cT = ca.reduce((s, a) => s + a.currentVal, 0);
+    const tT = ca.reduce((s, a) => s + a.targetVal, 0);
+    const tP = alloc[cat];
+    const cP = denom > 0 ? (cT / denom) * 100 : 0;
+    catSummary[cat] = { currentTotal: cT, targetTotal: tT, targetPct: tP, currentPct: cP, diff: cP - tP };
+  });
+
+  const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
+
+  const reportRef = useRef(null);
+
+  const printReport = () => {
+    const node = reportRef.current;
+    if (!node) { window.print(); return; }
+    // Snapshot the live report (with current input values) into a preview window
+    const clone = node.cloneNode(true);
+    // Replace inputs/selects with their current values as plain text
+    clone.querySelectorAll("input, select, textarea").forEach(el => {
+      const span = document.createElement("span");
+      span.textContent = el.value || el.getAttribute("placeholder") || "—";
+      span.style.cssText = "font-family:'JetBrains Mono',monospace;font-size:12px;color:#1a1a1a;border-bottom:1px solid #bbb;padding:2px 6px;display:inline-block;min-width:60px;";
+      el.parentNode.replaceChild(span, el);
+    });
+    // Strip interactive buttons inside the report (Clear data, Print button itself, etc.)
+    clone.querySelectorAll("button").forEach(b => b.remove());
+
+    const w = window.open("", "_blank", "width=900,height=1000");
+    if (!w) { alert("Please allow pop-ups to preview the report."); return; }
+    w.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>GRDE Report Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#e8e8e8;font-family:'Inter',sans-serif;color:#1a1a1a;}
+  .toolbar{position:sticky;top:0;z-index:10;background:#0a1628;color:#e8d49a;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+  .toolbar .title{font-family:'Cinzel',serif;letter-spacing:0.18em;text-transform:uppercase;font-size:13px;}
+  .toolbar .hint{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;color:#8a8a8a;text-transform:uppercase;margin-left:16px;}
+  .toolbar button{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;border:none;border-radius:6px;padding:9px 18px;cursor:pointer;margin-left:8px;}
+  .btn-print{background:linear-gradient(180deg,#c8a84b,#896e2f);color:#0a1628;font-weight:600;}
+  .btn-cancel{background:transparent;color:#b8c0cc;border:1px solid #2a3a4a !important;}
+  .page{max-width:780px;margin:24px auto;background:#fff;padding:32px 36px;box-shadow:0 4px 24px rgba(0,0,0,0.12);}
+  h1,h2,h3,h4{font-family:'Cinzel',serif;color:#1a1a1a;}
+  .mono{font-family:'JetBrains Mono',monospace;color:#555;}
+  .glass{background:#fff !important;border:1px solid #d4d4d4 !important;border-radius:10px;}
+  @media print{
+    @page{size:A4;margin:14mm 12mm;}
+    body{background:#fff;}
+    .toolbar{display:none !important;}
+    .page{margin:0;padding:0;box-shadow:none;max-width:none;}
+    /* Allow large tables to flow across pages instead of leaving big gaps */
+    .glass{page-break-inside:auto;break-inside:auto;}
+    /* Keep individual rows intact */
+    .glass > div{page-break-inside:avoid;break-inside:avoid;}
+  }
+</style>
+</head><body>
+<div class="toolbar">
+  <div><span class="title">Print Preview</span><span class="hint">Review the layout below — then export</span></div>
+  <div>
+    <button class="btn-cancel" onclick="window.close()">Cancel</button>
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+  </div>
+</div>
+<div class="page" id="preview-body"></div>
+</body></html>`);
+    w.document.close();
+    // Inject the cloned node after the document is ready
+    const mount = () => {
+      const target = w.document.getElementById("preview-body");
+      if (target) target.appendChild(clone);
+    };
+    if (w.document.readyState === "complete") mount();
+    else w.addEventListener("load", mount);
   };
 
-  const generatePDF = () => {
-    // In production: call backend to generate PDF using reportlab
-    // For demo: show what would be generated
-    alert(
-      `PDF Report would be generated:\n\n` +
-      `Date: ${reportDate}\n` +
-      `Total Portfolio: ${fmtINR(total)}\n` +
-      `Age: ${age} (Band: ${getBand(age)})\n\n` +
-      CATS.map(cat => `${cat}: ${catSummary[cat].currentPct.toFixed(1)}% (Target: ${catSummary[cat].targetPct}%)`).join("\n") +
-      `\n\nISR: ${(catSummary.G.currentPct + catSummary.R.currentPct + catSummary.D.currentPct).toFixed(1)}%\n\n` +
-      `In production, this triggers server-side PDF generation using ReportLab with the dark theme design.`
-    );
+  const inputStyle = {
+    width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8,
+    padding: "10px 14px", color: "var(--white)", fontFamily: "Inter", fontSize: 13, outline: "none", boxSizing: "border-box"
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 6 }}>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
-          Portfolio Tracker
+    <div ref={reportRef}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <div className="label">Portfolio Tracker</div>
+          <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
+            Asset&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Holdings</span>
+          </h2>
         </div>
-        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
-          Asset Holdings
-        </h2>
-      </div>
-
-      {/* Input Row */}
-      <div style={{
-        display: "flex", gap: 14, marginBottom: 18, flexWrap: "wrap"
-      }}>
-        <div style={{ flex: "1 1 200px" }}>
-          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
-            Total Portfolio Value (₹)
-          </label>
-          <input
-            type="number" value={totalPortfolio} onChange={e => setTotalPortfolio(e.target.value)}
-            placeholder="e.g. 3500000"
-            style={{
-              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
-              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
-              outline: "none", boxSizing: "border-box"
-            }}
-          />
-        </div>
-        <div style={{ flex: "0 0 120px" }}>
-          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
-            Your Age
-          </label>
-          <input
-            type="number" min={25} max={80} value={age} onChange={e => setAge(Number(e.target.value))}
-            style={{
-              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
-              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
-              outline: "none", boxSizing: "border-box"
-            }}
-          />
-        </div>
-        <div style={{ flex: "0 0 140px" }}>
-          <label style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", display: "block", marginBottom: 4 }}>
-            Report Month
-          </label>
-          <input
-            type="month" value={reportDate} onChange={e => setReportDate(e.target.value)}
-            style={{
-              width: "100%", background: "#0f172a", border: "1px solid #475569", borderRadius: 8,
-              padding: "10px 14px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 13,
-              outline: "none", boxSizing: "border-box"
-            }}
-          />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+          {saveStatus && <span className="mono" style={{ fontSize: 10, color: "var(--good)", letterSpacing: "0.14em" }}>{saveStatus}</span>}
+          <button onClick={() => { if (window.confirm("Clear all saved data?")) { localStorage.removeItem(TRACKER_KEY); setTotalPortfolio(""); setAge(50); setValues({}); setReportDate(new Date().toISOString().slice(0, 7)); } }}
+            className="mono" style={{
+              background: "transparent", border: "1px solid var(--border-2)", borderRadius: 8,
+              padding: "8px 14px", color: "var(--text-dim)", fontSize: 10, letterSpacing: "0.16em",
+              textTransform: "uppercase", cursor: "pointer"
+            }}>Clear data</button>
         </div>
       </div>
 
-      {/* Asset Table */}
-      <div style={{
-        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, overflow: "hidden"
-      }}>
-        {/* Table Header */}
+      <div style={{ display: "flex", gap: 14, margin: "18px 0", flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 240px" }}>
+          <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Total Portfolio Value ({ccySym()})</label>
+          <input type="number" value={inrToInput(totalPortfolio)}
+            onChange={e => setTotalPortfolio(inputToInr(e.target.value))}
+            placeholder={CCY === "INR" ? "e.g. 3500000" : `e.g. ${Math.round(3500000 / CURRENCIES[CCY].rate)}`}
+            style={inputStyle} />
+        </div>
+        <div style={{ flex: "0 0 130px" }}>
+          <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Your Age</label>
+          <input type="number" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))} style={inputStyle} />
+        </div>
+        <div style={{ flex: "0 0 160px" }}>
+          <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Report Month</label>
+          <input type="month" value={reportDate} onChange={e => setReportDate(e.target.value)} style={inputStyle} />
+        </div>
+      </div>
+
+      <div className="glass" style={{ borderRadius: 12, overflow: "hidden" }}>
         <div style={{
-          display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
-          gap: 8, padding: "10px 16px", background: "#162032", alignItems: "center"
+          display: "grid", gridTemplateColumns: "28px 1fr 110px 110px 70px 110px",
+          gap: 8, padding: "10px 16px", background: "var(--card-2)", alignItems: "center"
         }}>
-          {["", "Sub-Category", "Current (₹)", "Target (₹)", "Split %", "Variance"].map((h, i) => (
-            <div key={i} style={{
-              fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 9, color: "#64748b",
+          {["", "Sub-Category", `Current (${ccySym()})`, `Target (${ccySym()})`, "Split %", "Variance"].map((h, i) => (
+            <div key={i} className="mono" style={{
+              fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em", textTransform: "uppercase",
               textAlign: i >= 2 ? "right" : "left"
             }}>{h}</div>
           ))}
         </div>
 
-        {/* Rows grouped by category */}
         {CATS.map(cat => (
           <div key={cat}>
-            {/* Category header */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "10px 16px",
-              background: "#131c30", borderTop: "1px solid #2d3a4f"
+              display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+              background: "rgba(200,168,75,0.04)", borderTop: "1px solid var(--border)"
             }}>
-              <span style={{ fontFamily: "'Lora', serif", fontSize: 18, color: CAT_META[cat].color, fontWeight: 600 }}>{cat}</span>
-              <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#f1f5f9" }}>
+              <span style={{ fontFamily: "Cinzel", fontSize: 18, color: CAT_META[cat].hex, fontWeight: 600 }}>{cat}</span>
+              <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
                 {CAT_META[cat].label} ({alloc[cat]}%)
               </span>
-              <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginLeft: "auto" }}>
+              <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginLeft: "auto", letterSpacing: "0.18em", textTransform: "uppercase" }}>
                 {CAT_META[cat].tag}
               </span>
             </div>
 
-            {/* Asset rows */}
             {assets.filter(a => a.cat === cat).map((a, i) => (
               <div key={a.id} style={{
-                display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
-                gap: 8, padding: "8px 16px", alignItems: "center",
-                background: i % 2 === 0 ? "transparent" : "#0f172a11",
-                borderTop: "1px solid #1e293b"
+                display: "grid", gridTemplateColumns: "28px 1fr 110px 110px 70px 110px",
+                gap: 8, padding: "10px 16px", alignItems: "center",
+                background: i % 2 === 0 ? "transparent" : "rgba(15,31,58,0.4)",
+                borderTop: "1px solid rgba(30,58,95,0.5)"
               }}>
+                <div><div style={{ width: 8, height: 8, borderRadius: "50%", background: CAT_META[cat].hex }} /></div>
                 <div>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: CAT_META[cat].color }} />
+                  <div style={{ fontSize: 12, color: "var(--white)", fontWeight: 500 }}>{a.name}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{a.desc}</div>
                 </div>
                 <div>
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#f1f5f9" }}>{a.name}</div>
-                  <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b" }}>{a.desc}</div>
-                </div>
-                <div>
-                  <input
-                    type="number"
-                    value={values[a.id] || ""}
-                    onChange={e => handleValueChange(a.id, e.target.value)}
-                    placeholder="0"
+                  <input type="number" value={inrToInput(values[a.id])}
+                    onChange={e => handleVal(a.id, inputToInr(e.target.value))} placeholder="0"
                     style={{
-                      width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 6,
-                      padding: "6px 8px", color: "#f1f5f9", fontFamily: "'Poppins', sans-serif", fontSize: 11,
+                      width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6,
+                      padding: "6px 8px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 11,
                       textAlign: "right", outline: "none", boxSizing: "border-box"
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
-                    onBlur={e => e.currentTarget.style.borderColor = "#334155"}
-                  />
+                    onFocus={e => e.currentTarget.style.borderColor = "var(--gold)"}
+                    onBlur={e => e.currentTarget.style.borderColor = "var(--border)"} />
                 </div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>
+                <div className="mono" style={{ fontSize: 11, color: "var(--text)", textAlign: "right" }}>
                   {total > 0 ? fmtINR(a.targetVal) : "—"}
                 </div>
-                <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>
-                  {a.finalPct.toFixed(1)}%
+                <div className="mono" style={{ fontSize: 11, color: "var(--text-dim)", textAlign: "right" }}>
+                  {a.finalPct.toFixed(2)}%
                 </div>
-                <div style={{
-                  fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, textAlign: "right",
-                  color: a.currentVal === 0 ? "#64748b" : a.variance >= 0 ? "#22c55e" : "#ef4444"
+                <div className="mono" style={{
+                  fontWeight: 500, fontSize: 11, textAlign: "right",
+                  color: a.currentVal === 0 ? "var(--text-dim)" : a.variance >= 0 ? "var(--good)" : "var(--danger)"
                 }}>
                   {a.currentVal > 0 ? `${a.variance >= 0 ? "+" : ""}${fmtINR(a.variance)}` : "—"}
                 </div>
@@ -753,93 +1125,73 @@ function TrackerTab() {
           </div>
         ))}
 
-        {/* Total row */}
         <div style={{
-          display: "grid", gridTemplateColumns: "28px 1fr 100px 100px 80px 100px",
-          gap: 8, padding: "12px 16px", background: "#162032", borderTop: "2px solid #334155", alignItems: "center"
+          display: "grid", gridTemplateColumns: "28px 1fr 110px 110px 70px 110px",
+          gap: 8, padding: "14px 16px", background: "var(--card-2)",
+          borderTop: "2px solid var(--gold-dim)", alignItems: "center"
         }}>
           <div />
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#f1f5f9" }}>
-            TOTAL
-          </div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#f1f5f9", textAlign: "right" }}>
-            {fmtINR(actualTotal)}
-          </div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, color: "#94a3b8", textAlign: "right" }}>
-            {fmtINR(total)}
-          </div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#94a3b8", textAlign: "right" }}>100%</div>
-          <div style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 12, textAlign: "right",
-            color: actualTotal - total >= 0 ? "#22c55e" : "#ef4444"
-          }}>
-            {actualTotal > 0 ? fmtINR(actualTotal - total) : "—"}
-          </div>
+          <div className="mono" style={{ fontWeight: 600, fontSize: 11, color: "var(--gold)", letterSpacing: "0.2em", textTransform: "uppercase" }}>Total</div>
+          <div className="mono" style={{ fontWeight: 600, fontSize: 12, color: "var(--white)", textAlign: "right" }}>{fmtINR(actualTotal)}</div>
+          <div className="mono" style={{ fontWeight: 500, fontSize: 12, color: "var(--text)", textAlign: "right" }}>{fmtINR(total)}</div>
+          <div className="mono" style={{ fontSize: 11, color: "var(--text-dim)", textAlign: "right" }}>100%</div>
+          <div className="mono" style={{
+            fontWeight: 600, fontSize: 12, textAlign: "right",
+            color: actualTotal > 0 ? (actualTotal - total >= 0 ? "var(--good)" : "var(--danger)") : "var(--text-dim)"
+          }}>{actualTotal > 0 ? fmtINR(actualTotal - total) : "—"}</div>
         </div>
       </div>
 
-      {/* Category Summary Cards */}
-      <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+      <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
         {CATS.map(cat => {
           const s = catSummary[cat];
           return (
-            <div key={cat} style={{
-              flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: 14
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <span style={{ fontFamily: "'Lora', serif", fontSize: 18, color: CAT_META[cat].color }}>{cat}</span>
-                <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 8, color: "#64748b" }}>{CAT_META[cat].label}</span>
+            <div key={cat} className="glass" style={{ flex: "1 1 160px", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontFamily: "Cinzel", fontSize: 18, color: CAT_META[cat].hex, fontWeight: 600 }}>{cat}</span>
+                <span className="mono" style={{ fontSize: 8, color: "var(--text-dim)", letterSpacing: "0.16em" }}>{CAT_META[cat].label}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 16, color: "#f1f5f9" }}>
-                  {s.currentPct.toFixed(1)}%
-                </span>
-                <span style={{
-                  fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 10,
-                  color: s.diff >= 0 ? "#22c55e" : "#ef4444"
-                }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 20, color: "var(--white)" }}>{s.currentPct.toFixed(1)}%</span>
+                <span className="mono" style={{ fontSize: 10, color: s.diff >= 0 ? "var(--good)" : "var(--danger)" }}>
                   {s.diff >= 0 ? "+" : ""}{s.diff.toFixed(2)}%
                 </span>
               </div>
-              <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 4 }}>
-                Target: {s.targetPct}%
-              </div>
-              <div style={{ width: "100%", height: 3, background: "#2d3a4f", borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min((s.currentPct / 55) * 100, 100)}%`, height: "100%", background: CAT_META[cat].color, borderRadius: 2, transition: "width 0.4s" }} />
+              <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 4, letterSpacing: "0.14em" }}>TARGET {s.targetPct}%</div>
+              <div style={{ width: "100%", height: 3, background: "var(--border)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min((s.currentPct / 65) * 100, 100)}%`, height: "100%", background: CAT_META[cat].hex, borderRadius: 2, transition: "width 0.4s" }} />
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Generate PDF Button */}
-      <div style={{ textAlign: "center", marginTop: 24 }}>
-        <button
-          onClick={generatePDF}
-          disabled={total === 0}
-          style={{
-            background: total > 0 ? "linear-gradient(135deg, #3b82f6, #2563eb)" : "#334155",
-            color: total > 0 ? "#fff" : "#64748b",
-            border: "none", borderRadius: 12, padding: "14px 40px", fontSize: 14, fontWeight: 600,
-            cursor: total > 0 ? "pointer" : "not-allowed",
-            fontFamily: "'Poppins', sans-serif", transition: "transform 0.15s",
-            boxShadow: total > 0 ? "0 4px 20px rgba(59,130,246,0.3)" : "none"
-          }}
-        >
-          📄 Generate PDF Report
-        </button>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", marginTop: 6 }}>
-          Download a professional report for your financial advisor
+      <div style={{ textAlign: "center", marginTop: 26 }}>
+        {(() => { const canPrint = total > 0 || actualTotal > 0; return (
+        <button onClick={printReport} disabled={!canPrint} className="mono" style={{
+          background: canPrint ? "linear-gradient(180deg, #c8a84b, #896e2f)" : "var(--card-2)",
+          color: canPrint ? "#0a1628" : "var(--text-dim)",
+          border: "none", borderRadius: 10, padding: "13px 36px", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.22em", textTransform: "uppercase",
+          cursor: canPrint ? "pointer" : "not-allowed",
+          boxShadow: canPrint ? "0 6px 24px rgba(200,168,75,0.25)" : "none"
+        }}>📄 Print / Save Report</button>
+        ); })()}
+        <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 8, letterSpacing: "0.14em", textTransform: "uppercase" }}>
+          Use browser "Save as PDF" to share with your advisor
         </div>
       </div>
     </div>
   );
 }
 
-
-// ─── TAB: ISR ANALYSIS ───
+/* ─── TAB: ISR ANALYSIS ──────────────────────────────────── */
 function ISRTab() {
-  const [age, setAge] = useState(50);
+  const initAge = (() => {
+    try { const s = localStorage.getItem(TRACKER_KEY); if (s) return JSON.parse(s).age ?? 50; } catch(e) {}
+    return 50;
+  })();
+  const [age, setAge] = useState(initAge);
   const alloc = getAllocation(age);
   const band = getBand(age);
   const isr = alloc.G + alloc.R + alloc.D;
@@ -847,111 +1199,75 @@ function ISRTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 6 }}>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b", letterSpacing: 2, textTransform: "uppercase" }}>
-          Income-Stability Ratio
-        </div>
-        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, color: "#f1f5f9", margin: "6px 0 4px", fontWeight: 500 }}>
-          ISR Analysis
-        </h2>
-        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 12, color: "#94a3b8", margin: 0 }}>
-          ISR = (G + R + D) / Total — measures the stable/income portion of your portfolio
-        </p>
-      </div>
+      <div className="label">Income–Stability Ratio</div>
+      <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
+        ISR&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Analysis</span>
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--text)", margin: 0 }}>
+        ISR&nbsp;=&nbsp;(G + R + D) / Total — the stable / income portion of your portfolio.
+      </p>
 
-      {/* Gauge Card */}
-      <div style={{
-        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "20px 28px",
-        margin: "18px 0", textAlign: "center"
-      }}>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 13, color: "#f1f5f9", marginBottom: 10, textAlign: "left" }}>
-          Portfolio Stability Gauge
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>Age:</span>
-          <input
-            type="range" min={25} max={80} value={age}
-            onChange={e => setAge(Number(e.target.value))}
-            style={{ flex: 1, cursor: "pointer", accentColor: "#3b82f6" }}
-          />
-          <span style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: "#f1f5f9",
-            background: "#0f172a", padding: "4px 12px", borderRadius: 8, minWidth: 30, textAlign: "center"
+      <div className="glass" style={{ borderRadius: 12, padding: "22px 28px", margin: "20px 0", textAlign: "center" }}>
+        <div className="label" style={{ textAlign: "left", marginBottom: 14 }}>Portfolio Stability Gauge</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+          <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em" }}>AGE</span>
+          <input type="range" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))} style={{ flex: 1, cursor: "pointer", accentColor: "var(--gold)" }} />
+          <span className="mono" style={{
+            fontWeight: 600, fontSize: 14, color: "var(--white)",
+            background: "var(--bg)", border: "1px solid var(--border-2)", padding: "5px 14px", borderRadius: 8, minWidth: 36, textAlign: "center"
           }}>{age}</span>
         </div>
-        <GaugeChart value={isr} size={260} />
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 32, color: "#f1f5f9", marginTop: -10 }}>
-          {isr}%
-        </div>
-        <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 11, color: "#64748b" }}>
-          Income-Stability Ratio
-        </div>
+        <GaugeChart value={isr} size={280} />
+        <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 38, color: "var(--white)", marginTop: -16 }}>{isr}%</div>
+        <div className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.22em", textTransform: "uppercase" }}>Income–Stability Ratio</div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#ef4444" }}>Volatile</span>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#22c55e" }}>Stable</span>
+          <span className="mono" style={{ fontSize: 10, color: "var(--danger)", letterSpacing: "0.18em" }}>VOLATILE</span>
+          <span className="mono" style={{ fontSize: 10, color: "var(--good)", letterSpacing: "0.18em" }}>STABLE</span>
         </div>
       </div>
 
-      {/* Stable vs Growth */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 18 }}>
-        <div style={{
-          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 24, textAlign: "center"
-        }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 36, color: "#22c55e" }}>{isr}%</div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#94a3b8", marginTop: 4 }}>STABLE (G + R + D)</div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>Income-generating assets</div>
+      <div style={{ display: "flex", gap: 14, marginBottom: 18, flexWrap: "wrap" }}>
+        <div className="glass" style={{ flex: "1 1 240px", borderRadius: 12, padding: 26, textAlign: "center" }}>
+          <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 40, color: "var(--good)" }}>{isr}%</div>
+          <div className="mono" style={{ fontSize: 10, color: "var(--text)", marginTop: 6, letterSpacing: "0.2em" }}>STABLE  ·  G + R + D</div>
+          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>Income-generating assets</div>
         </div>
-        <div style={{
-          flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 24, textAlign: "center"
-        }}>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 36, color: "#f59e0b" }}>{growth}%</div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 11, color: "#94a3b8", marginTop: 4 }}>GROWTH (E)</div>
-          <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: 9, color: "#64748b", marginTop: 2 }}>Equity / volatile assets</div>
+        <div className="glass" style={{ flex: "1 1 240px", borderRadius: 12, padding: 26, textAlign: "center" }}>
+          <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 40, color: "var(--gold)" }}>{growth}%</div>
+          <div className="mono" style={{ fontSize: 10, color: "var(--text)", marginTop: 6, letterSpacing: "0.2em" }}>GROWTH  ·  E</div>
+          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>Equity / volatile assets</div>
         </div>
       </div>
 
-      {/* Age Matrix */}
-      <div style={{
-        background: "#1e293b", border: "1px solid #334155", borderRadius: 12, overflow: "hidden"
-      }}>
-        <div style={{ padding: "14px 16px", borderBottom: "1px solid #2d3a4f" }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 12, color: "#f1f5f9" }}>
-            Age-Based Allocation Matrix
-          </span>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#3b82f6", marginLeft: 10 }}>
-            Current band: {band}
-          </span>
+      <div className="glass" style={{ borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12 }}>
+          <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.18em", textTransform: "uppercase" }}>Age-Based Allocation Matrix</span>
+          <span className="mono" style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.16em" }}>CURRENT BAND · {band}</span>
         </div>
-        {/* Header */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "90px 1fr 1fr 1fr 1fr", gap: 0, padding: "8px 16px",
-          background: "#162032"
-        }}>
+        <div style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 1fr 1fr", padding: "10px 18px", background: "var(--card-2)" }}>
           {["Age Band", "G (Gold)", "R (Real Est.)", "D (Debt)", "E (Equity)"].map((h, i) => (
-            <div key={i} style={{
-              fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 10,
-              color: ["#64748b", "#eab308", "#ef4444", "#3b82f6", "#22c55e"][i]
+            <div key={i} className="mono" style={{
+              fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
+              color: ["var(--text-dim)", "var(--g-color)", "var(--r-color)", "var(--d-color)", "var(--e-color)"][i]
             }}>{h}</div>
           ))}
         </div>
         {AGE_BANDS.map((row, i) => {
-          const isCurrent = row.range === band;
+          const cur = row.range === band;
           return (
             <div key={i} style={{
-              display: "grid", gridTemplateColumns: "90px 1fr 1fr 1fr 1fr", gap: 0, padding: "7px 16px",
-              background: isCurrent ? "#1e3a5f" : i % 2 === 0 ? "transparent" : "#131c30",
-              borderLeft: isCurrent ? "3px solid #3b82f6" : "3px solid transparent"
+              display: "grid", gridTemplateColumns: "100px 1fr 1fr 1fr 1fr", padding: "9px 18px",
+              background: cur ? "rgba(200,168,75,0.08)" : i % 2 === 0 ? "transparent" : "rgba(15,31,58,0.4)",
+              borderLeft: cur ? "3px solid var(--gold)" : "3px solid transparent"
             }}>
-              <div style={{
-                fontFamily: "'Poppins', sans-serif", fontWeight: isCurrent ? 700 : 400, fontSize: 11,
-                color: isCurrent ? "#3b82f6" : "#94a3b8"
-              }}>
-                {isCurrent ? "▸ " : ""}{row.range}
-              </div>
+              <div className="mono" style={{
+                fontWeight: cur ? 500 : 400, fontSize: 11,
+                color: cur ? "var(--gold)" : "var(--text)", letterSpacing: "0.12em"
+              }}>{cur ? "▸ " : ""}{row.range}</div>
               {CATS.map(cat => (
-                <div key={cat} style={{
-                  fontFamily: "'Poppins', sans-serif", fontWeight: isCurrent ? 700 : 400, fontSize: 11,
-                  color: isCurrent ? "#f1f5f9" : "#94a3b8"
+                <div key={cat} className="mono" style={{
+                  fontWeight: cur ? 500 : 400, fontSize: 11,
+                  color: cur ? "var(--white)" : "var(--text)"
                 }}>{row[cat]}%</div>
               ))}
             </div>
@@ -962,71 +1278,111 @@ function ISRTab() {
   );
 }
 
-// ─── MAIN APP ───
+/* ─── MAIN APP ───────────────────────────────────────────── */
 function GRDEApp() {
   const [activeTab, setActiveTab] = useState("allocator");
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlock, setUnlock] = useState(() => {
+    try { return localStorage.getItem(UNLOCK_KEY) || ""; } catch(e) { return ""; }
+  });
+  const [currency, setCurrency] = useState(CCY);
+  const isUnlocked = !!unlock;
+  const isOwner = unlock === "owner";
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
+  const handleUnlock = (kind) => {
+    setUnlock(kind);
+    try { localStorage.setItem(UNLOCK_KEY, kind); } catch(e) {}
   };
+  const handleLock = () => {
+    if (window.confirm("Lock the session? You'll need your access code to re-enter Tracker / ISR.")) {
+      setUnlock(""); try { localStorage.removeItem(UNLOCK_KEY); } catch(e) {}
+    }
+  };
+  const handleCurrencyChange = (c) => { setCCY(c); setCurrency(c); };
 
   return (
-    <div style={{
-      minHeight: "100vh", background: "#0f172a",
-      fontFamily: "'Poppins', sans-serif"
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
-        input[type="range"] { -webkit-appearance: auto; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-      `}</style>
+    <div>
+      <Header unlocked={isUnlocked} onLock={handleLock}
+              currency={currency} onCurrencyChange={handleCurrencyChange} />
+      <main className="grde-main" style={{ maxWidth: 980, margin: "0 auto", padding: "24px 24px 40px" }}>
+        {/* Hero band — echoes grde.in marketing site */}
+        <section className="grde-hero" style={{ padding: "18px 0 28px", textAlign: "left" }}>
+          <div className="mono" style={{
+            display: "inline-block", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+            color: "var(--gold-pale)", background: "rgba(212,168,67,0.08)",
+            border: "1px solid var(--gold-dim)", borderRadius: 999, padding: "4px 12px"
+          }}>· The Beaver Dam Method</div>
+          <h1 className="serif" style={{
+            fontSize: "clamp(28px, 4.5vw, 44px)", lineHeight: 1.1, marginTop: 14,
+            color: "var(--white)", fontWeight: 500, letterSpacing: "0.005em"
+          }}>
+            GRDE Portfolio{" "}
+            <span style={{ color: "var(--gold)", fontStyle: "italic", fontWeight: 600 }}>Engine</span>
+          </h1>
+          <div style={{
+            marginTop: 10, color: "var(--text-dim)",
+            fontSize: 15, fontFamily: "'Cinzel', serif", letterSpacing: "0.02em"
+          }}>
+            An Architect's Blueprint to <span style={{ color: "var(--gold-pale)", fontStyle: "italic" }}>Wealth Creation</span>
+          </div>
+          <div style={{
+            marginTop: 6, fontStyle: "italic", color: "var(--text-dim)",
+            fontSize: 12.5, fontFamily: "'Cinzel', serif", letterSpacing: "0.02em", opacity: 0.8
+          }}>
+            "Don't hoard like a squirrel. Build like a beaver."
+          </div>
+        </section>
 
-      <Header />
+        <TabBar active={activeTab} onChange={setActiveTab} isUnlocked={isUnlocked} isOwner={isOwner} />
 
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px 40px" }}>
-        <TabBar active={activeTab} onChange={handleTabChange} isUnlocked={isUnlocked} />
-
-        <div style={{ marginTop: 20, position: "relative" }}>
+        <div style={{ marginTop: 26, position: "relative" }}>
           {activeTab === "allocator" && <AllocatorTab />}
 
           {activeTab === "tracker" && (
-            <div style={{ position: "relative", minHeight: 400 }}>
-              <div style={{ filter: isUnlocked ? "none" : "blur(6px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+            <div style={{ position: "relative", minHeight: 460 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
                 <TrackerTab />
               </div>
-              {!isUnlocked && <LockOverlay onUnlock={() => setIsUnlocked(true)} />}
+              {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
             </div>
           )}
 
           {activeTab === "isr" && (
-            <div style={{ position: "relative", minHeight: 400 }}>
-              <div style={{ filter: isUnlocked ? "none" : "blur(6px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+            <div style={{ position: "relative", minHeight: 460 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
                 <ISRTab />
               </div>
-              {!isUnlocked && <LockOverlay onUnlock={() => setIsUnlocked(true)} />}
+              {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
             </div>
           )}
+
+          {activeTab === "codes" && isOwner && <CodesTab />}
         </div>
 
         {/* Footer */}
-        <div style={{
-          borderTop: "1px solid #2d3a4f", marginTop: 32, paddingTop: 16,
-          display: "flex", justifyContent: "space-between"
-        }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>
-            GRDE Engine v2.1 — An Architect's Blueprint for Wealth
-          </span>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 10, color: "#64748b" }}>
-            by Shakhith A.M. | i3d Studio, Coimbatore
-          </span>
-        </div>
+        <footer style={{ marginTop: 40, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
+            <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+              GRDE Engine v3.0 · An Architect's Blueprint for Wealth
+            </span>
+            <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
+              by Shakhith A.M.  ·  i3D Studio, Coimbatore
+            </span>
+          </div>
+          <div style={{
+            background: "rgba(15,31,58,0.5)", border: "1px solid var(--border)",
+            borderLeft: "3px solid var(--gold-dim)", borderRadius: 6, padding: "12px 16px"
+          }}>
+            <div className="mono" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
+              Disclaimer
+            </div>
+            <p style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6, margin: 0 }}>
+              Educational framework only —
+              <strong style={{ color: "var(--text)" }}> not investment advice</strong>.
+              Investments are subject to market risks. Always consult a
+              <strong style={{ color: "var(--text)" }}> SEBI-registered advisor</strong> before investing.
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
   );
