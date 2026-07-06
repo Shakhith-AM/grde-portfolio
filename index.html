@@ -1415,83 +1415,226 @@ function ISRTab() {
   })();
   const [age, setAge] = useState(initAge);
   const alloc = getAllocation(age);
-  const band = getBand(age);
-  const isr = alloc.G + alloc.R + alloc.D;
-  const growth = alloc.E;
+  const band  = getBand(age);
+  const targetISR    = alloc.G + alloc.R + alloc.D;
+  const targetGrowth = alloc.E;
+
+  // Pull live tracker data
+  const trackerData   = (() => { try { const s=localStorage.getItem(TRACKER_KEY); return s?JSON.parse(s):null; } catch(e){return null;} })();
+  const trackerValues = trackerData?.values || {};
+  const trackerTotal  = Number(trackerData?.totalPortfolio) || 0;
+
+  const liveAssets = ASSET_TEMPLATE.map(a => {
+    const finalPct   = alloc[a.cat] * a.catFrac;
+    const targetVal  = trackerTotal * finalPct / 100;
+    const currentVal = Number(trackerValues[a.id]) || 0;
+    return { ...a, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
+  });
+  const liveActualTotal = liveAssets.reduce((s,a)=>s+a.currentVal,0);
+  const denom = liveActualTotal > 0 ? liveActualTotal : trackerTotal;
+
+  const liveCat = {};
+  CATS.forEach(cat => {
+    const cur = liveAssets.filter(a=>a.cat===cat).reduce((s,a)=>s+a.currentVal,0);
+    const tgt = liveAssets.filter(a=>a.cat===cat).reduce((s,a)=>s+a.targetVal,0);
+    liveCat[cat] = { cur, tgt, curPct: denom>0?(cur/denom)*100:0, tgtPct: alloc[cat] };
+  });
+
+  const hasLiveData  = liveActualTotal > 0;
+  const liveISR      = hasLiveData ? liveCat.G.curPct + liveCat.R.curPct + liveCat.D.curPct : null;
+  const liveGrowth   = hasLiveData ? liveCat.E.curPct : null;
+
+  // Health Score
+  const healthScore = (() => {
+    if (!hasLiveData) return null;
+    let s = 100;
+    CATS.forEach(cat => { s -= Math.abs(liveCat[cat].curPct - liveCat[cat].tgtPct) * 2; });
+    return Math.max(0, Math.min(100, Math.round(s)));
+  })();
+  const healthLabel = s => {
+    if (s===null) return { text:"No data", color:"var(--text-dim)" };
+    if (s>=90) return { text:"Excellent", color:"var(--good)" };
+    if (s>=75) return { text:"Well Structured", color:"#7fb86a" };
+    if (s>=60) return { text:"Needs Attention", color:"var(--gold)" };
+    return { text:"Rebalancing Required", color:"var(--danger)" };
+  };
+  const health = healthLabel(healthScore);
+
+  // Rebalancing priority top 6
+  const rebalPriority = hasLiveData
+    ? [...liveAssets].filter(a=>a.targetVal>0).sort((a,b)=>Math.abs(b.variance)-Math.abs(a.variance)).slice(0,6)
+    : [];
+
+  // Age warnings
+  const ageWarnings = CATS.map(cat => {
+    if (!hasLiveData) return null;
+    const diff = liveCat[cat].curPct - liveCat[cat].tgtPct;
+    const abs  = Math.abs(diff);
+    if (abs<2)   return { cat, status:"ok",    msg:`${CAT_META[cat].label} is on target at ${liveCat[cat].curPct.toFixed(1)}%` };
+    if (diff>0)  return { cat, status:"over",  msg:`${CAT_META[cat].label} is ${abs.toFixed(1)}% above target — consider trimming` };
+    return         { cat, status:"under", msg:`${CAT_META[cat].label} is ${abs.toFixed(1)}% below target — consider adding` };
+  }).filter(Boolean);
+
+  const isr    = hasLiveData ? liveISR    : targetISR;
+  const growth = hasLiveData ? liveGrowth : targetGrowth;
 
   return (
     <div>
       <div className="label">Income–Stability Ratio</div>
-      <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
-        ISR&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Analysis</span>
+      <h2 style={{ fontSize:30, margin:"8px 0 4px" }}>
+        ISR <span style={{ color:"var(--gold)", fontStyle:"italic" }}>Analysis</span>
       </h2>
-      <p style={{ fontSize: 13, color: "var(--text)", margin: 0 }}>
-        ISR&nbsp;=&nbsp;(G + R + D) / Total — the stable / income portion of your portfolio.
+      <p style={{ fontSize:13, color:"var(--text)", margin:0 }}>
+        ISR = (G + R + D) / Total — the stable / income portion of your portfolio.
+        {hasLiveData && <span style={{ color:"var(--good)", marginLeft:8 }}>· Live data from your Tracker</span>}
+        {!hasLiveData && <span style={{ color:"var(--gold)", marginLeft:8 }}>· Enter holdings in Tracker to see live analysis</span>}
       </p>
 
-      <div className="glass" style={{ borderRadius: 12, padding: "22px 28px", margin: "20px 0", textAlign: "center" }}>
-        <div className="label" style={{ textAlign: "left", marginBottom: 14 }}>Portfolio Stability Gauge</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-          <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em" }}>AGE</span>
-          <input type="range" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))} style={{ flex: 1, cursor: "pointer", accentColor: "var(--gold)" }} />
-          <span className="mono" style={{
-            fontWeight: 600, fontSize: 14, color: "var(--white)",
-            background: "var(--bg)", border: "1px solid var(--border-2)", padding: "5px 14px", borderRadius: 8, minWidth: 36, textAlign: "center"
-          }}>{age}</span>
+      {/* Gauge */}
+      <div className="glass" style={{ borderRadius:12, padding:"22px 28px", margin:"20px 0", textAlign:"center" }}>
+        <div className="label" style={{ textAlign:"left", marginBottom:14 }}>Portfolio Stability Gauge</div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.18em" }}>AGE</span>
+          <input type="range" min={25} max={100} value={age} onChange={e=>setAge(Number(e.target.value))} style={{ flex:1, cursor:"pointer", accentColor:"var(--gold)" }} />
+          <span className="mono" style={{ fontWeight:600, fontSize:14, color:"var(--white)", background:"var(--bg)", border:"1px solid var(--border-2)", padding:"5px 14px", borderRadius:8, minWidth:36, textAlign:"center" }}>{age}</span>
         </div>
         <GaugeChart value={isr} size={280} />
-        <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 38, color: "var(--white)", marginTop: -16 }}>{isr}%</div>
-        <div className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.22em", textTransform: "uppercase" }}>Income–Stability Ratio</div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-          <span className="mono" style={{ fontSize: 10, color: "var(--danger)", letterSpacing: "0.18em" }}>VOLATILE</span>
-          <span className="mono" style={{ fontSize: 10, color: "var(--good)", letterSpacing: "0.18em" }}>STABLE</span>
+        <div style={{ fontFamily:"Cinzel", fontWeight:600, fontSize:38, color:"var(--white)", marginTop:-16 }}>{isr.toFixed(1)}%</div>
+        <div className="mono" style={{ fontSize:10, color:"var(--text-dim)", letterSpacing:"0.22em", textTransform:"uppercase" }}>Income–Stability Ratio</div>
+        <div style={{ display:"flex", justifyContent:"space-between", marginTop:10 }}>
+          <span className="mono" style={{ fontSize:10, color:"var(--danger)", letterSpacing:"0.18em" }}>VOLATILE</span>
+          <span className="mono" style={{ fontSize:10, color:"var(--good)", letterSpacing:"0.18em" }}>STABLE</span>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 14, marginBottom: 18, flexWrap: "wrap" }}>
-        <div className="glass" style={{ flex: "1 1 240px", borderRadius: 12, padding: 26, textAlign: "center" }}>
-          <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 40, color: "var(--good)" }}>{isr}%</div>
-          <div className="mono" style={{ fontSize: 10, color: "var(--text)", marginTop: 6, letterSpacing: "0.2em" }}>STABLE  ·  G + R + D</div>
-          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>Income-generating assets</div>
+      {/* Live ISR vs Target 4-col */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>ISR · Live vs Target</span>
+          {hasLiveData && healthScore!==null && (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>HEALTH SCORE</span>
+              <span className="mono" style={{ fontWeight:600, fontSize:14, color:health.color }}>{healthScore}/100</span>
+              <span className="mono" style={{ fontSize:9, color:health.color }}>{health.text}</span>
+            </div>
+          )}
         </div>
-        <div className="glass" style={{ flex: "1 1 240px", borderRadius: 12, padding: 26, textAlign: "center" }}>
-          <div style={{ fontFamily: "Cinzel", fontWeight: 600, fontSize: 40, color: "var(--gold)" }}>{growth}%</div>
-          <div className="mono" style={{ fontSize: 10, color: "var(--text)", marginTop: 6, letterSpacing: "0.2em" }}>GROWTH  ·  E</div>
-          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>Equity / volatile assets</div>
-        </div>
-      </div>
-
-      <div className="glass" style={{ borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12 }}>
-          <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.18em", textTransform: "uppercase" }}>Age-Based Allocation Matrix</span>
-          <span className="mono" style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.16em" }}>CURRENT BAND · {band}</span>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 1fr 1fr", padding: "10px 18px", background: "var(--card-2)" }}>
-          {["Age Band", "G (Gold)", "R (Real Est.)", "D (Debt)", "E (Equity)"].map((h, i) => (
-            <div key={i} className="mono" style={{
-              fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase",
-              color: ["var(--text-dim)", "var(--g-color)", "var(--r-color)", "var(--d-color)", "var(--e-color)"][i]
-            }}>{h}</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr" }}>
+          {[
+            { label:"Live ISR",      value:hasLiveData?liveISR.toFixed(1)+"%":"—",     sub:"G+R+D actual",    color:"var(--good)" },
+            { label:"Target ISR",    value:targetISR+"%",                                    sub:`Band ${band}`,    color:"var(--gold)" },
+            { label:"Live Growth",   value:hasLiveData?liveGrowth.toFixed(1)+"%":"—",  sub:"E actual",        color:"var(--gold)" },
+            { label:"Target Growth", value:targetGrowth+"%",                                 sub:`Band ${band}`,    color:"var(--text-dim)" },
+          ].map((item,i)=>(
+            <div key={i} style={{ padding:"20px 16px", textAlign:"center", borderRight:i<3?"1px solid var(--border)":"none", background:i%2===0?"transparent":"rgba(15,31,58,0.3)" }}>
+              <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:8 }}>{item.label}</div>
+              <div style={{ fontFamily:"Cinzel", fontWeight:600, fontSize:26, color:item.color }}>{item.value}</div>
+              <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:6 }}>{item.sub}</div>
+              {hasLiveData&&i===0&&<div className="mono" style={{ fontSize:9, marginTop:6, color:liveISR>=targetISR?"var(--good)":"var(--danger)" }}>{liveISR>=targetISR?`+${(liveISR-targetISR).toFixed(1)}% above`:`${(liveISR-targetISR).toFixed(1)}% below`} target</div>}
+            </div>
           ))}
         </div>
-        {AGE_BANDS.map((row, i) => {
-          const cur = row.range === band;
+      </div>
+
+      {/* Category cards */}
+      <div style={{ display:"flex", gap:14, marginBottom:18, flexWrap:"wrap" }}>
+        {CATS.map(cat => {
+          const curPct = hasLiveData?liveCat[cat].curPct:alloc[cat];
+          const tgtPct = alloc[cat];
+          const diff   = curPct - tgtPct;
           return (
-            <div key={i} style={{
-              display: "grid", gridTemplateColumns: "100px 1fr 1fr 1fr 1fr", padding: "9px 18px",
-              background: cur ? "rgba(200,168,75,0.08)" : i % 2 === 0 ? "transparent" : "rgba(15,31,58,0.4)",
-              borderLeft: cur ? "3px solid var(--gold)" : "3px solid transparent"
-            }}>
-              <div className="mono" style={{
-                fontWeight: cur ? 500 : 400, fontSize: 11,
-                color: cur ? "var(--gold)" : "var(--text)", letterSpacing: "0.12em"
-              }}>{cur ? "▸ " : ""}{row.range}</div>
-              {CATS.map(cat => (
-                <div key={cat} className="mono" style={{
-                  fontWeight: cur ? 500 : 400, fontSize: 11,
-                  color: cur ? "var(--white)" : "var(--text)"
-                }}>{row[cat]}%</div>
-              ))}
+            <div key={cat} className="glass" style={{ flex:"1 1 180px", borderRadius:12, padding:"18px 16px", textAlign:"center" }}>
+              <div style={{ fontFamily:"Cinzel", fontSize:22, color:CAT_META[cat].hex, fontWeight:600 }}>{cat}</div>
+              <div style={{ fontFamily:"Cinzel", fontWeight:600, fontSize:28, color:"var(--white)", margin:"8px 0 2px" }}>{curPct.toFixed(1)}%</div>
+              <div className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>Target {tgtPct}%</div>
+              {hasLiveData && <div className="mono" style={{ fontSize:10, marginTop:6, fontWeight:600, color:Math.abs(diff)<2?"var(--good)":diff>0?"var(--gold)":"var(--danger)" }}>{diff>=0?"+":""}{diff.toFixed(2)}%</div>}
+              <div style={{ width:"70%", height:3, background:"var(--border)", borderRadius:2, margin:"8px auto 0", overflow:"hidden" }}>
+                <div style={{ width:`${Math.min((curPct/65)*100,100)}%`, height:"100%", background:CAT_META[cat].hex, borderRadius:2 }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Age Appropriateness */}
+      {hasLiveData && (
+        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Age Appropriateness · Band {band}</span>
+          </div>
+          <div style={{ padding:"14px 18px", display:"flex", flexDirection:"column", gap:10 }}>
+            {ageWarnings.map((w,i)=>(
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ width:8, height:8, borderRadius:"50%", flexShrink:0, background:w.status==="ok"?"var(--good)":w.status==="over"?"var(--gold)":"var(--danger)" }} />
+                <span className="mono" style={{ fontSize:10, color:CAT_META[w.cat].hex }}>{w.cat}</span>
+                <span style={{ fontSize:12, color:w.status==="ok"?"var(--good)":w.status==="over"?"var(--gold)":"var(--danger)" }}>{w.status==="ok"?"✓":w.status==="over"?"▲":"▼"}</span>
+                <span style={{ fontSize:12, color:"var(--text)" }}>{w.msg}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rebalancing Priority */}
+      {hasLiveData && rebalPriority.length>0 && (
+        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Rebalancing Priority</span>
+            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>Ranked by variance · Top 6</span>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"24px 1fr 80px 90px 90px 70px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
+            {["","Asset","Cat","Current","Target","Action"].map((h,i)=>(
+              <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.14em", textTransform:"uppercase", textAlign:i>=3?"right":"left" }}>{h}</div>
+            ))}
+          </div>
+          {rebalPriority.map((a,i)=>{
+            const action=a.variance<-1000?"BUY":a.variance>1000?"TRIM":"HOLD";
+            const ac=action==="BUY"?"var(--good)":action==="TRIM"?"var(--danger)":"var(--gold)";
+            return (
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"24px 1fr 80px 90px 90px 70px", gap:8, padding:"10px 18px", alignItems:"center", borderTop:"1px solid var(--border)", background:i%2===0?"transparent":"rgba(15,31,58,0.3)" }}>
+                <div className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>{i+1}</div>
+                <div>
+                  <div style={{ fontSize:12, color:"var(--white)" }}>{a.name}</div>
+                  <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:2 }}>{a.desc}</div>
+                </div>
+                <div><span style={{ fontFamily:"Cinzel", fontSize:11, fontWeight:600, color:CAT_META[a.cat].hex, background:`${CAT_META[a.cat].hex}18`, padding:"2px 8px", borderRadius:4 }}>{a.cat}</span></div>
+                <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{fmtINR(a.currentVal)}</div>
+                <div className="mono" style={{ fontSize:11, color:"var(--text-dim)", textAlign:"right" }}>{fmtINR(a.targetVal)}</div>
+                <div style={{ textAlign:"right" }}><span className="mono" style={{ fontSize:9, fontWeight:600, color:ac, background:`${ac}18`, border:`1px solid ${ac}`, borderRadius:4, padding:"3px 8px" }}>{action}</span></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* No data notice */}
+      {!hasLiveData && (
+        <div className="glass" style={{ borderRadius:12, padding:"28px 24px", textAlign:"center", marginBottom:18 }}>
+          <div style={{ fontSize:28, marginBottom:10, opacity:0.4 }}>📊</div>
+          <div className="mono" style={{ fontSize:11, color:"var(--text-dim)", letterSpacing:"0.14em", lineHeight:1.8 }}>
+            Live ISR, rebalancing priorities and age warnings appear<br/>once you enter holdings in the <strong style={{ color:"var(--gold)" }}>Portfolio Tracker</strong>.
+          </div>
+        </div>
+      )}
+
+      {/* Age Matrix with ISR column */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden" }}>
+        <div style={{ padding:"14px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:12 }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Age-Based Allocation Matrix</span>
+          <span className="mono" style={{ fontSize:10, color:"var(--gold)", letterSpacing:"0.16em" }}>CURRENT BAND · {band}</span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"100px 1fr 1fr 1fr 1fr 70px", padding:"10px 18px", background:"var(--card-2)" }}>
+          {["Age Band","G (Gold)","R (Real Est.)","D (Debt)","E (Equity)","ISR"].map((h,i)=>(
+            <div key={i} className="mono" style={{ fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:["var(--text-dim)","var(--g-color)","var(--r-color)","var(--d-color)","var(--e-color)","var(--text-dim)"][i] }}>{h}</div>
+          ))}
+        </div>
+        {AGE_BANDS.map((row,i)=>{
+          const cur=row.range===band;
+          return (
+            <div key={i} style={{ display:"grid", gridTemplateColumns:"100px 1fr 1fr 1fr 1fr 70px", padding:"9px 18px", background:cur?"rgba(200,168,75,0.08)":i%2===0?"transparent":"rgba(15,31,58,0.4)", borderLeft:cur?"3px solid var(--gold)":"3px solid transparent" }}>
+              <div className="mono" style={{ fontWeight:cur?500:400, fontSize:11, color:cur?"var(--gold)":"var(--text)", letterSpacing:"0.12em" }}>{cur?"▸ ":""}{row.range}</div>
+              {CATS.map(cat=>(<div key={cat} className="mono" style={{ fontWeight:cur?500:400, fontSize:11, color:cur?"var(--white)":"var(--text)" }}>{row[cat]}%</div>))}
+              <div className="mono" style={{ fontWeight:cur?500:400, fontSize:11, color:cur?"var(--good)":"var(--text-dim)" }}>{row.G+row.R+row.D}%</div>
             </div>
           );
         })}
@@ -1499,7 +1642,6 @@ function ISRTab() {
     </div>
   );
 }
-
 /* ─── MAIN APP ───────────────────────────────────────────── */
 function GRDEApp() {
   const [activeTab, setActiveTab] = useState("allocator");
