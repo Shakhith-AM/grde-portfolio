@@ -224,6 +224,7 @@ function generateCode() {
 const SHEET_ID     = "2PACX-1vRpKhD5egQ1nOY2PteSvLGT10cde2GNZWKYOkP2fUiE_ZfEs1xajzJ84MiKyKzDj1jTNB8wa1U5S7Dc";
 const ALERTS_URL   = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1153377084&single=true&output=csv`;
 const CALENDAR_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=674599408&single=true&output=csv`;
+const DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1320209561&single=true&output=csv`;
 
 const FALLBACK_ALERTS = [
   { type:"green",  cat:"G", message:"Gold holding steady above ₹72,000/10g — hedge intact",              date:"Jul 2026" },
@@ -239,6 +240,18 @@ const FALLBACK_CALENDAR = [
   { asset:"IRB InvIT",           type:"Distribution", date:"Oct 2026",  amount:"~₹2.1/unit",  notes:"Quarterly payout" },
   { asset:"Bonds / Target Mat.", type:"Maturity",     date:"Mar 2027",  amount:"Principal",    notes:"Plan reinvestment" },
   { asset:"FD + POMIS",          type:"Interest",     date:"Monthly",   amount:"Fixed credit", notes:"Auto-credited" },
+];
+const FALLBACK_DIVIDENDS = [
+  { asset:"Mindspace REIT", quarter:"Q3 FY25-26", amount:"1224.30", tds:"2.00", datecredited:"2026-02-05", category:"R" },
+  { asset:"Nexus Select Trust", quarter:"Q3 FY25-26", amount:"1202.46", tds:"32.00", datecredited:"2026-02-11", category:"R" },
+  { asset:"Knowledge Realty Trust", quarter:"Q3 FY25-26", amount:"1342.21", tds:"11.13", datecredited:"2026-02-16", category:"R" },
+  { asset:"IRB InvIT Fund", quarter:"Q3 FY25-26", amount:"916.50", tds:"59.00", datecredited:"2026-02-20", category:"R" },
+  { asset:"IndiGrid InvIT", quarter:"Q3 FY25-26", amount:"4140.00", tds:"305.00", datecredited:"2026-02-23", category:"R" },
+  { asset:"Mindspace REIT", quarter:"Q4 FY25-26", amount:"1460.80", tds:"1.00", datecredited:"2026-05-08", category:"R" },
+  { asset:"Knowledge Realty Trust", quarter:"Q4 FY25-26", amount:"1383.30", tds:"17.72", datecredited:"2026-05-21", category:"R" },
+  { asset:"Nexus Select Trust", quarter:"Q4 FY25-26", amount:"1698.51", tds:"55.95", datecredited:"2026-05-22", category:"R" },
+  { asset:"IRB InvIT Fund", quarter:"Q4 FY25-26", amount:"1859.20", tds:"168.00", datecredited:"2026-05-25", category:"R" },
+  { asset:"IndiGrid InvIT", quarter:"Q4 FY25-26", amount:"4140.00", tds:"262.00", datecredited:"2026-05-25", category:"R" },
 ];
 
 function parseCSV(text) {
@@ -301,6 +314,7 @@ function PulseTicker({ alerts }) {
 function PulseTab() {
   const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
   const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
+  const [dividends, setDividends] = useState(FALLBACK_DIVIDENDS);
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
@@ -309,11 +323,12 @@ function PulseTab() {
     
     setLoading(true);
     try {
-      const [aR,cR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL)]);
-      const [aT,cT] = await Promise.all([aR.text(),cR.text()]);
-      const pA=parseCSV(aT), pC=parseCSV(cT);
+      const [aR,cR,dR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL),fetch(DIVIDEND_URL)]);
+      const [aT,cT,dT] = await Promise.all([aR.text(),cR.text(),dR.text()]);
+      const pA=parseCSV(aT), pC=parseCSV(cT), pD=parseCSV(dT);
       if (pA.length) setAlerts(pA);
       if (pC.length) setCalendar(pC);
+      if (pD.length) setDividends(pD);
       setLive(true); setLastFetch(new Date());
     } catch(e) {}
     setLoading(false);
@@ -432,6 +447,34 @@ function PulseTab() {
             </div>
           );
         })}
+      </div>
+
+      {/* Dividends Received */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Dividends Received</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
+            Total: ₹{dividends.reduce((s,d)=>s+parseFloat(d.amount||0),0).toLocaleString("en-IN",{minimumFractionDigits:2})}
+          </span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
+          {["Asset","Quarter","Amount (₹)","Credited"].map((h,i)=>(
+            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
+          ))}
+        </div>
+        {dividends.map((d,i) => (
+          <div key={i} style={{
+            display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
+            padding:"11px 18px", alignItems:"center",
+            borderTop:"1px solid var(--border)",
+            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
+          }}>
+            <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{parseFloat(d.amount||0).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
