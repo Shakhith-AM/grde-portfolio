@@ -265,6 +265,9 @@ function parseCSV(text) {
     return obj;
   });
 }
+function toNum(v) {
+  return parseFloat(String(v||"").replace(/,/g,"")) || 0;
+}
 function daysUntil(dateStr) {
   if (!dateStr || dateStr.toLowerCase()==="monthly") return null;
   const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
@@ -461,7 +464,7 @@ function PulseTab() {
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
           <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Dividends Received</span>
           <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
-            Total: ₹{dividends.reduce((s,d)=>s+parseFloat(d.amount||0),0).toLocaleString("en-IN",{minimumFractionDigits:2})}
+            Total: ₹{dividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2})}
           </span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
@@ -478,7 +481,7 @@ function PulseTab() {
           }}>
             <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{parseFloat(d.amount||0).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
           </div>
         ))}
