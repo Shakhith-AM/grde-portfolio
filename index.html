@@ -325,7 +325,14 @@ function PulseTab() {
     try {
       const [aR,cR,dR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL),fetch(DIVIDEND_URL)]);
       const [aT,cT,dT] = await Promise.all([aR.text(),cR.text(),dR.text()]);
-      const pA=parseCSV(aT), pC=parseCSV(cT), pD=parseCSV(dT);
+      const pA=parseCSV(aT), pC=parseCSV(cT), pD=parseCSV(dT).map(r => ({
+        asset: r.asset || '',
+        quarter: r.quarter || '',
+        amount: r.amount || r['amount received (₹)'] || r['amount received'] || r['amount (₹)'] || r['amount received (rs.)'] || r['amount (rs.)'] || '0',
+        tds: r.tds || r['tds (₹)'] || r['tds deducted'] || r['tds (rs.)'] || r['tds deducted (₹)'] || '0',
+        datecredited: r.datecredited || r['date credited'] || r['credit date'] || r.date || '',
+        category: r.category || r.cat || 'R',
+      }));
       if (pA.length) setAlerts(pA);
       if (pC.length) setCalendar(pC);
       if (pD.length) setDividends(pD);
