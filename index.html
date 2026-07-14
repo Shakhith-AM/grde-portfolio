@@ -14,6 +14,9 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -228,6 +231,27 @@ const DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?g
 const US_DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1529576150&single=true&output=csv`;
 const FX_API_URL = "https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR";
 
+/* ─── Firebase (per-visitor accounts + personal dividend log) ──── */
+const firebaseConfig = {
+  apiKey: "AIzaSyCb_Q-aGIS8tEu_vYetuJcF2nY5hOiu7v0",
+  authDomain: "grde-portfolio-engine.firebaseapp.com",
+  projectId: "grde-portfolio-engine",
+  storageBucket: "grde-portfolio-engine.firebasestorage.app",
+  messagingSenderId: "818925386122",
+  appId: "1:818925386122:web:103860acf40f125832f073"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  return auth.signInWithPopup(provider).catch(e => console.error("Sign-in failed:", e));
+}
+function signOutUser() {
+  return auth.signOut().catch(e => console.error("Sign-out failed:", e));
+}
+
 const FALLBACK_ALERTS = [
   { type:"green",  cat:"G", message:"Gold holding steady above ₹72,000/10g — hedge intact",              date:"Jul 2026" },
   { type:"yellow", cat:"D", message:"RBI policy meeting this month — hold on fresh long-duration debt",   date:"Jul 2026" },
@@ -323,13 +347,46 @@ function PulseTicker({ alerts }) {
 }
 
 /* ─── PULSE TAB ──────────────────────────────────────────── */
-function PulseTab() {
+function PulseTab({ user, isOwner }) {
   const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
   const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
   const [dividends, setDividends] = useState(FALLBACK_DIVIDENDS);
   const [usDividends, setUsDividends] = useState(FALLBACK_US_DIVIDENDS);
   const [fxRate, setFxRate] = useState(FALLBACK_FX_RATE);
   const [fxLive, setFxLive] = useState(false);
+  const [myDividends, setMyDividends] = useState([]);
+  const [myForm, setMyForm] = useState({ asset:"", quarter:"", amount:"", datecredited:"" });
+  const [mySaving, setMySaving] = useState(false);
+
+  useEffect(() => {
+    if (!user || isOwner) { setMyDividends([]); return; }
+    const unsub = db.collection("users").doc(user.uid).collection("dividends")
+      .orderBy("datecredited", "desc")
+      .onSnapshot(snap => {
+        setMyDividends(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, err => console.error("Dividend log fetch failed:", err));
+    return unsub;
+  }, [user, isOwner]);
+
+  const addMyDividend = async () => {
+    if (!user || !myForm.asset || !myForm.amount) return;
+    setMySaving(true);
+    try {
+      await db.collection("users").doc(user.uid).collection("dividends").add({
+        asset: myForm.asset, quarter: myForm.quarter || "", amount: myForm.amount,
+        datecredited: myForm.datecredited || new Date().toISOString().slice(0,10),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      setMyForm({ asset:"", quarter:"", amount:"", datecredited:"" });
+    } catch(e) { console.error("Add dividend failed:", e); }
+    setMySaving(false);
+  };
+  const deleteMyDividend = (id) => {
+    if (!user) return;
+    db.collection("users").doc(user.uid).collection("dividends").doc(id).delete()
+      .catch(e => console.error("Delete failed:", e));
+  };
+
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
@@ -496,6 +553,8 @@ function PulseTab() {
         })}
       </div>
 
+      {isOwner && (
+      <React.Fragment>
       {/* Dividends Received */}
       <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
@@ -565,6 +624,62 @@ function PulseTab() {
           </div>
         ))}
       </div>
+      </React.Fragment>
+      )}
+
+      {!isOwner && user && (
+        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
+          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>My Dividends</span>
+            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
+              Total: ₹{myDividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+            </span>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 90px 100px 110px 30px", gap:8, padding:"10px 18px", borderBottom:"1px solid var(--border)", background:"rgba(15,31,58,0.25)" }}>
+            <input placeholder="Asset" value={myForm.asset} onChange={e=>setMyForm({...myForm, asset:e.target.value})}
+              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
+            <input placeholder="Quarter" value={myForm.quarter} onChange={e=>setMyForm({...myForm, quarter:e.target.value})}
+              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
+            <input placeholder="Amount" value={myForm.amount} onChange={e=>setMyForm({...myForm, amount:e.target.value})}
+              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
+            <input type="date" value={myForm.datecredited} onChange={e=>setMyForm({...myForm, datecredited:e.target.value})}
+              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
+            <button onClick={addMyDividend} disabled={mySaving} title="Add" style={{
+              background:"rgba(212,168,67,0.15)", border:"1px solid var(--gold-dim)", color:"var(--gold)",
+              borderRadius:6, cursor: mySaving ? "default" : "pointer", fontSize:14
+            }}>+</button>
+          </div>
+          {myDividends.length === 0 && (
+            <div className="mono" style={{ padding:"18px", fontSize:11, color:"var(--text-dim)", textAlign:"center" }}>
+              No entries yet — add your first dividend above.
+            </div>
+          )}
+          {myDividends.map((d,i) => (
+            <div key={d.id} style={{
+              display:"grid", gridTemplateColumns:"1fr 90px 100px 110px 30px", gap:8,
+              padding:"11px 18px", alignItems:"center",
+              borderTop:"1px solid var(--border)",
+              background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
+            }}>
+              <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
+              <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
+              <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+              <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
+              <button onClick={()=>deleteMyDividend(d.id)} title="Delete" style={{
+                background:"transparent", border:"none", color:"var(--text-dim)", cursor:"pointer", fontSize:13
+              }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!user && (
+        <div className="glass" style={{ borderRadius:12, padding:"22px 18px", marginTop:18, textAlign:"center" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--text-dim)", letterSpacing:"0.1em" }}>
+            Sign in with Google (top right) to track your own dividends here.
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -649,7 +764,7 @@ function Brand() {
   );
 }
 
-function Header({ unlocked, onLock, currency, onCurrencyChange }) {
+function Header({ unlocked, onLock, currency, onCurrencyChange, user, onSignIn, onSignOut }) {
   return (
     <header className="grde-header" style={{
       borderBottom: "1px solid var(--border)",
@@ -658,6 +773,21 @@ function Header({ unlocked, onLock, currency, onCurrencyChange }) {
     }}>
       <Brand />
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {user ? (
+          <button onClick={onSignOut} title="Sign out" className="mono" style={{
+            background: "rgba(212,168,67,0.08)", border: "1px solid var(--gold-dim)",
+            color: "var(--gold-pale)", borderRadius: 12, padding: "4px 10px", display:"flex", alignItems:"center", gap:6,
+            fontSize: 10, letterSpacing: "0.1em", cursor: "pointer"
+          }}>
+            {user.photoURL && <img src={user.photoURL} alt="" style={{ width:16, height:16, borderRadius:"50%" }} />}
+            {(user.displayName || user.email || "Signed in").split(" ")[0]}
+          </button>
+        ) : (
+          <button onClick={onSignIn} title="Sign in with Google" className="mono" style={{
+            background: "transparent", border: "1px solid var(--border)", color: "var(--text)",
+            borderRadius: 12, padding: "4px 10px", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer"
+          }}>Sign in with Google</button>
+        )}
         <select
           value={currency}
           onChange={e => onCurrencyChange(e.target.value)}
@@ -1782,8 +1912,14 @@ function GRDEApp() {
   });
   const [currency, setCurrency] = useState(CCY);
   const [tickerAlerts, setTickerAlerts] = useState(FALLBACK_ALERTS);
+  const [user, setUser] = useState(null);
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(u => setUser(u));
+    return unsub;
+  }, []);
 
   useEffect(() => {
     // Sheet connected — live fetch enabled
@@ -1806,7 +1942,8 @@ function GRDEApp() {
   return (
     <div>
       <Header unlocked={isUnlocked} onLock={handleLock}
-              currency={currency} onCurrencyChange={handleCurrencyChange} />
+              currency={currency} onCurrencyChange={handleCurrencyChange}
+              user={user} onSignIn={signInWithGoogle} onSignOut={signOutUser} />
       <main className="grde-main" style={{ maxWidth: 980, margin: "0 auto", padding: "24px 24px 40px" }}>
         {/* Hero band — echoes grde.in marketing site */}
         <section className="grde-hero" style={{ padding: "18px 0 28px", textAlign: "left" }}>
@@ -1864,7 +2001,7 @@ function GRDEApp() {
           {activeTab === "pulse" && (
             <div style={{ position: "relative", minHeight: 460 }}>
               <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
-                <PulseTab />
+                <PulseTab user={user} isOwner={isOwner} />
               </div>
               {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
             </div>
