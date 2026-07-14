@@ -501,7 +501,7 @@ function PulseTab() {
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
           <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Dividends Received</span>
           <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
-            Total: ₹{dividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2})}
+            Total: ₹{dividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </span>
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, padding:"10px 18px", borderBottom:"1px solid var(--border)", background:"rgba(15,31,58,0.25)" }}>
@@ -510,7 +510,7 @@ function PulseTab() {
               fontSize:10, color:"var(--gold-pale)", background:"rgba(212,168,67,0.08)",
               border:"1px solid var(--gold-dim)", borderRadius:6, padding:"4px 10px"
             }}>
-              {q}: ₹{quarterTotals[q].toLocaleString("en-IN",{minimumFractionDigits:2})}
+              {q}: ₹{quarterTotals[q].toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
             </span>
           ))}
         </div>
@@ -528,7 +528,7 @@ function PulseTab() {
           }}>
             <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
           </div>
         ))}
@@ -540,7 +540,7 @@ function PulseTab() {
           <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>US ETF Dividends</span>
           <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
             Total: ${usDividends.reduce((s,d)=>s+toNum(d.amount),0).toFixed(2)}
-            {" · "}₹{(usDividends.reduce((s,d)=>s+toNum(d.amount),0)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2})}
+            {" · "}₹{(usDividends.reduce((s,d)=>s+toNum(d.amount),0)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </span>
           <span className="mono" style={{ fontSize:9, color: fxLive ? "var(--green,#3ecf8e)" : "var(--text-dim)", marginLeft:12 }}>
             {fxLive ? "● " : "○ "}1 USD = ₹{Number(fxRate).toFixed(2)} {fxLive ? "(live)" : "(fallback)"}
@@ -561,7 +561,7 @@ function PulseTab() {
             <div style={{ fontSize:12, color:"var(--white)" }}>{d.holding}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.datecredited}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>${toNum(d.amount).toFixed(2)}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>₹{(toNum(d.amount)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>₹{(toNum(d.amount)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
         ))}
       </div>
