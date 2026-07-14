@@ -225,6 +225,8 @@ const SHEET_ID     = "2PACX-1vRpKhD5egQ1nOY2PteSvLGT10cde2GNZWKYOkP2fUiE_ZfEs1xa
 const ALERTS_URL   = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1153377084&single=true&output=csv`;
 const CALENDAR_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=674599408&single=true&output=csv`;
 const DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1320209561&single=true&output=csv`;
+const US_DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1529576150&single=true&output=csv`;
+const FX_API_URL = "https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR";
 
 const FALLBACK_ALERTS = [
   { type:"green",  cat:"G", message:"Gold holding steady above ₹72,000/10g — hedge intact",              date:"Jul 2026" },
@@ -253,6 +255,13 @@ const FALLBACK_DIVIDENDS = [
   { asset:"IRB InvIT Fund", quarter:"Q4 FY25-26", amount:"1859.20", tds:"168.00", datecredited:"2026-05-25", category:"R" },
   { asset:"IndiGrid InvIT", quarter:"Q4 FY25-26", amount:"4140.00", tds:"262.00", datecredited:"2026-05-25", category:"R" },
 ];
+const FALLBACK_US_DIVIDENDS = [
+  { holding:"Schwab US Dividend Equity ETF (SCHD)", datecredited:"2026-03-31", amount:"3.39" },
+  { holding:"Vanguard S&P 500 ETF", datecredited:"2026-04-01", amount:"4.26" },
+  { holding:"Schwab US Dividend Equity ETF (SCHD)", datecredited:"2026-06-30", amount:"3.33" },
+  { holding:"Vanguard S&P 500 ETF", datecredited:"2026-07-01", amount:"4.46" },
+];
+const FALLBACK_FX_RATE = 87.50; // used only until the live rate loads
 
 function parseCSV(text) {
   const lines = text.trim().split("\n").filter(Boolean);
@@ -318,6 +327,9 @@ function PulseTab() {
   const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
   const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
   const [dividends, setDividends] = useState(FALLBACK_DIVIDENDS);
+  const [usDividends, setUsDividends] = useState(FALLBACK_US_DIVIDENDS);
+  const [fxRate, setFxRate] = useState(FALLBACK_FX_RATE);
+  const [fxLive, setFxLive] = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
@@ -341,6 +353,24 @@ function PulseTab() {
       if (pD.length) setDividends(pD);
       setLive(true); setLastFetch(new Date());
     } catch(e) {}
+
+    try {
+      const uR = await fetch(US_DIVIDEND_URL);
+      const uT = await uR.text();
+      const pU = parseCSV(uT).map(r => ({
+        holding: r.holding || r.asset || '',
+        datecredited: r.datecredited || r['date credited'] || r['credit date'] || r.date || '',
+        amount: r.amount || r['amount (usd)'] || r['amount received'] || r['amount received (usd)'] || '0',
+      }));
+      if (pU.length) setUsDividends(pU);
+    } catch(e) {}
+
+    try {
+      const fR = await fetch(FX_API_URL);
+      const fJ = await fR.json();
+      if (fJ && fJ.rates && fJ.rates.INR) { setFxRate(fJ.rates.INR); setFxLive(true); }
+    } catch(e) {}
+
     setLoading(false);
   };
   useEffect(()=>{ fetchData(); },[]);
@@ -348,6 +378,13 @@ function PulseTab() {
   const upcoming = [...calendar]
     .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
     .sort((a,b)=>(daysUntil(a.date)||999)-(daysUntil(b.date)||999));
+
+  const quarterTotals = dividends.reduce((acc,d) => {
+    const q = d.quarter || "Unspecified";
+    acc[q] = (acc[q]||0) + toNum(d.amount);
+    return acc;
+  }, {});
+  const quarterOrder = Object.keys(quarterTotals); // preserves first-seen order from the sheet
 
   return (
     <div style={{ paddingBottom: 60 }}>
@@ -467,6 +504,16 @@ function PulseTab() {
             Total: ₹{dividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2})}
           </span>
         </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8, padding:"10px 18px", borderBottom:"1px solid var(--border)", background:"rgba(15,31,58,0.25)" }}>
+          {quarterOrder.map((q,i) => (
+            <span key={i} className="mono" style={{
+              fontSize:10, color:"var(--gold-pale)", background:"rgba(212,168,67,0.08)",
+              border:"1px solid var(--gold-dim)", borderRadius:6, padding:"4px 10px"
+            }}>
+              {q}: ₹{quarterTotals[q].toLocaleString("en-IN",{minimumFractionDigits:2})}
+            </span>
+          ))}
+        </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
           {["Asset","Quarter","Amount (₹)","Credited"].map((h,i)=>(
             <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
@@ -483,6 +530,38 @@ function PulseTab() {
             <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
             <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* US ETF Dividends - live FX converted */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>US ETF Dividends</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
+            Total: ${usDividends.reduce((s,d)=>s+toNum(d.amount),0).toFixed(2)}
+            {" · "}₹{(usDividends.reduce((s,d)=>s+toNum(d.amount),0)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2})}
+          </span>
+          <span className="mono" style={{ fontSize:9, color: fxLive ? "var(--green,#3ecf8e)" : "var(--text-dim)", marginLeft:12 }}>
+            {fxLive ? "● " : "○ "}1 USD = ₹{Number(fxRate).toFixed(2)} {fxLive ? "(live)" : "(fallback)"}
+          </span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1.4fr 90px 90px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
+          {["Holding","Credited","USD","INR (live)"].map((h,i)=>(
+            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
+          ))}
+        </div>
+        {usDividends.map((d,i) => (
+          <div key={i} style={{
+            display:"grid", gridTemplateColumns:"1.4fr 90px 90px 110px", gap:8,
+            padding:"11px 18px", alignItems:"center",
+            borderTop:"1px solid var(--border)",
+            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
+          }}>
+            <div style={{ fontSize:12, color:"var(--white)" }}>{d.holding}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.datecredited}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>${toNum(d.amount).toFixed(2)}</div>
+            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>₹{(toNum(d.amount)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2})}</div>
           </div>
         ))}
       </div>
