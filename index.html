@@ -242,9 +242,15 @@ const db = firebase.firestore();
 
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  // Redirect-based sign-in avoids the popup being silently closed by
-  // in-app browsers, popup blockers, or cross-origin-opener policies.
-  return auth.signInWithRedirect(provider).catch(e => console.error("Sign-in failed:", e));
+  // Popup avoids the cross-domain storage hand-off that redirect sign-in
+  // needs (which some browsers now block). Fall back to redirect only if
+  // the popup itself couldn't open (blocked), not if the user just closed it.
+  return auth.signInWithPopup(provider).catch(e => {
+    console.error("Popup sign-in failed:", e);
+    if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
+      return auth.signInWithRedirect(provider).catch(e2 => console.error("Redirect fallback failed:", e2));
+    }
+  });
 }
 function signOutUser() {
   return auth.signOut().catch(e => console.error("Sign-out failed:", e));
