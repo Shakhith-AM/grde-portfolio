@@ -198,6 +198,7 @@ const CATS = ["G", "R", "D", "E"];
    Subscriber codes — codes you issue to paying users
    ─────────────────────────────────────────────────────────── */
 const OWNER_CODE = "I3D-SHAKHITH-2026";        // ← personal bypass
+const OWNER_UID  = "REPLACE_WITH_YOUR_FIREBASE_UID"; // ← from Firebase Console → Authentication → Users, after you sign in once
 const SUBSCRIBER_CODES = [                      // ← codes issued on payment
   "GRDE-WELCOME-001",
   "GRDE-FOUNDER-2026",
@@ -207,13 +208,8 @@ const UNLOCK_KEY    = "grde_unlocked_v3";
 const TRACKER_KEY   = "grde_tracker_v3";
 const ISSUED_KEY    = "grde_issued_codes_v1";
 
-/* ─── Issued codes (owner-generated, persisted to localStorage) ─── */
-function loadIssuedCodes() {
-  try { return JSON.parse(localStorage.getItem(ISSUED_KEY) || "[]"); } catch(e) { return []; }
-}
-function saveIssuedCodes(arr) {
-  try { localStorage.setItem(ISSUED_KEY, JSON.stringify(arr)); } catch(e) {}
-}
+/* ─── Issued codes now live in Firestore (accessCodes collection) —
+   works across every device, not just the one that generated them. ─── */
 function generateCode() {
   const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,0,1
   const seg = (n) => Array.from({length:n}, () => A[Math.floor(Math.random()*A.length)]).join("");
@@ -942,31 +938,47 @@ function HBar({ label, pct, color, max = 65 }) {
 }
 
 /* ─── CODES TAB: owner-only generator ──────────────────────── */
-function CodesTab() {
-  const [codes, setCodes] = useState(() => loadIssuedCodes());
+function CodesTab({ user }) {
+  const [codes, setCodes] = useState([]);
   const [toast, setToast] = useState("");
+  const isRealOwner = user && user.uid === OWNER_UID;
 
-  const persist = (next) => { setCodes(next); saveIssuedCodes(next); };
+  useEffect(() => {
+    if (!isRealOwner) return;
+    const unsub = db.collection("accessCodes").orderBy("createdAt", "desc")
+      .onSnapshot(snap => {
+        setCodes(snap.docs.map(d => ({ code: d.id, ...d.data() })));
+      }, err => console.error("Codes fetch failed:", err));
+    return unsub;
+  }, [isRealOwner]);
+
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(""), 1400); };
 
-  const issueOne = () => {
-    const next = [{ code: generateCode(), createdAt: Date.now(), active: true, label: "" }, ...codes];
-    persist(next); flash("Code generated");
+  const issueOne = async () => {
+    const code = generateCode();
+    await db.collection("accessCodes").doc(code).set({
+      active: true, label: "", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    flash("Code generated");
   };
-  const issueBatch = (n) => {
-    const fresh = Array.from({length:n}, () => ({ code: generateCode(), createdAt: Date.now(), active: true, label: "" }));
-    persist([...fresh, ...codes]); flash(`${n} codes generated`);
+  const issueBatch = async (n) => {
+    const batch = db.batch();
+    for (let i=0;i<n;i++) {
+      const ref = db.collection("accessCodes").doc(generateCode());
+      batch.set(ref, { active: true, label: "", createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    await batch.commit();
+    flash(`${n} codes generated`);
   };
-  const toggleActive = (i) => {
-    const next = codes.map((c, idx) => idx === i ? { ...c, active: !c.active } : c);
-    persist(next);
+  const toggleActive = (code, current) => {
+    db.collection("accessCodes").doc(code).update({ active: !current }).catch(e=>console.error(e));
   };
-  const removeCode = (i) => {
+  const removeCode = (code) => {
     if (!window.confirm("Permanently remove this code?")) return;
-    persist(codes.filter((_, idx) => idx !== i));
+    db.collection("accessCodes").doc(code).delete().catch(e=>console.error(e));
   };
-  const updateLabel = (i, label) => {
-    persist(codes.map((c, idx) => idx === i ? { ...c, label } : c));
+  const updateLabel = (code, label) => {
+    db.collection("accessCodes").doc(code).update({ label }).catch(e=>console.error(e));
   };
   const copyOne = async (code) => {
     try { await navigator.clipboard.writeText(code); flash("Copied " + code); }
@@ -999,7 +1011,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
   };
   const exportCSV = () => {
     const rows = [["Code","Status","Label","Issued"]].concat(
-      codes.map(c => [c.code, c.active?"active":"revoked", c.label||"", new Date(c.createdAt).toISOString()])
+      codes.map(c => [c.code, c.active?"active":"revoked", c.label||"", c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toISOString() : ""])
     );
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type:"text/csv" }));
@@ -1007,8 +1019,27 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
     a.click(); URL.revokeObjectURL(url);
   };
 
-  const fmtDate = (ts) => new Date(ts).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+  const fmtDate = (ts) => ts && ts.toDate ? ts.toDate().toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" }) : "—";
   const activeCount = codes.filter(c => c.active).length;
+
+  if (!user) {
+    return (
+      <div className="glass" style={{ borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
+        <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
+          Sign in with Google (top right) using your owner account to manage codes.
+        </div>
+      </div>
+    );
+  }
+  if (!isRealOwner) {
+    return (
+      <div className="glass" style={{ borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
+        <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
+          This Google account isn't recognized as the owner account.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -1017,7 +1048,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
         Subscriber <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Codes</span>
       </h2>
       <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 18 }}>
-        Generate access codes to share with paying subscribers. Codes work immediately on this device — share them after payment.
+        Generate access codes to share with paying subscribers. Codes are stored in Firestore and work on any device, immediately.
       </p>
 
       {/* Action bar */}
@@ -1065,7 +1096,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {codes.map((c, i) => (
-            <div key={i} className="glass" style={{
+            <div key={c.code} className="glass" style={{
               borderRadius: 10, padding: "12px 14px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10,
               opacity: c.active ? 1 : 0.5
             }}>
@@ -1076,7 +1107,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
               }}>{c.code}</code>
               <input
                 type="text" placeholder="Note (e.g., Ravi · ₹299)"
-                value={c.label || ""} onChange={e => updateLabel(i, e.target.value)}
+                value={c.label || ""} onChange={e => updateLabel(c.code, e.target.value)}
                 style={{
                   flex: "1 1 140px", minWidth: 0, background: "var(--card-2)",
                   border: "1px solid var(--border)", borderRadius: 6, padding: "6px 10px",
@@ -1094,11 +1125,11 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
                 background: "rgba(37,211,102,0.12)", border: "1px solid #25D366", color: "#25D366",
                 borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
               }}>WHATSAPP</button>
-              <button onClick={() => toggleActive(i)} title={c.active ? "Revoke" : "Reactivate"} className="mono" style={{
+              <button onClick={() => toggleActive(c.code, c.active)} title={c.active ? "Revoke" : "Reactivate"} className="mono" style={{
                 background: "transparent", border: "1px solid var(--border)", color: "var(--text-dim)",
                 borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
               }}>{c.active ? "REVOKE" : "ENABLE"}</button>
-              <button onClick={() => removeCode(i)} title="Delete" style={{
+              <button onClick={() => removeCode(c.code)} title="Delete" style={{
                 background: "transparent", border: "none", color: "var(--danger)",
                 cursor: "pointer", fontSize: 14, padding: "4px 6px"
               }}>×</button>
@@ -1108,7 +1139,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
       )}
 
       <p className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", textAlign: "center", marginTop: 18 }}>
-        Codes are stored on this device only. To share access across devices, paste the same code into the unlock screen.
+        Codes are stored in Firestore — they work the moment you generate them, on any subscriber's device.
       </p>
     </div>
   );
@@ -1126,6 +1157,7 @@ function LockOverlay({ onUnlock }) {
   const [plan, setPlan]   = useState("monthly");
   const [code, setCode]   = useState("");
   const [err, setErr]     = useState("");
+  const [checking, setChecking] = useState(false);
 
   const amt = plan === "monthly" ? MONTHLY_AMT : ANNUAL_AMT;
 
@@ -1148,14 +1180,23 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
     window.open(`https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
-  const submitCode = () => {
+  const submitCode = async () => {
     const c = code.trim().toUpperCase();
-    const issued = loadIssuedCodes().filter(x => x.active).map(x => x.code.toUpperCase());
-    if (c === OWNER_CODE.toUpperCase() || SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c) || issued.includes(c)) {
-      onUnlock(c === OWNER_CODE.toUpperCase() ? "owner" : "subscriber");
-    } else {
-      setErr("Invalid access code. Please verify and try again.");
+    if (c === OWNER_CODE.toUpperCase()) { onUnlock("owner"); return; }
+    if (SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c)) { onUnlock("subscriber"); return; }
+    setChecking(true);
+    setErr("");
+    try {
+      const doc = await db.collection("accessCodes").doc(c).get();
+      if (doc.exists && doc.data().active) {
+        onUnlock("subscriber");
+      } else {
+        setErr("Invalid access code. Please verify and try again.");
+      }
+    } catch(e) {
+      setErr("Couldn't verify code — check your connection and try again.");
     }
+    setChecking(false);
   };
 
   return (
@@ -1296,12 +1337,12 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               marginBottom: 10
             }} />
           {err && <div style={{ color: "var(--danger)", fontSize: 11, marginBottom: 10 }}>{err}</div>}
-          <button onClick={submitCode} className="mono" style={{
+          <button onClick={submitCode} disabled={checking} className="mono" style={{
             width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
             color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
             fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase",
-            cursor: "pointer", marginBottom: 10
-          }}>Unlock</button>
+            cursor: checking ? "default" : "pointer", marginBottom: 10, opacity: checking ? 0.7 : 1
+          }}>{checking ? "Checking…" : "Unlock"}</button>
           <button onClick={() => { setView("home"); setErr(""); setCode(""); }} style={{
             background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 11, cursor: "pointer"
           }}>← Back</button>
@@ -1996,7 +2037,7 @@ function GRDEApp() {
             </div>
           )}
 
-          {activeTab === "codes" && isOwner && <CodesTab />}
+          {activeTab === "codes" && isOwner && <CodesTab user={user} />}
 
           {activeTab === "pulse" && (
             <div style={{ position: "relative", minHeight: 460 }}>
