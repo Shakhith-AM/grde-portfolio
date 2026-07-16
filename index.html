@@ -190,6 +190,15 @@ const CAT_META = {
 };
 const CATS = ["G", "R", "D", "E"];
 
+/* Historical long-term category averages — illustrative only, NOT a promise
+   or personalized projection. Framed explicitly as backward-looking data. */
+const CAGR_META = {
+  G: { range: "7–9%",   note: "Gold, 10-yr avg" },
+  R: { range: "7–9%",   note: "REITs/InvITs, since listing" },
+  D: { range: "6–7.5%", note: "Debt instruments, long-run" },
+  E: { range: "10–12%", note: "Indian equity, long-run" },
+};
+
 /* ─── Access control ─────────────────────────────────────────
    Owner bypass — your personal master code (change before deploy)
    Subscriber codes — codes you issue to paying users
@@ -203,6 +212,8 @@ const SUBSCRIBER_CODES = [                      // ← codes issued on payment
 const UNLOCK_KEY    = "grde_unlocked_v3";
 const TRACKER_KEY   = "grde_tracker_v3";
 const ISSUED_KEY    = "grde_issued_codes_v1";
+const GOALS_KEY      = "grde_fire_goals_v1";
+const ONBOARD_KEY    = "grde_onboarded_v1";
 
 /* ─── Issued codes (owner-generated, persisted to localStorage) ─── */
 function loadIssuedCodes() {
@@ -265,6 +276,9 @@ function daysUntil(dateStr) {
 }
 const typeColor = t => { const tl=(t||"").toLowerCase(); return tl==="red"?"var(--danger)":tl==="green"?"var(--good)":"var(--gold)"; };
 const typeIcon  = t => { const tl=(t||"").toLowerCase(); return tl==="red"?"🔴":tl==="green"?"🟢":"🟡"; };
+/* Action-oriented icon for the Portfolio Actions list — same colour logic,
+   but framed as an actionable checkmark/flag rather than a news alert. */
+const actionIcon = t => { const tl=(t||"").toLowerCase(); return tl==="red"?"⚠":tl==="green"?"✓":"◆"; };
 const calColor  = t => { const tl=(t||"").toLowerCase(); return tl==="distribution"?"var(--good)":tl==="maturity"?"var(--gold)":"var(--d-color)"; };
 
 /* ─── TICKER ──────────────────────────────────────────────── */
@@ -396,10 +410,11 @@ function PulseTab() {
         </div>
       )}
 
-      {/* Alerts */}
+      {/* Portfolio Actions */}
       <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
-          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Market Alerts</span>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Portfolio Actions</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>What to do with this, at a glance</span>
         </div>
         {alerts.map((a,i) => (
           <div key={i} style={{
@@ -408,7 +423,11 @@ function PulseTab() {
             borderLeft:`3px solid ${typeColor(a.type)}`,
             background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
           }}>
-            <span style={{ fontSize:14, marginTop:1, flexShrink:0 }}>{typeIcon(a.type)}</span>
+            <span className="mono" style={{
+              fontSize:13, marginTop:1, flexShrink:0, fontWeight:700, color:typeColor(a.type),
+              width:20, height:20, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+              background:`${typeColor(a.type)}18`, border:`1px solid ${typeColor(a.type)}`
+            }}>{actionIcon(a.type)}</span>
             <div style={{ flex:1 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
                 {a.cat && <span style={{ fontFamily:"Cinzel", fontSize:10, fontWeight:600, color:CAT_META[a.cat]?.hex||"var(--gold)", background:`${CAT_META[a.cat]?.hex||"#d4a843"}18`, padding:"2px 8px", borderRadius:4 }}>{a.cat}</span>}
@@ -511,6 +530,106 @@ function inputToInr(v) {
   return n * CURRENCIES[CCY].rate;
 }
 
+/* ─── Shared: read live Tracker data from localStorage ─────────
+   Used by ISR Analysis and Dashboard so both reflect the same
+   holdings without re-typing anything. ─────────────────────── */
+function computeLiveTrackerData(age) {
+  const alloc = getAllocation(age);
+  const trackerData = (() => {
+    try { const s = localStorage.getItem(TRACKER_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+  })();
+  const trackerValues = trackerData?.values || {};
+  const trackerTotal  = Number(trackerData?.totalPortfolio) || 0;
+
+  const liveAssets = ASSET_TEMPLATE.map(a => {
+    const finalPct   = alloc[a.cat] * a.catFrac;
+    const targetVal  = trackerTotal * finalPct / 100;
+    const currentVal = Number(trackerValues[a.id]) || 0;
+    return { ...a, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
+  });
+  const liveActualTotal = liveAssets.reduce((s, a) => s + a.currentVal, 0);
+  const denom = liveActualTotal > 0 ? liveActualTotal : trackerTotal;
+
+  const liveCat = {};
+  CATS.forEach(cat => {
+    const cur = liveAssets.filter(a => a.cat === cat).reduce((s, a) => s + a.currentVal, 0);
+    const tgt = liveAssets.filter(a => a.cat === cat).reduce((s, a) => s + a.targetVal, 0);
+    liveCat[cat] = { cur, tgt, curPct: denom > 0 ? (cur / denom) * 100 : 0, tgtPct: alloc[cat] };
+  });
+
+  const hasLiveData = liveActualTotal > 0;
+  return {
+    alloc, liveAssets, liveCat, hasLiveData, denom,
+    trackerTotal, reportDate: trackerData?.reportDate,
+    netWorth: liveActualTotal > 0 ? liveActualTotal : trackerTotal,
+  };
+}
+
+/* ─── Expanded multi-factor GRDE Health Score (0–100) ───────────
+   Diversification · Emergency Fund · ISR Balance · Debt Ratio ·
+   Rebalancing · International Exposure · Healthcare · Gold ──── */
+function computeExpandedHealth(liveAssets, liveCat, alloc, denom) {
+  const byId = id => liveAssets.find(a => a.id === id);
+  const pctFunded = id => {
+    const a = byId(id);
+    if (!a || !a.targetVal) return 0;
+    return Math.max(0, Math.min(100, (a.currentVal / a.targetVal) * 100));
+  };
+  const withTarget = liveAssets.filter(a => a.targetVal > 0);
+  const totalWithTarget = withTarget.length;
+
+  const diversification = totalWithTarget > 0
+    ? (liveAssets.filter(a => a.currentVal > 0).length / totalWithTarget) * 100 : 0;
+  const emergencyFund = pctFunded("d_liq");
+  const isrDiff = Math.abs((liveCat.G.curPct + liveCat.R.curPct + liveCat.D.curPct) - (alloc.G + alloc.R + alloc.D));
+  const isrBalance = Math.max(0, 100 - isrDiff * 4);
+  const debtDiff = Math.abs(liveCat.D.curPct - alloc.D);
+  const debtRatio = Math.max(0, 100 - debtDiff * 4);
+  const redCount = withTarget.filter(a => {
+    if (a.currentVal === 0 || !denom) return false;
+    return Math.abs(a.variance) / denom * 100 >= 3;
+  }).length;
+  const rebalancing = totalWithTarget > 0 ? Math.max(0, 100 - (redCount / totalWithTarget) * 100) : 0;
+  const international = pctFunded("e_etfus");
+  const healthcare = pctFunded("e_hc");
+  const gold = pctFunded("g_gold");
+
+  const factors = [
+    { key: "diversification", label: "Diversification",        score: diversification },
+    { key: "emergency",       label: "Emergency Fund",          score: emergencyFund },
+    { key: "isr",             label: "ISR Balance",             score: isrBalance },
+    { key: "debt",            label: "Debt Ratio",              score: debtRatio },
+    { key: "rebalancing",     label: "Rebalancing",             score: rebalancing },
+    { key: "intl",            label: "International Exposure",  score: international },
+    { key: "healthcare",      label: "Healthcare",              score: healthcare },
+    { key: "gold",            label: "Gold",                    score: gold },
+  ];
+  const overall = Math.round(factors.reduce((s, f) => s + f.score, 0) / factors.length);
+  return { overall, factors };
+}
+function healthLabelFor(score) {
+  if (score === null || score === undefined) return { text: "No data", color: "var(--text-dim)" };
+  if (score >= 90) return { text: "Excellent", color: "var(--good)" };
+  if (score >= 75) return { text: "Well Structured", color: "#7fb86a" };
+  if (score >= 60) return { text: "Needs Attention", color: "var(--gold)" };
+  return { text: "Rebalancing Required", color: "var(--danger)" };
+}
+
+/* ─── FIRE projection — purely arithmetic on user-supplied inputs.
+   The growth rate is the USER's own assumption (adjustable slider),
+   never a GRDE-stated "expected return" — kept illustrative only. ── */
+function estimateYearsToTarget(current, monthlySip, annualRatePct, target) {
+  if (target <= 0) return null;
+  if (current >= target) return 0;
+  const r = annualRatePct / 100 / 12;
+  let bal = current;
+  for (let m = 1; m <= 60 * 12; m++) {
+    bal = bal * (1 + r) + monthlySip;
+    if (bal >= target) return Math.round((m / 12) * 10) / 10;
+  }
+  return null; // beyond 60-year horizon
+}
+
 /* ─── Visual primitives ────────────────────────────────────── */
 function Brand() {
   return (
@@ -586,6 +705,7 @@ function Header({ unlocked, onLock, currency, onCurrencyChange }) {
 
 function TabBar({ active, onChange, isUnlocked, isOwner }) {
   const tabs = [
+    { id: "dashboard", label: "Dashboard",     locked: !isUnlocked, home: true },
     { id: "allocator", label: "Allocator", locked: false },
     { id: "pulse",     label: "Pulse",             locked: !isUnlocked, pulse: true },
     { id: "tracker",   label: "Portfolio Tracker", locked: !isUnlocked },
@@ -618,8 +738,9 @@ function TabBar({ active, onChange, isUnlocked, isOwner }) {
   );
 }
 
-function CategoryCard({ cat, pct }) {
+function CategoryCard({ cat, pct, showCagr }) {
   const m = CAT_META[cat];
+  const cagr = CAGR_META[cat];
   return (
     <div className="glass" style={{
       flex: 1, minWidth: 110, borderRadius: 10, padding: "18px 10px 14px", textAlign: "center",
@@ -633,6 +754,11 @@ function CategoryCard({ cat, pct }) {
       <div style={{ width: "60%", height: 2, background: "var(--border)", borderRadius: 2, margin: "10px auto 0", overflow: "hidden" }}>
         <div style={{ width: `${(pct / 65) * 100}%`, height: "100%", background: m.hex, borderRadius: 2 }} />
       </div>
+      {showCagr && cagr && (
+        <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 10, letterSpacing: "0.08em" }}>
+          Hist. avg <span style={{ color: m.hex }}>{cagr.range}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -880,6 +1006,170 @@ const MONTHLY_AMT = 299;
 const ANNUAL_AMT  = 2499;
 
 /* ─── LOCK OVERLAY: UPI payment + passcode access ─── */
+/* ─── ONBOARDING: 4-screen first-visit walkthrough ──────────
+   Shown once (localStorage flag). Explains G/R/D/E and age logic
+   before the person ever has to touch a number. ─────────────── */
+function Onboarding({ onComplete }) {
+  const [step, setStep] = useState(0);
+  const [ageInput, setAgeInput] = useState(50);
+  const [portfolioInput, setPortfolioInput] = useState("");
+
+  const finish = () => {
+    try {
+      localStorage.setItem(ALLOCATOR_AGE_KEY, String(ageInput));
+      const existing = (() => { try { const s = localStorage.getItem(TRACKER_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; } })();
+      localStorage.setItem(TRACKER_KEY, JSON.stringify({
+        ...existing,
+        age: ageInput,
+        totalPortfolio: portfolioInput ? Number(portfolioInput) : (existing.totalPortfolio ?? ""),
+        values: existing.values ?? {},
+        reportDate: existing.reportDate ?? new Date().toISOString().slice(0, 7),
+      }));
+      localStorage.setItem(ONBOARD_KEY, "1");
+    } catch(e) {}
+    onComplete();
+  };
+  const skip = () => {
+    try { localStorage.setItem(ONBOARD_KEY, "1"); } catch(e) {}
+    onComplete();
+  };
+
+  const screens = [
+    {
+      title: "What is GRDE?",
+      body: (
+        <>
+          <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.8, margin: 0 }}>
+            GRDE stands for <strong style={{ color: "var(--gold-pale)" }}>Gold, Real Estate, Debt, Equity</strong> —
+            four asset classes that, held together in the right proportion, behave like a beaver's dam:
+            layered, resilient, and built to hold through drought, flood, and fire.
+          </p>
+          <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.8, marginTop: 14 }}>
+            It's not a stock tip or a fund recommendation. It's a <em>structure</em> — a rule for how much
+            of your money sits in each material, based on your age.
+          </p>
+        </>
+      )
+    },
+    {
+      title: "Why these four buckets?",
+      body: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { cat: "G", tag: "The Hedge",   text: "Gold & Silver — a crisis anchor when everything else is volatile." },
+            { cat: "R", tag: "The Rent",    text: "Real Estate (REITs/InvITs) — income-generating, inflation-linked." },
+            { cat: "D", tag: "The Defense", text: "Debt — stability, liquidity, capital protection." },
+            { cat: "E", tag: "The Engine",  text: "Equity — the long-term growth that builds real wealth." },
+          ].map((r, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <span style={{
+                fontFamily: "Cinzel", fontSize: 20, fontWeight: 700, color: CAT_META[r.cat].hex,
+                width: 34, height: 34, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                background: `${CAT_META[r.cat].hex}18`, border: `1px solid ${CAT_META[r.cat].hex}44`, flexShrink: 0
+              }}>{r.cat}</span>
+              <div>
+                <div className="mono" style={{ fontSize: 9, color: CAT_META[r.cat].hex, letterSpacing: "0.14em", textTransform: "uppercase" }}>{r.tag}</div>
+                <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.5, marginTop: 2 }}>{r.text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    },
+    {
+      title: "How does age affect allocation?",
+      body: (
+        <>
+          <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.8, margin: 0 }}>
+            When you're younger, you have more time to ride out equity's ups and downs — so more of your
+            money tilts toward <span style={{ color: CAT_META.E.hex }}>Equity</span> for growth.
+          </p>
+          <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.8, marginTop: 14 }}>
+            As you get older, the framework automatically shifts weight toward{" "}
+            <span style={{ color: CAT_META.D.hex }}>Debt</span> and{" "}
+            <span style={{ color: CAT_META.R.hex }}>Real Estate</span> — trading some growth for
+            stability and income, so market swings matter less when you need the money.
+          </p>
+          <div className="mono" style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 16, letterSpacing: "0.08em" }}>
+            You'll see this play out live on the next screen — and any time on the Allocator tab.
+          </div>
+        </>
+      )
+    },
+    {
+      title: "Enter your age & portfolio",
+      body: (
+        <>
+          <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.7, margin: "0 0 18px" }}>
+            This sets up your Allocator and Tracker. You can change either any time — nothing here is final.
+          </p>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 160px" }}>
+              <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>Your Age</label>
+              <input type="number" min={25} max={100} value={ageInput} onChange={e => setAgeInput(Number(e.target.value))}
+                style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "10px 14px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div style={{ flex: "1 1 200px" }}>
+              <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>Current Portfolio Value (₹) — optional</label>
+              <input type="number" value={portfolioInput} onChange={e => setPortfolioInput(e.target.value)} placeholder="e.g. 3500000"
+                style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "10px 14px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+          </div>
+        </>
+      )
+    },
+  ];
+
+  const s = screens[step];
+  const isLast = step === screens.length - 1;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200, display: "grid", placeItems: "center",
+      background: "rgba(6,10,16,0.92)", backdropFilter: "blur(6px)", padding: 20
+    }}>
+      <div className="glass" style={{
+        borderRadius: 16, padding: "36px 36px 28px", maxWidth: 520, width: "100%",
+        boxShadow: "0 30px 90px rgba(0,0,0,0.6)", borderColor: "var(--gold-dim)"
+      }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 22 }}>
+          {screens.map((_, i) => (
+            <div key={i} style={{
+              flex: 1, height: 3, borderRadius: 2,
+              background: i <= step ? "var(--gold)" : "var(--border)"
+            }} />
+          ))}
+        </div>
+
+        <div className="mono" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
+          Step {step + 1} of {screens.length}
+        </div>
+        <h3 style={{ fontFamily: "Cinzel", fontSize: 24, color: "var(--white)", margin: "0 0 18px" }}>{s.title}</h3>
+        <div style={{ minHeight: 140 }}>{s.body}</div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 28 }}>
+          <button onClick={skip} className="mono" style={{
+            background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 11, cursor: "pointer", letterSpacing: "0.1em"
+          }}>Skip intro</button>
+          <div style={{ display: "flex", gap: 10 }}>
+            {step > 0 && (
+              <button onClick={() => setStep(s => s - 1)} className="mono" style={{
+                background: "transparent", border: "1px solid var(--border-2)", color: "var(--text-dim)",
+                borderRadius: 8, padding: "10px 18px", fontSize: 11, letterSpacing: "0.12em", cursor: "pointer"
+              }}>← Back</button>
+            )}
+            <button onClick={() => isLast ? finish() : setStep(s => s + 1)} className="mono" style={{
+              background: "linear-gradient(180deg, #c8a84b, #896e2f)", color: "#0a1628", border: "none",
+              borderRadius: 8, padding: "10px 22px", fontSize: 11, fontWeight: 600, letterSpacing: "0.16em",
+              textTransform: "uppercase", cursor: "pointer"
+            }}>{isLast ? "Enter GRDE" : "Next →"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LockOverlay({ onUnlock }) {
   const [view, setView]   = useState("home");   // "home" | "pay" | "code"
   const [plan, setPlan]   = useState("monthly");
@@ -1071,6 +1361,231 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
   );
 }
 
+/* ─── TAB: DASHBOARD (Home) ──────────────────────────────────
+   One-screen summary: Net Worth, ISR, Health Score, Allocation,
+   Next Distribution, and the FIRE progress meter. Reads whatever
+   has already been entered in the Tracker — no re-typing. ──── */
+function FireMeter({ netWorth }) {
+  const loadGoals = () => {
+    try { const s = localStorage.getItem(GOALS_KEY); if (s) return JSON.parse(s); } catch(e) {}
+    return null;
+  };
+  const saved = loadGoals();
+  const [targetCorpus, setTargetCorpus] = useState(saved?.targetCorpus ?? "");
+  const [monthlySip, setMonthlySip] = useState(saved?.monthlySip ?? "");
+  const [assumedRate, setAssumedRate] = useState(saved?.assumedRate ?? 11);
+  const [currentAge, setCurrentAge] = useState(saved?.currentAge ?? 35);
+
+  useEffect(() => {
+    try { localStorage.setItem(GOALS_KEY, JSON.stringify({ targetCorpus, monthlySip, assumedRate, currentAge })); } catch(e) {}
+  }, [targetCorpus, monthlySip, assumedRate, currentAge]);
+
+  const target = Number(targetCorpus) || 0;
+  const sip = Number(monthlySip) || 0;
+  const progress = target > 0 ? Math.min(100, (netWorth / target) * 100) : 0;
+  const years = target > 0 ? estimateYearsToTarget(netWorth, sip, assumedRate, target) : null;
+  const freedomAge = years !== null ? Math.round(currentAge + years) : null;
+
+  return (
+    <div className="glass" style={{ borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ padding: "12px 18px", borderBottom: "1px solid var(--border)" }}>
+        <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.18em", textTransform: "uppercase" }}>FIRE Progress</span>
+        <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginLeft: 12 }}>Financial Independence tracker</span>
+      </div>
+      <div style={{ padding: "18px" }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+          <div style={{ flex: "1 1 150px" }}>
+            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Target Corpus ({ccySym()})</label>
+            <input type="number" value={targetCorpus} onChange={e => setTargetCorpus(e.target.value)} placeholder="e.g. 50000000"
+              style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ flex: "1 1 130px" }}>
+            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Current Age</label>
+            <input type="number" value={currentAge} onChange={e => setCurrentAge(Number(e.target.value))} min={18} max={90}
+              style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ flex: "1 1 150px" }}>
+            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Monthly SIP ({ccySym()}) — optional</label>
+            <input type="number" value={monthlySip} onChange={e => setMonthlySip(e.target.value)} placeholder="e.g. 40000"
+              style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+          <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.1em" }}>Current: {fmtINR(netWorth)}</span>
+          <span className="mono" style={{ fontSize: 10, color: "var(--gold)", letterSpacing: "0.1em" }}>Target: {target > 0 ? fmtINR(target) : "—"}</span>
+        </div>
+        <div style={{ width: "100%", height: 14, background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 999, overflow: "hidden" }}>
+          <div style={{
+            width: `${progress}%`, height: "100%", borderRadius: 999,
+            background: "linear-gradient(90deg, #c8a84b, #52a86a)", transition: "width 0.4s"
+          }} />
+        </div>
+        <div style={{ textAlign: "center", marginTop: 8 }}>
+          <span style={{ fontFamily: "Cinzel", fontSize: 22, fontWeight: 600, color: "var(--white)" }}>{progress.toFixed(1)}%</span>
+          <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: 8, letterSpacing: "0.1em" }}>of target reached</span>
+        </div>
+
+        {target > 0 && (
+          <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 8 }}>
+              Your assumed annual growth rate — <span style={{ color: "var(--gold)" }}>{assumedRate}%</span>
+            </label>
+            <input type="range" min={4} max={16} step={0.5} value={assumedRate} onChange={e => setAssumedRate(Number(e.target.value))}
+              style={{ width: "100%", cursor: "pointer", accentColor: "var(--gold)" }} />
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+              {years === null ? (
+                <span className="mono" style={{ fontSize: 12, color: "var(--text-dim)" }}>Beyond a 60-year horizon at this rate — try a higher SIP or rate.</span>
+              ) : years === 0 ? (
+                <span className="mono" style={{ fontSize: 13, color: "var(--good)" }}>🎉 Target already reached at current net worth.</span>
+              ) : (
+                <>
+                  <span style={{ fontFamily: "Cinzel", fontSize: 20, color: "var(--gold)", fontWeight: 600 }}>~{years} years</span>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--text-dim)", marginLeft: 8 }}>→ around age {freedomAge}</span>
+                </>
+              )}
+            </div>
+            <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 10, lineHeight: 1.7, textAlign: "center" }}>
+              Illustrative only — based on <em>your own</em> assumed rate and inputs above, not a GRDE-stated return, guarantee, or personalized recommendation.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DashboardTab({ onNavigate }) {
+  const initAge = (() => {
+    try { const s = localStorage.getItem(TRACKER_KEY); if (s) return JSON.parse(s).age ?? 50; } catch(e) {}
+    return 50;
+  })();
+  const live = computeLiveTrackerData(initAge);
+  const { alloc, liveAssets, liveCat, hasLiveData, denom, netWorth } = live;
+  const isr = hasLiveData ? liveCat.G.curPct + liveCat.R.curPct + liveCat.D.curPct : alloc.G + alloc.R + alloc.D;
+  const health = computeExpandedHealth(liveAssets, liveCat, alloc, denom);
+  const healthLabel = healthLabelFor(hasLiveData ? health.overall : null);
+  const [expandHealth, setExpandHealth] = useState(false);
+
+  // Lightweight one-time fetch of the nearest upcoming distribution for the Dashboard card
+  const [nextEvent, setNextEvent] = useState(null);
+  useEffect(() => {
+    fetch(CALENDAR_URL + `&cb=${Date.now()}`, { cache: "no-store" }).then(r => r.text()).then(t => {
+      const rows = parseCSV(t);
+      const list = rows.length ? rows : FALLBACK_CALENDAR;
+      const upcoming = list
+        .map(c => ({ ...c, d: daysUntil(c.date) }))
+        .filter(c => c.d !== null && c.d >= 0)
+        .sort((a, b) => a.d - b.d);
+      setNextEvent(upcoming[0] || null);
+    }).catch(() => {
+      const upcoming = FALLBACK_CALENDAR
+        .map(c => ({ ...c, d: daysUntil(c.date) }))
+        .filter(c => c.d !== null && c.d >= 0)
+        .sort((a, b) => a.d - b.d);
+      setNextEvent(upcoming[0] || null);
+    });
+  }, []);
+
+  const statTile = (label, value, sub, color) => (
+    <div className="glass" style={{ flex: "1 1 200px", borderRadius: 12, padding: "18px 20px" }}>
+      <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: "Cinzel", fontSize: 26, fontWeight: 600, color: color || "var(--white)" }}>{value}</div>
+      {sub && <div className="mono" style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 4 }}>{sub}</div>}
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="label">One-Screen Overview</div>
+      <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
+        Your <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Dashboard</span>
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--text)", margin: "0 0 20px" }}>
+        Everything at a glance — pulled live from your Portfolio Tracker.
+        {!hasLiveData && <span style={{ color: "var(--gold)", marginLeft: 8 }}>Enter holdings in Tracker to populate this.</span>}
+      </p>
+
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 18 }}>
+        {statTile("Net Worth", hasLiveData ? fmtINR(netWorth) : "—", hasLiveData ? "from Tracker entries" : "no data yet", "var(--gold)")}
+        {statTile("ISR", isr.toFixed(1) + "%", "Stability portion", "var(--good)")}
+        {statTile(
+          "GRDE Health Score",
+          hasLiveData ? health.overall + "/100" : "—",
+          healthLabel.text,
+          healthLabel.color
+        )}
+        {statTile(
+          "Next Distribution",
+          nextEvent ? nextEvent.asset : "—",
+          nextEvent ? `${nextEvent.date} · in ${nextEvent.d}d` : "loading…",
+          "var(--gold-pale)"
+        )}
+      </div>
+
+      {/* Current Allocation mini bars */}
+      <div className="glass" style={{ borderRadius: 12, padding: "18px 20px", marginBottom: 18 }}>
+        <div className="label" style={{ marginBottom: 14 }}>Current Allocation</div>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          {CATS.map(cat => {
+            const pct = hasLiveData ? liveCat[cat].curPct : alloc[cat];
+            return (
+              <div key={cat} style={{ flex: "1 1 140px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontFamily: "Cinzel", fontSize: 13, color: CAT_META[cat].hex, fontWeight: 600 }}>{cat}</span>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--white)" }}>{pct.toFixed(1)}%</span>
+                </div>
+                <div style={{ width: "100%", height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min((pct / 65) * 100, 100)}%`, height: "100%", background: CAT_META[cat].hex, borderRadius: 3 }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button onClick={() => onNavigate && onNavigate("tracker")} className="mono" style={{
+            background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold-pale)",
+            borderRadius: 8, padding: "7px 14px", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer", textTransform: "uppercase"
+          }}>Open Tracker →</button>
+          <button onClick={() => onNavigate && onNavigate("pulse")} className="mono" style={{
+            background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold-pale)",
+            borderRadius: 8, padding: "7px 14px", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer", textTransform: "uppercase"
+          }}>Open Pulse →</button>
+        </div>
+      </div>
+
+      {/* Expandable Health Score breakdown */}
+      <div className="glass" style={{ borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
+        <button onClick={() => setExpandHealth(v => !v)} style={{
+          width: "100%", background: "transparent", border: "none", cursor: "pointer",
+          padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between"
+        }}>
+          <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.18em", textTransform: "uppercase" }}>GRDE Health Score — Breakdown</span>
+          <span className="mono" style={{ fontSize: 12, color: "var(--gold)" }}>{expandHealth ? "▲ Hide" : "▼ Expand"}</span>
+        </button>
+        {expandHealth && (
+          <div style={{ padding: "4px 18px 18px" }}>
+            {health.factors.map((f, i) => {
+              const c = f.score >= 75 ? "var(--good)" : f.score >= 50 ? "var(--gold)" : "var(--danger)";
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderTop: i > 0 ? "1px solid var(--border)" : "none" }}>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--text)", flex: 1 }}>{f.label}</span>
+                  <div style={{ width: 100, height: 5, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${f.score}%`, height: "100%", background: c, borderRadius: 3 }} />
+                  </div>
+                  <span className="mono" style={{ fontSize: 11, color: c, width: 34, textAlign: "right" }}>{Math.round(f.score)}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <FireMeter netWorth={hasLiveData ? netWorth : 0} />
+    </div>
+  );
+}
+
 /* ─── TAB: ALLOCATOR ─────────────────────────────────────── */
 const ALLOCATOR_AGE_KEY = "grde_allocator_age";
 
@@ -1092,7 +1607,10 @@ function AllocatorTab() {
       <h2 style={{ fontSize: 30, margin: "8px 0 6px" }}>
         Target&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Allocation</span>
       </h2>
-      <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6, margin: 0, maxWidth: 720 }}>
+      <p style={{ fontSize: 14, color: "var(--gold-pale)", lineHeight: 1.6, margin: 0, maxWidth: 720, fontStyle: "italic" }}>
+        Your age determines the balance between wealth creation and income stability.
+      </p>
+      <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6, margin: "6px 0 0", maxWidth: 720 }}>
         Adjust your age to see how the GRDE framework adapts. Younger investors tilt toward equity for growth;
         older investors shift toward stability assets for income and peace of mind.
       </p>
@@ -1116,7 +1634,11 @@ function AllocatorTab() {
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
-          {CATS.map(cat => <CategoryCard key={cat} cat={cat} pct={alloc[cat]} />)}
+          {CATS.map(cat => <CategoryCard key={cat} cat={cat} pct={alloc[cat]} showCagr />)}
+        </div>
+        <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 14, lineHeight: 1.7, letterSpacing: "0.04em" }}>
+          "Hist. avg" = illustrative long-term category averages from published historical data — not a forecast, guarantee, or personalized
+          recommendation. Past performance does not indicate future results.
         </div>
       </div>
 
@@ -1182,6 +1704,17 @@ function TrackerTab() {
   });
 
   const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
+
+  /* 3-tier colour coding for variance: green (on-track), yellow (watch), red (act).
+     Deviation measured as % of the total portfolio, matching Split % scale. */
+  const varianceDenom = total > 0 ? total : actualTotal;
+  const varianceColor = (a) => {
+    if (a.currentVal === 0) return "var(--text-dim)";
+    const pctDev = varianceDenom > 0 ? Math.abs(a.variance) / varianceDenom * 100 : 0;
+    if (pctDev < 1) return "var(--good)";
+    if (pctDev < 3) return "var(--gold)";
+    return "var(--danger)";
+  };
 
   // Use the actual sum of entered holdings when it's available; only fall
   // back to the user-typed portfolio value when nothing has been entered yet.
@@ -1399,7 +1932,9 @@ function TrackerTab() {
           <div key={cat}>
             <div style={{
               display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-              background: "rgba(200,168,75,0.04)", borderTop: "1px solid var(--border)"
+              background: "#0f1620ee", backdropFilter: "blur(4px)",
+              borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
+              position: "sticky", top: 0, zIndex: 5
             }}>
               <span style={{ fontFamily: "Cinzel", fontSize: 18, color: CAT_META[cat].hex, fontWeight: 600 }}>{cat}</span>
               <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
@@ -1443,7 +1978,7 @@ function TrackerTab() {
                 </div>
                 <div className="mono" style={{
                   fontWeight: 500, fontSize: 11, textAlign: "right",
-                  color: a.currentVal === 0 ? "var(--text-dim)" : a.variance >= 0 ? "var(--good)" : "var(--danger)"
+                  color: varianceColor(a)
                 }}>
                   {a.currentVal > 0 ? `${a.variance >= 0 ? "+" : ""}${fmtINR(a.variance)}` : "—"}
                 </div>
@@ -1755,6 +2290,9 @@ function GRDEApp() {
   });
   const [currency, setCurrency] = useState(CCY);
   const [tickerAlerts, setTickerAlerts] = useState(FALLBACK_ALERTS);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return localStorage.getItem(ONBOARD_KEY) !== "1"; } catch(e) { return true; }
+  });
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
 
@@ -1783,6 +2321,7 @@ function GRDEApp() {
 
   return (
     <div>
+      {showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}
       <Header unlocked={isUnlocked} onLock={handleLock}
               currency={currency} onCurrencyChange={handleCurrencyChange} />
       <main className="grde-main" style={{ maxWidth: 980, margin: "0 auto", padding: "24px 24px 40px" }}>
@@ -1817,6 +2356,15 @@ function GRDEApp() {
         <TabBar active={activeTab} onChange={setActiveTab} isUnlocked={isUnlocked} isOwner={isOwner} />
 
         <div style={{ marginTop: 26, position: "relative" }}>
+          {activeTab === "dashboard" && (
+            <div style={{ position: "relative", minHeight: 460 }}>
+              <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
+                <DashboardTab onNavigate={setActiveTab} />
+              </div>
+              {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
+            </div>
+          )}
+
           {activeTab === "allocator" && <AllocatorTab />}
 
           {activeTab === "tracker" && (
@@ -1855,9 +2403,15 @@ function GRDEApp() {
             <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               GRDE Engine v3.0 · An Architect's Blueprint for Wealth
             </span>
-            <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
-              by Shakhith A.M.  ·  i3D Studio, Coimbatore
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <button onClick={() => setShowOnboarding(true)} className="mono" style={{
+                background: "transparent", border: "none", color: "var(--gold-pale)", fontSize: 10,
+                letterSpacing: "0.12em", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3
+              }}>Replay intro</button>
+              <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
+                by Shakhith A.M.  ·  i3D Studio, Coimbatore
+              </span>
+            </div>
           </div>
           <div style={{
             background: "rgba(15,31,58,0.5)", border: "1px solid var(--border)",
@@ -1866,11 +2420,12 @@ function GRDEApp() {
             <div className="mono" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 6 }}>
               Disclaimer
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6, margin: 0 }}>
-              Educational framework only —
-              <strong style={{ color: "var(--text)" }}> not investment advice</strong>.
-              Investments are subject to market risks. Always consult a
-              <strong style={{ color: "var(--text)" }}> SEBI-registered advisor</strong> before investing.
+            <p style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
+              GRDE is an <strong style={{ color: "var(--text)" }}>educational portfolio planning framework</strong>.
+              All projections, illustrations, and scenario analyses are mathematical examples based on
+              user-provided assumptions and <strong style={{ color: "var(--text)" }}>should not be construed as
+              investment advice or guarantees of future performance</strong>. Investments are subject to market
+              risks. Always consult a <strong style={{ color: "var(--text)" }}>SEBI-registered advisor</strong> before investing.
             </p>
           </div>
         </footer>
