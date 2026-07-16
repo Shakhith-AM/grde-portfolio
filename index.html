@@ -14,9 +14,6 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -198,7 +195,6 @@ const CATS = ["G", "R", "D", "E"];
    Subscriber codes — codes you issue to paying users
    ─────────────────────────────────────────────────────────── */
 const OWNER_CODE = "I3D-SHAKHITH-2026";        // ← personal bypass
-const OWNER_UID  = "GUWxkuv3Z9Wd7MYzSDdReJsYZs73"; // ← Shakhith's Firebase Auth UID
 const SUBSCRIBER_CODES = [                      // ← codes issued on payment
   "GRDE-WELCOME-001",
   "GRDE-FOUNDER-2026",
@@ -208,8 +204,13 @@ const UNLOCK_KEY    = "grde_unlocked_v3";
 const TRACKER_KEY   = "grde_tracker_v3";
 const ISSUED_KEY    = "grde_issued_codes_v1";
 
-/* ─── Issued codes now live in Firestore (accessCodes collection) —
-   works across every device, not just the one that generated them. ─── */
+/* ─── Issued codes (owner-generated, persisted to localStorage) ─── */
+function loadIssuedCodes() {
+  try { return JSON.parse(localStorage.getItem(ISSUED_KEY) || "[]"); } catch(e) { return []; }
+}
+function saveIssuedCodes(arr) {
+  try { localStorage.setItem(ISSUED_KEY, JSON.stringify(arr)); } catch(e) {}
+}
 function generateCode() {
   const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,0,1
   const seg = (n) => Array.from({length:n}, () => A[Math.floor(Math.random()*A.length)]).join("");
@@ -223,38 +224,6 @@ function generateCode() {
 const SHEET_ID     = "2PACX-1vRpKhD5egQ1nOY2PteSvLGT10cde2GNZWKYOkP2fUiE_ZfEs1xajzJ84MiKyKzDj1jTNB8wa1U5S7Dc";
 const ALERTS_URL   = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1153377084&single=true&output=csv`;
 const CALENDAR_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=674599408&single=true&output=csv`;
-const DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1320209561&single=true&output=csv`;
-const US_DIVIDEND_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=1529576150&single=true&output=csv`;
-const FX_API_URL = "https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR";
-
-/* ─── Firebase (per-visitor accounts + personal dividend log) ──── */
-const firebaseConfig = {
-  apiKey: "AIzaSyCb_Q-aGIS8tEu_vYetuJcF2nY5hOiu7v0",
-  authDomain: "grde-portfolio-engine.firebaseapp.com",
-  projectId: "grde-portfolio-engine",
-  storageBucket: "grde-portfolio-engine.firebasestorage.app",
-  messagingSenderId: "818925386122",
-  appId: "1:818925386122:web:103860acf40f125832f073"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  // Popup avoids the cross-domain storage hand-off that redirect sign-in
-  // needs (which some browsers now block). Fall back to redirect only if
-  // the popup itself couldn't open (blocked), not if the user just closed it.
-  return auth.signInWithPopup(provider).catch(e => {
-    console.error("Popup sign-in failed:", e);
-    if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
-      return auth.signInWithRedirect(provider).catch(e2 => console.error("Redirect fallback failed:", e2));
-    }
-  });
-}
-function signOutUser() {
-  return auth.signOut().catch(e => console.error("Sign-out failed:", e));
-}
 
 const FALLBACK_ALERTS = [
   { type:"green",  cat:"G", message:"Gold holding steady above ₹72,000/10g — hedge intact",              date:"Jul 2026" },
@@ -271,25 +240,6 @@ const FALLBACK_CALENDAR = [
   { asset:"Bonds / Target Mat.", type:"Maturity",     date:"Mar 2027",  amount:"Principal",    notes:"Plan reinvestment" },
   { asset:"FD + POMIS",          type:"Interest",     date:"Monthly",   amount:"Fixed credit", notes:"Auto-credited" },
 ];
-const FALLBACK_DIVIDENDS = [
-  { asset:"Mindspace REIT", quarter:"Q3 FY25-26", amount:"1224.30", tds:"2.00", datecredited:"2026-02-05", category:"R" },
-  { asset:"Nexus Select Trust", quarter:"Q3 FY25-26", amount:"1202.46", tds:"32.00", datecredited:"2026-02-11", category:"R" },
-  { asset:"Knowledge Realty Trust", quarter:"Q3 FY25-26", amount:"1342.21", tds:"11.13", datecredited:"2026-02-16", category:"R" },
-  { asset:"IRB InvIT Fund", quarter:"Q3 FY25-26", amount:"916.50", tds:"59.00", datecredited:"2026-02-20", category:"R" },
-  { asset:"IndiGrid InvIT", quarter:"Q3 FY25-26", amount:"4140.00", tds:"305.00", datecredited:"2026-02-23", category:"R" },
-  { asset:"Mindspace REIT", quarter:"Q4 FY25-26", amount:"1460.80", tds:"1.00", datecredited:"2026-05-08", category:"R" },
-  { asset:"Knowledge Realty Trust", quarter:"Q4 FY25-26", amount:"1383.30", tds:"17.72", datecredited:"2026-05-21", category:"R" },
-  { asset:"Nexus Select Trust", quarter:"Q4 FY25-26", amount:"1698.51", tds:"55.95", datecredited:"2026-05-22", category:"R" },
-  { asset:"IRB InvIT Fund", quarter:"Q4 FY25-26", amount:"1859.20", tds:"168.00", datecredited:"2026-05-25", category:"R" },
-  { asset:"IndiGrid InvIT", quarter:"Q4 FY25-26", amount:"4140.00", tds:"262.00", datecredited:"2026-05-25", category:"R" },
-];
-const FALLBACK_US_DIVIDENDS = [
-  { holding:"Schwab US Dividend Equity ETF (SCHD)", datecredited:"2026-03-31", amount:"3.39" },
-  { holding:"Vanguard S&P 500 ETF", datecredited:"2026-04-01", amount:"4.26" },
-  { holding:"Schwab US Dividend Equity ETF (SCHD)", datecredited:"2026-06-30", amount:"3.33" },
-  { holding:"Vanguard S&P 500 ETF", datecredited:"2026-07-01", amount:"4.46" },
-];
-const FALLBACK_FX_RATE = 87.50; // used only until the live rate loads
 
 function parseCSV(text) {
   const lines = text.trim().split("\n").filter(Boolean);
@@ -301,9 +251,6 @@ function parseCSV(text) {
     headers.forEach((h,i) => { obj[h] = (vals[i]||"").replace(/"/g,"").trim(); });
     return obj;
   });
-}
-function toNum(v) {
-  return parseFloat(String(v||"").replace(/,/g,"")) || 0;
 }
 function daysUntil(dateStr) {
   if (!dateStr || dateStr.toLowerCase()==="monthly") return null;
@@ -351,46 +298,9 @@ function PulseTicker({ alerts }) {
 }
 
 /* ─── PULSE TAB ──────────────────────────────────────────── */
-function PulseTab({ user, isOwner }) {
+function PulseTab() {
   const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
   const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
-  const [dividends, setDividends] = useState(FALLBACK_DIVIDENDS);
-  const [usDividends, setUsDividends] = useState(FALLBACK_US_DIVIDENDS);
-  const [fxRate, setFxRate] = useState(FALLBACK_FX_RATE);
-  const [fxLive, setFxLive] = useState(false);
-  const [myDividends, setMyDividends] = useState([]);
-  const [myForm, setMyForm] = useState({ asset:"", quarter:"", amount:"", datecredited:"" });
-  const [mySaving, setMySaving] = useState(false);
-
-  useEffect(() => {
-    if (!user || isOwner) { setMyDividends([]); return; }
-    const unsub = db.collection("users").doc(user.uid).collection("dividends")
-      .orderBy("datecredited", "desc")
-      .onSnapshot(snap => {
-        setMyDividends(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, err => console.error("Dividend log fetch failed:", err));
-    return unsub;
-  }, [user, isOwner]);
-
-  const addMyDividend = async () => {
-    if (!user || !myForm.asset || !myForm.amount) return;
-    setMySaving(true);
-    try {
-      await db.collection("users").doc(user.uid).collection("dividends").add({
-        asset: myForm.asset, quarter: myForm.quarter || "", amount: myForm.amount,
-        datecredited: myForm.datecredited || new Date().toISOString().slice(0,10),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-      setMyForm({ asset:"", quarter:"", amount:"", datecredited:"" });
-    } catch(e) { console.error("Add dividend failed:", e); }
-    setMySaving(false);
-  };
-  const deleteMyDividend = (id) => {
-    if (!user) return;
-    db.collection("users").doc(user.uid).collection("dividends").doc(id).delete()
-      .catch(e => console.error("Delete failed:", e));
-  };
-
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
@@ -399,39 +309,13 @@ function PulseTab({ user, isOwner }) {
     
     setLoading(true);
     try {
-      const [aR,cR,dR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL),fetch(DIVIDEND_URL)]);
-      const [aT,cT,dT] = await Promise.all([aR.text(),cR.text(),dR.text()]);
-      const pA=parseCSV(aT), pC=parseCSV(cT), pD=parseCSV(dT).map(r => ({
-        asset: r.asset || '',
-        quarter: r.quarter || '',
-        amount: r.amount || r['amount received (₹)'] || r['amount received'] || r['amount (₹)'] || r['amount received (rs.)'] || r['amount (rs.)'] || '0',
-        tds: r.tds || r['tds (₹)'] || r['tds deducted'] || r['tds (rs.)'] || r['tds deducted (₹)'] || '0',
-        datecredited: r.datecredited || r['date credited'] || r['credit date'] || r.date || '',
-        category: r.category || r.cat || 'R',
-      }));
+      const [aR,cR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL)]);
+      const [aT,cT] = await Promise.all([aR.text(),cR.text()]);
+      const pA=parseCSV(aT), pC=parseCSV(cT);
       if (pA.length) setAlerts(pA);
       if (pC.length) setCalendar(pC);
-      if (pD.length) setDividends(pD);
       setLive(true); setLastFetch(new Date());
     } catch(e) {}
-
-    try {
-      const uR = await fetch(US_DIVIDEND_URL);
-      const uT = await uR.text();
-      const pU = parseCSV(uT).map(r => ({
-        holding: r.holding || r.asset || '',
-        datecredited: r.datecredited || r['date credited'] || r['credit date'] || r.date || '',
-        amount: r.amount || r['amount (usd)'] || r['amount received'] || r['amount received (usd)'] || '0',
-      }));
-      if (pU.length) setUsDividends(pU);
-    } catch(e) {}
-
-    try {
-      const fR = await fetch(FX_API_URL);
-      const fJ = await fR.json();
-      if (fJ && fJ.rates && fJ.rates.INR) { setFxRate(fJ.rates.INR); setFxLive(true); }
-    } catch(e) {}
-
     setLoading(false);
   };
   useEffect(()=>{ fetchData(); },[]);
@@ -439,13 +323,6 @@ function PulseTab({ user, isOwner }) {
   const upcoming = [...calendar]
     .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
     .sort((a,b)=>(daysUntil(a.date)||999)-(daysUntil(b.date)||999));
-
-  const quarterTotals = dividends.reduce((acc,d) => {
-    const q = d.quarter || "Unspecified";
-    acc[q] = (acc[q]||0) + toNum(d.amount);
-    return acc;
-  }, {});
-  const quarterOrder = Object.keys(quarterTotals); // preserves first-seen order from the sheet
 
   return (
     <div style={{ paddingBottom: 60 }}>
@@ -556,134 +433,6 @@ function PulseTab({ user, isOwner }) {
           );
         })}
       </div>
-
-      {isOwner && (
-      <React.Fragment>
-      {/* Dividends Received */}
-      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
-        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
-          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Dividends Received</span>
-          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
-            Total: ₹{dividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
-          </span>
-        </div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8, padding:"10px 18px", borderBottom:"1px solid var(--border)", background:"rgba(15,31,58,0.25)" }}>
-          {quarterOrder.map((q,i) => (
-            <span key={i} className="mono" style={{
-              fontSize:10, color:"var(--gold-pale)", background:"rgba(212,168,67,0.08)",
-              border:"1px solid var(--gold-dim)", borderRadius:6, padding:"4px 10px"
-            }}>
-              {q}: ₹{quarterTotals[q].toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
-            </span>
-          ))}
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
-          {["Asset","Quarter","Amount (₹)","Credited"].map((h,i)=>(
-            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
-          ))}
-        </div>
-        {dividends.map((d,i) => (
-          <div key={i} style={{
-            display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
-            padding:"11px 18px", alignItems:"center",
-            borderTop:"1px solid var(--border)",
-            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
-          }}>
-            <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* US ETF Dividends - live FX converted */}
-      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
-        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
-          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>US ETF Dividends</span>
-          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
-            Total: ${usDividends.reduce((s,d)=>s+toNum(d.amount),0).toFixed(2)}
-            {" · "}₹{(usDividends.reduce((s,d)=>s+toNum(d.amount),0)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
-          </span>
-          <span className="mono" style={{ fontSize:9, color: fxLive ? "var(--green,#3ecf8e)" : "var(--text-dim)", marginLeft:12 }}>
-            {fxLive ? "● " : "○ "}1 USD = ₹{Number(fxRate).toFixed(2)} {fxLive ? "(live)" : "(fallback)"}
-          </span>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1.4fr 90px 90px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
-          {["Holding","Credited","USD","INR (live)"].map((h,i)=>(
-            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
-          ))}
-        </div>
-        {usDividends.map((d,i) => (
-          <div key={i} style={{
-            display:"grid", gridTemplateColumns:"1.4fr 90px 90px 110px", gap:8,
-            padding:"11px 18px", alignItems:"center",
-            borderTop:"1px solid var(--border)",
-            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
-          }}>
-            <div style={{ fontSize:12, color:"var(--white)" }}>{d.holding}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.datecredited}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>${toNum(d.amount).toFixed(2)}</div>
-            <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>₹{(toNum(d.amount)*fxRate).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-          </div>
-        ))}
-      </div>
-      </React.Fragment>
-      )}
-
-      {!isOwner && user && (
-        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginTop:18 }}>
-          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
-            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>My Dividends</span>
-            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>
-              Total: ₹{myDividends.reduce((s,d)=>s+toNum(d.amount),0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
-            </span>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 90px 100px 110px 30px", gap:8, padding:"10px 18px", borderBottom:"1px solid var(--border)", background:"rgba(15,31,58,0.25)" }}>
-            <input placeholder="Asset" value={myForm.asset} onChange={e=>setMyForm({...myForm, asset:e.target.value})}
-              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
-            <input placeholder="Quarter" value={myForm.quarter} onChange={e=>setMyForm({...myForm, quarter:e.target.value})}
-              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
-            <input placeholder="Amount" value={myForm.amount} onChange={e=>setMyForm({...myForm, amount:e.target.value})}
-              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
-            <input type="date" value={myForm.datecredited} onChange={e=>setMyForm({...myForm, datecredited:e.target.value})}
-              style={{ background:"var(--card)", border:"1px solid var(--border)", color:"var(--text)", borderRadius:6, padding:"6px 8px", fontSize:11 }} />
-            <button onClick={addMyDividend} disabled={mySaving} title="Add" style={{
-              background:"rgba(212,168,67,0.15)", border:"1px solid var(--gold-dim)", color:"var(--gold)",
-              borderRadius:6, cursor: mySaving ? "default" : "pointer", fontSize:14
-            }}>+</button>
-          </div>
-          {myDividends.length === 0 && (
-            <div className="mono" style={{ padding:"18px", fontSize:11, color:"var(--text-dim)", textAlign:"center" }}>
-              No entries yet — add your first dividend above.
-            </div>
-          )}
-          {myDividends.map((d,i) => (
-            <div key={d.id} style={{
-              display:"grid", gridTemplateColumns:"1fr 90px 100px 110px 30px", gap:8,
-              padding:"11px 18px", alignItems:"center",
-              borderTop:"1px solid var(--border)",
-              background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
-            }}>
-              <div style={{ fontSize:12, color:"var(--white)" }}>{d.asset}</div>
-              <div className="mono" style={{ fontSize:11, color:"var(--text)" }}>{d.quarter}</div>
-              <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{toNum(d.amount).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-              <div className="mono" style={{ fontSize:11, color:"var(--text)", textAlign:"right" }}>{d.datecredited}</div>
-              <button onClick={()=>deleteMyDividend(d.id)} title="Delete" style={{
-                background:"transparent", border:"none", color:"var(--text-dim)", cursor:"pointer", fontSize:13
-              }}>×</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!user && (
-        <div className="glass" style={{ borderRadius:12, padding:"22px 18px", marginTop:18, textAlign:"center" }}>
-          <span className="mono" style={{ fontSize:11, color:"var(--text-dim)", letterSpacing:"0.1em" }}>
-            Sign in with Google (top right) to track your own dividends here.
-          </span>
-        </div>
-      )}
     </div>
   );
 }
@@ -768,7 +517,7 @@ function Brand() {
   );
 }
 
-function Header({ unlocked, onLock, currency, onCurrencyChange, user, onSignIn, onSignOut }) {
+function Header({ unlocked, onLock, currency, onCurrencyChange }) {
   return (
     <header className="grde-header" style={{
       borderBottom: "1px solid var(--border)",
@@ -777,21 +526,6 @@ function Header({ unlocked, onLock, currency, onCurrencyChange, user, onSignIn, 
     }}>
       <Brand />
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {user ? (
-          <button onClick={onSignOut} title="Sign out" className="mono" style={{
-            background: "rgba(212,168,67,0.08)", border: "1px solid var(--gold-dim)",
-            color: "var(--gold-pale)", borderRadius: 12, padding: "4px 10px", display:"flex", alignItems:"center", gap:6,
-            fontSize: 10, letterSpacing: "0.1em", cursor: "pointer"
-          }}>
-            {user.photoURL && <img src={user.photoURL} alt="" style={{ width:16, height:16, borderRadius:"50%" }} />}
-            {(user.displayName || user.email || "Signed in").split(" ")[0]}
-          </button>
-        ) : (
-          <button onClick={onSignIn} title="Sign in with Google" className="mono" style={{
-            background: "transparent", border: "1px solid var(--border)", color: "var(--text)",
-            borderRadius: 12, padding: "4px 10px", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer"
-          }}>Sign in with Google</button>
-        )}
         <select
           value={currency}
           onChange={e => onCurrencyChange(e.target.value)}
@@ -946,47 +680,31 @@ function HBar({ label, pct, color, max = 65 }) {
 }
 
 /* ─── CODES TAB: owner-only generator ──────────────────────── */
-function CodesTab({ user }) {
-  const [codes, setCodes] = useState([]);
+function CodesTab() {
+  const [codes, setCodes] = useState(() => loadIssuedCodes());
   const [toast, setToast] = useState("");
-  const isRealOwner = user && user.uid === OWNER_UID;
 
-  useEffect(() => {
-    if (!isRealOwner) return;
-    const unsub = db.collection("accessCodes").orderBy("createdAt", "desc")
-      .onSnapshot(snap => {
-        setCodes(snap.docs.map(d => ({ code: d.id, ...d.data() })));
-      }, err => console.error("Codes fetch failed:", err));
-    return unsub;
-  }, [isRealOwner]);
-
+  const persist = (next) => { setCodes(next); saveIssuedCodes(next); };
   const flash = (msg) => { setToast(msg); setTimeout(() => setToast(""), 1400); };
 
-  const issueOne = async () => {
-    const code = generateCode();
-    await db.collection("accessCodes").doc(code).set({
-      active: true, label: "", createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    flash("Code generated");
+  const issueOne = () => {
+    const next = [{ code: generateCode(), createdAt: Date.now(), active: true, label: "" }, ...codes];
+    persist(next); flash("Code generated");
   };
-  const issueBatch = async (n) => {
-    const batch = db.batch();
-    for (let i=0;i<n;i++) {
-      const ref = db.collection("accessCodes").doc(generateCode());
-      batch.set(ref, { active: true, label: "", createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    }
-    await batch.commit();
-    flash(`${n} codes generated`);
+  const issueBatch = (n) => {
+    const fresh = Array.from({length:n}, () => ({ code: generateCode(), createdAt: Date.now(), active: true, label: "" }));
+    persist([...fresh, ...codes]); flash(`${n} codes generated`);
   };
-  const toggleActive = (code, current) => {
-    db.collection("accessCodes").doc(code).update({ active: !current }).catch(e=>console.error(e));
+  const toggleActive = (i) => {
+    const next = codes.map((c, idx) => idx === i ? { ...c, active: !c.active } : c);
+    persist(next);
   };
-  const removeCode = (code) => {
+  const removeCode = (i) => {
     if (!window.confirm("Permanently remove this code?")) return;
-    db.collection("accessCodes").doc(code).delete().catch(e=>console.error(e));
+    persist(codes.filter((_, idx) => idx !== i));
   };
-  const updateLabel = (code, label) => {
-    db.collection("accessCodes").doc(code).update({ label }).catch(e=>console.error(e));
+  const updateLabel = (i, label) => {
+    persist(codes.map((c, idx) => idx === i ? { ...c, label } : c));
   };
   const copyOne = async (code) => {
     try { await navigator.clipboard.writeText(code); flash("Copied " + code); }
@@ -1019,7 +737,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
   };
   const exportCSV = () => {
     const rows = [["Code","Status","Label","Issued"]].concat(
-      codes.map(c => [c.code, c.active?"active":"revoked", c.label||"", c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toISOString() : ""])
+      codes.map(c => [c.code, c.active?"active":"revoked", c.label||"", new Date(c.createdAt).toISOString()])
     );
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type:"text/csv" }));
@@ -1027,27 +745,8 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
     a.click(); URL.revokeObjectURL(url);
   };
 
-  const fmtDate = (ts) => ts && ts.toDate ? ts.toDate().toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" }) : "—";
+  const fmtDate = (ts) => new Date(ts).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
   const activeCount = codes.filter(c => c.active).length;
-
-  if (!user) {
-    return (
-      <div className="glass" style={{ borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
-        <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
-          Sign in with Google (top right) using your owner account to manage codes.
-        </div>
-      </div>
-    );
-  }
-  if (!isRealOwner) {
-    return (
-      <div className="glass" style={{ borderRadius: 10, padding: "40px 20px", textAlign: "center" }}>
-        <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
-          This Google account isn't recognized as the owner account.
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -1056,7 +755,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
         Subscriber <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Codes</span>
       </h2>
       <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 18 }}>
-        Generate access codes to share with paying subscribers. Codes are stored in Firestore and work on any device, immediately.
+        Generate access codes to share with paying subscribers. Codes work immediately on this device — share them after payment.
       </p>
 
       {/* Action bar */}
@@ -1104,7 +803,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {codes.map((c, i) => (
-            <div key={c.code} className="glass" style={{
+            <div key={i} className="glass" style={{
               borderRadius: 10, padding: "12px 14px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10,
               opacity: c.active ? 1 : 0.5
             }}>
@@ -1115,7 +814,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
               }}>{c.code}</code>
               <input
                 type="text" placeholder="Note (e.g., Ravi · ₹299)"
-                value={c.label || ""} onChange={e => updateLabel(c.code, e.target.value)}
+                value={c.label || ""} onChange={e => updateLabel(i, e.target.value)}
                 style={{
                   flex: "1 1 140px", minWidth: 0, background: "var(--card-2)",
                   border: "1px solid var(--border)", borderRadius: 6, padding: "6px 10px",
@@ -1133,11 +832,11 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
                 background: "rgba(37,211,102,0.12)", border: "1px solid #25D366", color: "#25D366",
                 borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
               }}>WHATSAPP</button>
-              <button onClick={() => toggleActive(c.code, c.active)} title={c.active ? "Revoke" : "Reactivate"} className="mono" style={{
+              <button onClick={() => toggleActive(i)} title={c.active ? "Revoke" : "Reactivate"} className="mono" style={{
                 background: "transparent", border: "1px solid var(--border)", color: "var(--text-dim)",
                 borderRadius: 6, padding: "5px 10px", fontSize: 10, cursor: "pointer", letterSpacing: "0.1em"
               }}>{c.active ? "REVOKE" : "ENABLE"}</button>
-              <button onClick={() => removeCode(c.code)} title="Delete" style={{
+              <button onClick={() => removeCode(i)} title="Delete" style={{
                 background: "transparent", border: "none", color: "var(--danger)",
                 cursor: "pointer", fontSize: 14, padding: "4px 6px"
               }}>×</button>
@@ -1147,7 +846,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
       )}
 
       <p className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", textAlign: "center", marginTop: 18 }}>
-        Codes are stored in Firestore — they work the moment you generate them, on any subscriber's device.
+        Codes are stored on this device only. To share access across devices, paste the same code into the unlock screen.
       </p>
     </div>
   );
@@ -1165,7 +864,6 @@ function LockOverlay({ onUnlock }) {
   const [plan, setPlan]   = useState("monthly");
   const [code, setCode]   = useState("");
   const [err, setErr]     = useState("");
-  const [checking, setChecking] = useState(false);
 
   const amt = plan === "monthly" ? MONTHLY_AMT : ANNUAL_AMT;
 
@@ -1188,23 +886,14 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
     window.open(`https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
-  const submitCode = async () => {
+  const submitCode = () => {
     const c = code.trim().toUpperCase();
-    if (c === OWNER_CODE.toUpperCase()) { onUnlock("owner"); return; }
-    if (SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c)) { onUnlock("subscriber"); return; }
-    setChecking(true);
-    setErr("");
-    try {
-      const doc = await db.collection("accessCodes").doc(c).get();
-      if (doc.exists && doc.data().active) {
-        onUnlock("subscriber");
-      } else {
-        setErr("Invalid access code. Please verify and try again.");
-      }
-    } catch(e) {
-      setErr("Couldn't verify code — check your connection and try again.");
+    const issued = loadIssuedCodes().filter(x => x.active).map(x => x.code.toUpperCase());
+    if (c === OWNER_CODE.toUpperCase() || SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c) || issued.includes(c)) {
+      onUnlock(c === OWNER_CODE.toUpperCase() ? "owner" : "subscriber");
+    } else {
+      setErr("Invalid access code. Please verify and try again.");
     }
-    setChecking(false);
   };
 
   return (
@@ -1345,12 +1034,12 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               marginBottom: 10
             }} />
           {err && <div style={{ color: "var(--danger)", fontSize: 11, marginBottom: 10 }}>{err}</div>}
-          <button onClick={submitCode} disabled={checking} className="mono" style={{
+          <button onClick={submitCode} className="mono" style={{
             width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
             color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
             fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase",
-            cursor: checking ? "default" : "pointer", marginBottom: 10, opacity: checking ? 0.7 : 1
-          }}>{checking ? "Checking…" : "Unlock"}</button>
+            cursor: "pointer", marginBottom: 10
+          }}>Unlock</button>
           <button onClick={() => { setView("home"); setErr(""); setCode(""); }} style={{
             background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 11, cursor: "pointer"
           }}>← Back</button>
@@ -1362,10 +1051,19 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
 }
 
 /* ─── TAB: ALLOCATOR ─────────────────────────────────────── */
+const ALLOCATOR_AGE_KEY = "grde_allocator_age";
+
 function AllocatorTab() {
-  const [age, setAge] = useState(50);
+  const [age, setAge] = useState(() => {
+    try { const s = localStorage.getItem(ALLOCATOR_AGE_KEY); if (s) return Number(s); } catch(e) {}
+    return 50;
+  });
   const alloc = getAllocation(age);
   const band = getBand(age);
+
+  useEffect(() => {
+    try { localStorage.setItem(ALLOCATOR_AGE_KEY, String(age)); } catch(e) {}
+  }, [age]);
 
   return (
     <div>
@@ -1442,6 +1140,7 @@ function TrackerTab() {
   const [values, setValues] = useState(saved?.values ?? {});
   const [reportDate, setReportDate] = useState(saved?.reportDate ?? new Date().toISOString().slice(0, 7));
   const [saveStatus, setSaveStatus] = useState("");
+  const [focusedId, setFocusedId] = useState(null);
 
   useEffect(() => {
     try {
@@ -1480,6 +1179,20 @@ function TrackerTab() {
   });
 
   const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
+
+  /* Show raw editable text while focused; 2-decimal formatted text once blurred. */
+  const displayVal = (id, rawSourceVal) => {
+    const raw = inrToInput(rawSourceVal);
+    if (raw === "") return "";
+    if (focusedId === id) return String(raw);
+    return Number(raw).toFixed(2);
+  };
+  const sanitizeNum = (str) => {
+    let cleaned = str.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
+    if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
+    return cleaned;
+  };
 
   const reportRef = useRef(null);
 
@@ -1575,8 +1288,10 @@ function TrackerTab() {
       <div style={{ display: "flex", gap: 14, margin: "18px 0", flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 240px" }}>
           <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Total Portfolio Value ({ccySym()})</label>
-          <input type="number" value={inrToInput(totalPortfolio)}
-            onChange={e => setTotalPortfolio(inputToInr(e.target.value))}
+          <input type="text" inputMode="decimal" value={displayVal("TOTAL", totalPortfolio)}
+            onChange={e => setTotalPortfolio(inputToInr(sanitizeNum(e.target.value)))}
+            onFocus={() => setFocusedId("TOTAL")}
+            onBlur={() => setFocusedId(null)}
             placeholder={CCY === "INR" ? "e.g. 3500000" : `e.g. ${Math.round(3500000 / CURRENCIES[CCY].rate)}`}
             style={inputStyle} />
         </div>
@@ -1631,15 +1346,17 @@ function TrackerTab() {
                   <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{a.desc}</div>
                 </div>
                 <div>
-                  <input type="number" value={inrToInput(values[a.id])}
-                    onChange={e => handleVal(a.id, inputToInr(e.target.value))} placeholder="0"
+                  <input type="text" inputMode="decimal" value={displayVal(a.id, values[a.id])}
+                    onChange={e => handleVal(a.id, inputToInr(sanitizeNum(e.target.value)))} placeholder="0"
+                    onFocus={() => setFocusedId(a.id)}
+                    onBlur={() => setFocusedId(null)}
                     style={{
                       width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6,
                       padding: "6px 8px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 11,
                       textAlign: "right", outline: "none", boxSizing: "border-box"
                     }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--gold)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--border)"} />
+                    onFocusCapture={e => e.currentTarget.style.borderColor = "var(--gold)"}
+                    onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"} />
                 </div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--text)", textAlign: "right" }}>
                   {total > 0 ? fmtINR(a.targetVal) : "—"}
@@ -1961,21 +1678,8 @@ function GRDEApp() {
   });
   const [currency, setCurrency] = useState(CCY);
   const [tickerAlerts, setTickerAlerts] = useState(FALLBACK_ALERTS);
-  const [user, setUser] = useState(null);
-  const [authError, setAuthError] = useState("");
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
-
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(u => setUser(u));
-    auth.getRedirectResult().catch(e => {
-      console.error("Sign-in redirect failed:", e);
-      setAuthError(e.code === "auth/unauthorized-domain"
-        ? "This domain isn't authorized for sign-in yet."
-        : "Sign-in didn't complete — please try again.");
-    });
-    return unsub;
-  }, []);
 
   useEffect(() => {
     // Sheet connected — live fetch enabled
@@ -1998,18 +1702,7 @@ function GRDEApp() {
   return (
     <div>
       <Header unlocked={isUnlocked} onLock={handleLock}
-              currency={currency} onCurrencyChange={handleCurrencyChange}
-              user={user} onSignIn={signInWithGoogle} onSignOut={signOutUser} />
-      {authError && (
-        <div className="mono" style={{
-          background: "rgba(200,80,80,0.12)", borderBottom: "1px solid var(--danger, #c85050)",
-          color: "var(--danger, #e88)", padding: "8px 24px", fontSize: 11,
-          display: "flex", justifyContent: "space-between", alignItems: "center"
-        }}>
-          <span>{authError}</span>
-          <button onClick={() => setAuthError("")} style={{ background:"transparent", border:"none", color:"inherit", cursor:"pointer", fontSize:14 }}>×</button>
-        </div>
-      )}
+              currency={currency} onCurrencyChange={handleCurrencyChange} />
       <main className="grde-main" style={{ maxWidth: 980, margin: "0 auto", padding: "24px 24px 40px" }}>
         {/* Hero band — echoes grde.in marketing site */}
         <section className="grde-hero" style={{ padding: "18px 0 28px", textAlign: "left" }}>
@@ -2062,12 +1755,12 @@ function GRDEApp() {
             </div>
           )}
 
-          {activeTab === "codes" && isOwner && <CodesTab user={user} />}
+          {activeTab === "codes" && isOwner && <CodesTab />}
 
           {activeTab === "pulse" && (
             <div style={{ position: "relative", minHeight: 460 }}>
               <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
-                <PulseTab user={user} isOwner={isOwner} />
+                <PulseTab />
               </div>
               {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
             </div>
