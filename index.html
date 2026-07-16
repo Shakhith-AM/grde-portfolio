@@ -1265,6 +1265,44 @@ function TrackerTab() {
     padding: "10px 14px", color: "var(--white)", fontFamily: "Inter", fontSize: 13, outline: "none", boxSizing: "border-box"
   };
 
+  /* ─── Export / Import for cross-device sync ─── */
+  const fileInputRef = useRef(null);
+
+  const handleExport = () => {
+    const payload = { totalPortfolio, age, values, reportDate, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grde-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
+
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!window.confirm("Import this data? It will replace your current tracker entries on this device.")) return;
+        setTotalPortfolio(data.totalPortfolio ?? "");
+        setAge(data.age ?? 50);
+        setValues(data.values ?? {});
+        setReportDate(data.reportDate ?? new Date().toISOString().slice(0, 7));
+      } catch (err) {
+        alert("Couldn't read that file — please check it's a valid GRDE backup (.json) file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // allow re-importing same file name later
+  };
+
   return (
     <div ref={reportRef}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
@@ -1274,8 +1312,21 @@ function TrackerTab() {
             Asset&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Holdings</span>
           </h2>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
           {saveStatus && <span className="mono" style={{ fontSize: 10, color: "var(--good)", letterSpacing: "0.14em" }}>{saveStatus}</span>}
+          <input type="file" accept="application/json" ref={fileInputRef} onChange={handleImportFile} style={{ display: "none" }} />
+          <button onClick={handleExport}
+            className="mono" style={{
+              background: "transparent", border: "1px solid var(--gold-dim)", borderRadius: 8,
+              padding: "8px 14px", color: "var(--gold-pale)", fontSize: 10, letterSpacing: "0.16em",
+              textTransform: "uppercase", cursor: "pointer"
+            }}>⬇ Export</button>
+          <button onClick={handleImportClick}
+            className="mono" style={{
+              background: "transparent", border: "1px solid var(--gold-dim)", borderRadius: 8,
+              padding: "8px 14px", color: "var(--gold-pale)", fontSize: 10, letterSpacing: "0.16em",
+              textTransform: "uppercase", cursor: "pointer"
+            }}>⬆ Import</button>
           <button onClick={() => { if (window.confirm("Clear all saved data?")) { localStorage.removeItem(TRACKER_KEY); setTotalPortfolio(""); setAge(50); setValues({}); setReportDate(new Date().toISOString().slice(0, 7)); } }}
             className="mono" style={{
               background: "transparent", border: "1px solid var(--border-2)", borderRadius: 8,
@@ -1283,6 +1334,11 @@ function TrackerTab() {
               textTransform: "uppercase", cursor: "pointer"
             }}>Clear data</button>
         </div>
+      </div>
+
+      <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 10 }}>
+        📱💻 Data saved here stays only on this device. Use <span style={{ color: "var(--gold-pale)" }}>Export</span> on one device
+        and <span style={{ color: "var(--gold-pale)" }}>Import</span> on another to keep them in sync.
       </div>
 
       <div style={{ display: "flex", gap: 14, margin: "18px 0", flexWrap: "wrap" }}>
