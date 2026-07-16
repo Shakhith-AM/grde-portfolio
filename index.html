@@ -304,21 +304,37 @@ function PulseTab() {
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   const fetchData = async () => {
-    
     setLoading(true);
+    setFetchError("");
     try {
-      const [aR,cR] = await Promise.all([fetch(ALERTS_URL),fetch(CALENDAR_URL)]);
-      const [aT,cT] = await Promise.all([aR.text(),cR.text()]);
-      const pA=parseCSV(aT), pC=parseCSV(cT);
+      // Cache-bust: Google's CDN + browsers cache published CSV aggressively,
+      // so append a fresh timestamp on every call and skip the HTTP cache.
+      const bust = `&cb=${Date.now()}`;
+      const [aR, cR] = await Promise.all([
+        fetch(ALERTS_URL + bust, { cache: "no-store" }),
+        fetch(CALENDAR_URL + bust, { cache: "no-store" })
+      ]);
+      if (!aR.ok || !cR.ok) throw new Error(`Sheet responded with ${aR.status}/${cR.status}`);
+      const [aT, cT] = await Promise.all([aR.text(), cR.text()]);
+      const pA = parseCSV(aT), pC = parseCSV(cT);
       if (pA.length) setAlerts(pA);
       if (pC.length) setCalendar(pC);
-      setLive(true); setLastFetch(new Date());
-    } catch(e) {}
+      setLive(true);
+      setLastFetch(new Date());
+    } catch (e) {
+      setFetchError("Couldn't reach the live sheet — showing last known data.");
+    }
     setLoading(false);
   };
-  useEffect(()=>{ fetchData(); },[]);
+  useEffect(() => {
+    fetchData();
+    // Auto-refresh every 5 minutes so alerts stay current without manual refresh
+    const t = setInterval(fetchData, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const upcoming = [...calendar]
     .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
@@ -330,7 +346,7 @@ function PulseTab() {
       <h2 style={{ fontSize:30, margin:"8px 0 4px" }}>
         Market <span style={{ color:"var(--gold)", fontStyle:"italic" }}>Pulse</span>
       </h2>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:20 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:8 }}>
         <p style={{ fontSize:13, color:"var(--text)", margin:0 }}>Curated alerts and portfolio calendar — updated by i3D Studio monthly.</p>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           {lastFetch && <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>LIVE · {lastFetch.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}</span>}
@@ -342,6 +358,11 @@ function PulseTab() {
           }}>{loading?"Fetching…":"↻ Refresh"}</button>
         </div>
       </div>
+      {fetchError && (
+        <div className="mono" style={{ fontSize:10, color:"var(--danger)", marginBottom:16, letterSpacing:"0.06em" }}>
+          ⚠ {fetchError}
+        </div>
+      )}
 
       {/* Upcoming 90 days */}
       {upcoming.length>0 && (
@@ -1738,10 +1759,15 @@ function GRDEApp() {
   const isOwner = unlock === "owner";
 
   useEffect(() => {
-    // Sheet connected — live fetch enabled
-    fetch(ALERTS_URL).then(r => r.text()).then(t => {
-      const p = parseCSV(t); if (p.length) setTickerAlerts(p);
-    }).catch(()=>{});
+    const loadTicker = () => {
+      fetch(ALERTS_URL + `&cb=${Date.now()}`, { cache: "no-store" })
+        .then(r => r.text())
+        .then(t => { const p = parseCSV(t); if (p.length) setTickerAlerts(p); })
+        .catch(() => {});
+    };
+    loadTicker();
+    const t = setInterval(loadTicker, 5 * 60 * 1000);
+    return () => clearInterval(t);
   }, []);
 
   const handleUnlock = (kind) => {
