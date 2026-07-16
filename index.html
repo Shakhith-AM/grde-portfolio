@@ -1487,8 +1487,12 @@ function DashboardTab({ onNavigate }) {
     });
   }, []);
 
-  const statTile = (label, value, sub, color) => (
-    <div className="glass" style={{ flex: "1 1 200px", borderRadius: 12, padding: "18px 20px" }}>
+  const statTile = (label, value, sub, color, accent) => (
+    <div className="glass" style={{
+      flex: "1 1 200px", borderRadius: 12, padding: "18px 20px",
+      borderColor: accent ? `${accent}3a` : undefined,
+      boxShadow: accent ? `0 0 0 1px ${accent}14, 0 10px 28px ${accent}12` : undefined
+    }}>
       <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 8 }}>{label}</div>
       <div style={{ fontFamily: "Cinzel", fontSize: 26, fontWeight: 600, color: color || "var(--white)" }}>{value}</div>
       {sub && <div className="mono" style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 4 }}>{sub}</div>}
@@ -1499,7 +1503,7 @@ function DashboardTab({ onNavigate }) {
     <div>
       <div className="label">One-Screen Overview</div>
       <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
-        Your <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Dashboard</span>
+        GRDE <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Dashboard</span>
       </h2>
       <p style={{ fontSize: 13, color: "var(--text)", margin: "0 0 20px" }}>
         Everything at a glance — pulled live from your Portfolio Tracker.
@@ -1507,19 +1511,21 @@ function DashboardTab({ onNavigate }) {
       </p>
 
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 18 }}>
-        {statTile("Net Worth", hasLiveData ? fmtINR(netWorth) : "—", hasLiveData ? "from Tracker entries" : "no data yet", "var(--gold)")}
-        {statTile("ISR", isr.toFixed(1) + "%", "Stability portion", "var(--good)")}
+        {statTile("Net Worth", hasLiveData ? fmtINR(netWorth) : "—", hasLiveData ? "from Tracker entries" : "no data yet", "var(--gold)", "#c8a84b")}
+        {statTile("ISR", isr.toFixed(1) + "%", "Stability portion", "var(--good)", "#52a86a")}
         {statTile(
           "GRDE Health Score",
           hasLiveData ? health.overall + "/100" : "—",
           healthLabel.text,
-          healthLabel.color
+          healthLabel.color,
+          "#e0982f"
         )}
         {statTile(
           "Next Distribution",
           nextEvent ? nextEvent.asset : "—",
           nextEvent ? `${nextEvent.date} · in ${nextEvent.d}d` : "loading…",
-          "var(--gold-pale)"
+          "var(--gold-pale)",
+          "#4a7fb8"
         )}
       </div>
 
