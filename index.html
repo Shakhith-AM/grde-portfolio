@@ -541,10 +541,18 @@ function computeLiveTrackerData(age) {
   const trackerValues = trackerData?.values || {};
   const trackerTotal  = Number(trackerData?.totalPortfolio) || 0;
 
-  const liveAssets = ASSET_TEMPLATE.map(a => {
+  // If "Total Portfolio Value" is left blank, fall back to the sum of
+  // whatever's actually been entered per-asset — so target-based scoring
+  // (Diversification, Gold, International, Healthcare, Rebalancing) still
+  // works without requiring that one extra field to be filled in.
+  const rawCurrent = ASSET_TEMPLATE.map(a => Number(trackerValues[a.id]) || 0);
+  const liveActualTotalRaw = rawCurrent.reduce((s, v) => s + v, 0);
+  const effectiveTotal = trackerTotal > 0 ? trackerTotal : liveActualTotalRaw;
+
+  const liveAssets = ASSET_TEMPLATE.map((a, i) => {
     const finalPct   = alloc[a.cat] * a.catFrac;
-    const targetVal  = trackerTotal * finalPct / 100;
-    const currentVal = Number(trackerValues[a.id]) || 0;
+    const targetVal  = effectiveTotal * finalPct / 100;
+    const currentVal = rawCurrent[i];
     return { ...a, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
   });
   const liveActualTotal = liveAssets.reduce((s, a) => s + a.currentVal, 0);
@@ -2074,28 +2082,9 @@ function ISRTab() {
   const targetISR    = alloc.G + alloc.R + alloc.D;
   const targetGrowth = alloc.E;
 
-  // Pull live tracker data
-  const trackerData   = (() => { try { const s=localStorage.getItem(TRACKER_KEY); return s?JSON.parse(s):null; } catch(e){return null;} })();
-  const trackerValues = trackerData?.values || {};
-  const trackerTotal  = Number(trackerData?.totalPortfolio) || 0;
-
-  const liveAssets = ASSET_TEMPLATE.map(a => {
-    const finalPct   = alloc[a.cat] * a.catFrac;
-    const targetVal  = trackerTotal * finalPct / 100;
-    const currentVal = Number(trackerValues[a.id]) || 0;
-    return { ...a, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
-  });
-  const liveActualTotal = liveAssets.reduce((s,a)=>s+a.currentVal,0);
-  const denom = liveActualTotal > 0 ? liveActualTotal : trackerTotal;
-
-  const liveCat = {};
-  CATS.forEach(cat => {
-    const cur = liveAssets.filter(a=>a.cat===cat).reduce((s,a)=>s+a.currentVal,0);
-    const tgt = liveAssets.filter(a=>a.cat===cat).reduce((s,a)=>s+a.targetVal,0);
-    liveCat[cat] = { cur, tgt, curPct: denom>0?(cur/denom)*100:0, tgtPct: alloc[cat] };
-  });
-
-  const hasLiveData  = liveActualTotal > 0;
+  // Pull live tracker data — shared helper, same fallback fix as Dashboard
+  const live = computeLiveTrackerData(age);
+  const { liveAssets, liveCat, hasLiveData, trackerTotal } = live;
   const liveISR      = hasLiveData ? liveCat.G.curPct + liveCat.R.curPct + liveCat.D.curPct : null;
   const liveGrowth   = hasLiveData ? liveCat.E.curPct : null;
 
