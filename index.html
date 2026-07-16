@@ -1016,7 +1016,6 @@ function Onboarding({ onComplete }) {
 
   const finish = () => {
     try {
-      localStorage.setItem(ALLOCATOR_AGE_KEY, String(ageInput));
       const existing = (() => { try { const s = localStorage.getItem(TRACKER_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; } })();
       localStorage.setItem(TRACKER_KEY, JSON.stringify({
         ...existing,
@@ -1593,23 +1592,33 @@ function DashboardTab({ onNavigate }) {
 }
 
 /* ─── TAB: ALLOCATOR ─────────────────────────────────────── */
-const ALLOCATOR_AGE_KEY = "grde_allocator_age";
+/* Age is shared across the whole app (Allocator, Tracker, Dashboard, ISR)
+   via the same Tracker record — so changing it anywhere updates everywhere. */
+function loadSharedAge() {
+  try { const s = localStorage.getItem(TRACKER_KEY); if (s) { const d = JSON.parse(s); if (d.age) return d.age; } } catch(e) {}
+  return 50;
+}
+function saveSharedAge(age) {
+  try {
+    const s = localStorage.getItem(TRACKER_KEY);
+    const existing = s ? JSON.parse(s) : {};
+    localStorage.setItem(TRACKER_KEY, JSON.stringify({ ...existing, age }));
+  } catch(e) {}
+}
 
 function AllocatorTab() {
-  const [age, setAge] = useState(() => {
-    try { const s = localStorage.getItem(ALLOCATOR_AGE_KEY); if (s) return Number(s); } catch(e) {}
-    return 50;
-  });
+  const [age, setAge] = useState(loadSharedAge);
   const alloc = getAllocation(age);
   const band = getBand(age);
 
-  useEffect(() => {
-    try { localStorage.setItem(ALLOCATOR_AGE_KEY, String(age)); } catch(e) {}
-  }, [age]);
+  useEffect(() => { saveSharedAge(age); }, [age]);
 
   return (
     <div>
       <div className="label">Age-Based Risk Engine</div>
+      <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 2 }}>
+        This age is shared with your Tracker, Dashboard, and ISR Analysis.
+      </div>
       <h2 style={{ fontSize: 30, margin: "8px 0 6px" }}>
         Target&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Allocation</span>
       </h2>
