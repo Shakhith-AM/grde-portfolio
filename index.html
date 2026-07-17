@@ -1142,11 +1142,13 @@ function Onboarding({ onComplete }) {
             <div style={{ flex: "1 1 160px" }}>
               <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>Your Age</label>
               <input type="number" min={25} max={100} value={ageInput} onChange={e => setAgeInput(Number(e.target.value))}
+                onFocus={e => e.target.select()}
                 style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "10px 14px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ flex: "1 1 200px" }}>
               <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>Current Portfolio Value (₹) — optional</label>
               <input type="number" value={portfolioInput} onChange={e => setPortfolioInput(e.target.value)} placeholder="e.g. 3500000"
+                onFocus={e => e.target.select()}
                 style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "10px 14px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
           </div>
@@ -1483,16 +1485,19 @@ function FireMeter({ netWorth }) {
           <div style={{ flex: "1 1 150px" }}>
             <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Target Corpus ({ccySym()})</label>
             <input type="number" value={targetCorpus} onChange={e => setTargetCorpus(e.target.value)} placeholder="e.g. 50000000"
+              onFocus={e => e.target.select()}
               style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
           </div>
           <div style={{ flex: "1 1 130px" }}>
             <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Current Age</label>
             <input type="number" value={currentAge} onChange={e => setCurrentAge(Number(e.target.value))} min={18} max={90}
+              onFocus={e => e.target.select()}
               style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
           </div>
           <div style={{ flex: "1 1 150px" }}>
             <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 5 }}>Monthly SIP ({ccySym()}) — optional</label>
             <input type="number" value={monthlySip} onChange={e => setMonthlySip(e.target.value)} placeholder="e.g. 40000"
+              onFocus={e => e.target.select()}
               style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: 8, padding: "9px 12px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
           </div>
         </div>
@@ -2016,7 +2021,8 @@ function TrackerTab() {
         </div>
         <div style={{ flex: "0 0 130px" }}>
           <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Your Age</label>
-          <input type="number" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))} style={inputStyle} />
+          <input type="number" min={25} max={100} value={age} onChange={e => setAge(Number(e.target.value))}
+            onFocus={e => e.target.select()} style={inputStyle} />
         </div>
         <div style={{ flex: "0 0 160px" }}>
           <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Report Month</label>
