@@ -847,15 +847,25 @@ const CORS_PROXIES = [
   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
 ];
 
+async function fetchWithTimeout(url, ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { cache: "no-store", signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchViaProxyChain(url) {
   for (const buildProxyUrl of CORS_PROXIES) {
     try {
-      const res = await fetch(buildProxyUrl(url), { cache: "no-store" });
+      const res = await fetchWithTimeout(buildProxyUrl(url), 6000); // 6s per proxy attempt
       if (res.ok) {
         const text = await res.text();
         if (text && text.trim()) return text;
       }
-    } catch (e) { /* try next proxy */ }
+    } catch (e) { /* timed out or failed — try next proxy */ }
   }
   return null;
 }
