@@ -312,13 +312,16 @@ function PulseTicker({ alerts }) {
 }
 
 /* ─── PULSE TAB ──────────────────────────────────────────── */
-function PulseTab() {
+function PulseTab({ currency }) {
   const [alerts,   setAlerts]   = useState(FALLBACK_ALERTS);
   const [calendar, setCalendar] = useState(FALLBACK_CALENDAR);
   const [loading,  setLoading]  = useState(false);
   const [lastFetch, setLastFetch] = useState(null);
   const [live, setLive]         = useState(false);
   const [fetchError, setFetchError] = useState("");
+  const [news, setNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -350,6 +353,21 @@ function PulseTab() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const loadNews = () => {
+      setNewsLoading(true);
+      fetchAllCategoryNews(currency).then(items => {
+        setNews(items);
+        setNewsError(items.length === 0);
+        setNewsLoading(false);
+      }).catch(() => { setNewsError(true); setNewsLoading(false); });
+    };
+    loadNews();
+    // Refresh every 20 minutes — plenty for headline-level news, easy on the free proxy
+    const t = setInterval(loadNews, 20 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [currency]);
+
   const upcoming = [...calendar]
     .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
     .sort((a,b)=>(daysUntil(a.date)||999)-(daysUntil(b.date)||999));
@@ -370,7 +388,7 @@ function PulseTab() {
         Market <span style={{ color:"var(--gold)", fontStyle:"italic" }}>Pulse</span>
       </h2>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:8 }}>
-        <p style={{ fontSize:13, color:"var(--text)", margin:0 }}>Curated alerts and portfolio calendar — updated by i3D Studio monthly.</p>
+        <p style={{ fontSize:13, color:"var(--text)", margin:0 }}>Curated market updates — refreshed live, updated by i3D Studio.</p>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           {lastFetch && <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>LIVE · {lastFetch.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})}</span>}
           {!live && <span className="mono" style={{ fontSize:9, color:"var(--gold)", background:"rgba(212,168,67,0.08)", border:"1px solid var(--gold-dim)", borderRadius:4, padding:"3px 8px" }}>SAMPLE DATA</span>}
@@ -387,37 +405,62 @@ function PulseTab() {
         </div>
       )}
 
-      {/* Upcoming 90 days */}
-      {upcoming.length>0 && (
-        <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
-          <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10 }}>
-            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Upcoming · Next 90 Days</span>
-            <span className="mono" style={{ fontSize:9, color:"var(--good)", background:"rgba(82,168,106,0.1)", border:"1px solid var(--good)", borderRadius:4, padding:"2px 8px" }}>{upcoming.length} EVENT{upcoming.length>1?"S":""}</span>
+      {/* Live Market Headlines — per G/R/D/E category, from public news feeds */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
+          <div>
+            <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Live Market Headlines</span>
+            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Gold · Real Estate · Debt · Equity — {currency} region + Global</span>
           </div>
-          {upcoming.map((c,i) => {
-            const days=daysUntil(c.date); const urgent=days!==null&&days<=30;
-            return (
-              <div key={i} style={{
-                display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
-                padding:"12px 18px", alignItems:"center",
-                borderTop:i>0?"1px solid var(--border)":"none",
-                background:urgent?"rgba(212,168,67,0.04)":"transparent"
-              }}>
-                <div>
-                  <div style={{ fontSize:12, color:"var(--white)", fontWeight:500 }}>{c.asset}</div>
-                  <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:3 }}>{c.notes}</div>
+          {newsLoading && <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>Loading…</span>}
+        </div>
+        {newsError && !newsLoading && (
+          <div style={{ padding:"18px", textAlign:"center" }}>
+            <div className="mono" style={{ fontSize:11, color:"var(--text-dim)" }}>Live headlines unavailable right now — check back shortly.</div>
+          </div>
+        )}
+        {!newsError && !newsLoading && news.length === 0 && (
+          <div style={{ padding:"18px", textAlign:"center" }}>
+            <div className="mono" style={{ fontSize:11, color:"var(--text-dim)" }}>No fresh headlines found for these categories right now.</div>
+          </div>
+        )}
+        {news.map((n, i) => (
+          <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+            <div style={{
+              display:"flex", alignItems:"flex-start", gap:14, padding:"13px 18px",
+              borderTop:i>0?"1px solid var(--border)":"none",
+              borderLeft:`3px solid ${CAT_META[n.cat]?.hex || "var(--gold)"}`,
+              background:i%2===0?"transparent":"rgba(15,31,58,0.3)", cursor:"pointer"
+            }}>
+              <span style={{
+                fontFamily:"Cinzel", fontSize:11, fontWeight:700, color:CAT_META[n.cat]?.hex || "var(--gold)",
+                width:22, height:22, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+                background:`${CAT_META[n.cat]?.hex || "#d4a843"}18`, border:`1px solid ${CAT_META[n.cat]?.hex || "var(--gold)"}`,
+                flexShrink:0, marginTop:1
+              }}>{n.cat}</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+                  <span className="mono" style={{
+                    fontSize:8, letterSpacing:"0.1em", textTransform:"uppercase",
+                    color: n.scope === "regional" ? "var(--gold-pale)" : "var(--text-dim)",
+                    border: `1px solid ${n.scope === "regional" ? "var(--gold-dim)" : "var(--border)"}`,
+                    borderRadius:3, padding:"1px 6px"
+                  }}>{n.scope === "regional" ? currency + " region" : "Global"}</span>
                 </div>
-                <span className="mono" style={{ fontSize:9, color:calColor(c.type), background:`${calColor(c.type)}18`, border:`1px solid ${calColor(c.type)}`, borderRadius:4, padding:"3px 8px", textTransform:"uppercase", textAlign:"center" }}>{c.type}</span>
-                <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{c.amount}</div>
-                <div style={{ textAlign:"right" }}>
-                  <div className="mono" style={{ fontSize:11, color:urgent?"var(--danger)":"var(--text)", fontWeight:urgent?600:400 }}>{c.date}</div>
-                  {days!==null && <div className="mono" style={{ fontSize:9, color:urgent?"var(--danger)":"var(--text-dim)", marginTop:2 }}>{days<=0?"This month":`in ${days}d`}</div>}
+                <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.4 }}>{n.title}</div>
+                <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:4 }}>
+                  {n.source}{n.source && n.pubDate ? " · " : ""}{n.pubDate ? new Date(n.pubDate).toLocaleDateString("en-IN", { day:"numeric", month:"short" }) : ""}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          </a>
+        ))}
+        <div style={{ padding:"10px 18px", borderTop:"1px solid var(--border)" }}>
+          <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", lineHeight:1.6 }}>
+            Live headlines from public news sources — not curated, verified, or endorsed by i3D Studio. For information only.
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Your Personal Signals — computed from the subscriber's own Tracker */}
       <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
@@ -456,7 +499,7 @@ function PulseTab() {
       </div>
 
       {/* Portfolio Actions — shared broadcast, same for every subscriber */}
-      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden" }}>
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
           <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Portfolio Actions</span>
           <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Curated by i3D Studio · same for all subscribers</span>
@@ -482,41 +525,6 @@ function PulseTab() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Full Calendar */}
-      <div className="glass" style={{ borderRadius:12, overflow:"hidden" }}>
-        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
-          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Portfolio Calendar</span>
-          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12 }}>Distributions · Maturities · Interest</span>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8, padding:"8px 18px", background:"var(--card-2)" }}>
-          {["Asset","Event Type","Amount","Date"].map((h,i)=>(
-            <div key={i} className="mono" style={{ fontSize:9, color:"var(--text-dim)", letterSpacing:"0.16em", textTransform:"uppercase", textAlign:i>=2?"right":"left" }}>{h}</div>
-          ))}
-        </div>
-        {calendar.map((c,i) => {
-          const days=daysUntil(c.date); const soon=days!==null&&days<=30;
-          return (
-            <div key={i} style={{
-              display:"grid", gridTemplateColumns:"1fr 110px 110px 110px", gap:8,
-              padding:"11px 18px", alignItems:"center",
-              borderTop:"1px solid var(--border)",
-              background:soon?"rgba(212,168,67,0.04)":i%2===0?"transparent":"rgba(15,31,58,0.3)"
-            }}>
-              <div>
-                <div style={{ fontSize:12, color:soon?"var(--gold-pale)":"var(--white)" }}>{c.asset}</div>
-                <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:2 }}>{c.notes}</div>
-              </div>
-              <span className="mono" style={{ fontSize:9, color:calColor(c.type), letterSpacing:"0.1em", textTransform:"uppercase" }}>{c.type}</span>
-              <div className="mono" style={{ fontSize:11, color:"var(--gold)", textAlign:"right" }}>{c.amount}</div>
-              <div style={{ textAlign:"right" }}>
-                <div className="mono" style={{ fontSize:11, color:soon?"var(--gold)":"var(--text)" }}>{c.date}</div>
-                {days!==null && <div className="mono" style={{ fontSize:9, color:soon?"var(--danger)":"var(--text-dim)", marginTop:1 }}>{days<=0?"This month":`${days}d`}</div>}
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
@@ -769,6 +777,103 @@ function computePersonalAlerts(age) {
   }
 
   return alerts;
+}
+
+/* ─── Live News Headlines — per G/R/D/E category, region-aware ──
+   Pulled from Google News RSS (free, no signup) via a free public
+   CORS proxy, parsed client-side. Best-effort: if a feed fails or
+   the proxy is briefly down, that category just shows nothing —
+   never breaks the rest of Pulse. Not curated or fact-checked by
+   i3D Studio; shown as-is from public news sources.
+
+   Region follows the subscriber's selected currency — INR shows
+   India + global news, USD shows US + global, and so on — so an
+   Indian and a US investor naturally see different regional news
+   under the same G/R/D/E categories. ─────────────────────────── */
+const NEWS_QUERIES_BY_CCY = {
+  INR: {
+    G: "gold price india",
+    R: "real estate REIT india",
+    D: "RBI bond yield interest rate",
+    E: "sensex nifty stock market",
+  },
+  USD: {
+    G: "gold price US",
+    R: "real estate REIT US",
+    D: "Fed bond yield interest rate",
+    E: "S&P 500 dow jones stock market",
+  },
+  EUR: {
+    G: "gold price europe",
+    R: "real estate REIT europe",
+    D: "ECB bond yield interest rate",
+    E: "euro stoxx stock market europe",
+  },
+  GBP: {
+    G: "gold price UK",
+    R: "real estate REIT UK",
+    D: "Bank of England bond yield interest rate",
+    E: "FTSE 100 stock market UK",
+  },
+  AED: {
+    G: "gold price UAE dubai",
+    R: "real estate UAE dubai",
+    D: "UAE central bank interest rate",
+    E: "DFM ADX stock market UAE",
+  },
+};
+const NEWS_GLOBAL_QUERIES = {
+  G: "gold price global",
+  R: "real estate global",
+  D: "bond yield interest rate global",
+  E: "stock market global",
+};
+// Google News "edition" (language/country) to match — improves relevance
+// beyond just the query keywords, e.g. US edition surfaces US financial
+// press more readily than searching "US" from the India edition would.
+const NEWS_EDITION_BY_CCY = {
+  INR: { hl: "en-IN", gl: "IN", ceid: "IN:en" },
+  USD: { hl: "en-US", gl: "US", ceid: "US:en" },
+  EUR: { hl: "en-IE", gl: "IE", ceid: "IE:en" },
+  GBP: { hl: "en-GB", gl: "GB", ceid: "GB:en" },
+  AED: { hl: "en-AE", gl: "AE", ceid: "AE:en" },
+};
+const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+async function fetchCategoryNews(cat, query, scope, limit, edition) {
+  const ed = edition || NEWS_EDITION_BY_CCY.INR;
+  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${ed.hl}&gl=${ed.gl}&ceid=${ed.ceid}`;
+  try {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(rssUrl), { cache: "no-store" });
+    if (!res.ok) return [];
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, "text/xml");
+    const items = Array.from(xml.querySelectorAll("item")).slice(0, limit);
+    return items.map(item => {
+      const title = item.querySelector("title")?.textContent || "";
+      const pubDate = item.querySelector("pubDate")?.textContent || "";
+      const link = item.querySelector("link")?.textContent || "";
+      let source = "";
+      try { source = new URL(link).hostname.replace("www.", ""); } catch(e) {}
+      // Google News titles are usually "Headline - Source.com"; strip the trailing source
+      const cleanTitle = title.replace(/\s-\s[^-]+$/, "");
+      return { cat, scope, title: cleanTitle, source, pubDate, link };
+    });
+  } catch (e) {
+    return [];
+  }
+}
+
+async function fetchAllCategoryNews(ccy) {
+  const regionQueries = NEWS_QUERIES_BY_CCY[ccy] || NEWS_QUERIES_BY_CCY.INR;
+  const edition = NEWS_EDITION_BY_CCY[ccy] || NEWS_EDITION_BY_CCY.INR;
+  const jobs = [];
+  CATS.forEach(cat => {
+    jobs.push(fetchCategoryNews(cat, regionQueries[cat], "regional", 1, edition));
+    jobs.push(fetchCategoryNews(cat, NEWS_GLOBAL_QUERIES[cat], "global", 1, edition));
+  });
+  const results = await Promise.all(jobs);
+  return results.flat();
 }
 
 /* ─── FIRE projection — purely arithmetic on user-supplied inputs.
@@ -2625,7 +2730,7 @@ function GRDEApp() {
           {activeTab === "pulse" && (
             <div style={{ position: "relative", minHeight: 460 }}>
               <div style={{ filter: isUnlocked ? "none" : "blur(7px)", pointerEvents: isUnlocked ? "auto" : "none" }}>
-                <PulseTab />
+                <PulseTab currency={currency} />
               </div>
               {!isUnlocked && <LockOverlay onUnlock={handleUnlock} />}
             </div>
