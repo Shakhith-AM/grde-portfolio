@@ -354,6 +354,15 @@ function PulseTab() {
     .filter(c => { const d=daysUntil(c.date); return d!==null&&d<=90; })
     .sort((a,b)=>(daysUntil(a.date)||999)-(daysUntil(b.date)||999));
 
+  // Personalized signals — computed live from the subscriber's own Tracker
+  // entries, refreshed each render so editing holdings updates these too.
+  const trackerAge = (() => {
+    try { const s = localStorage.getItem(TRACKER_KEY); if (s) return JSON.parse(s).age ?? 50; } catch(e) {}
+    return 50;
+  })();
+  const personalAlerts = computePersonalAlerts(trackerAge);
+  const hasPersonalData = personalAlerts.length > 0;
+
   return (
     <div style={{ paddingBottom: 60 }}>
       <div className="label">Live Intelligence</div>
@@ -410,11 +419,47 @@ function PulseTab() {
         </div>
       )}
 
-      {/* Portfolio Actions */}
+      {/* Your Personal Signals — computed from the subscriber's own Tracker */}
+      <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
+        <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
+          <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Your Personal Signals</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Calculated live from your own Tracker entries</span>
+        </div>
+        {!hasPersonalData ? (
+          <div style={{ padding:"22px 18px", textAlign:"center" }}>
+            <div className="mono" style={{ fontSize:11, color:"var(--text-dim)", lineHeight:1.8 }}>
+              Enter your holdings in the <strong style={{ color:"var(--gold-pale)" }}>Portfolio Tracker</strong> tab to see
+              signals specific to your own portfolio here.
+            </div>
+          </div>
+        ) : personalAlerts.map((a,i) => (
+          <div key={i} style={{
+            display:"flex", alignItems:"flex-start", gap:14, padding:"14px 18px",
+            borderTop:i>0?"1px solid var(--border)":"none",
+            borderLeft:`3px solid ${typeColor(a.type)}`,
+            background:i%2===0?"transparent":"rgba(15,31,58,0.3)"
+          }}>
+            <span className="mono" style={{
+              fontSize:13, marginTop:1, flexShrink:0, fontWeight:700, color:typeColor(a.type),
+              width:20, height:20, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+              background:`${typeColor(a.type)}18`, border:`1px solid ${typeColor(a.type)}`
+            }}>{actionIcon(a.type)}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                {a.cat && <span style={{ fontFamily:"Cinzel", fontSize:10, fontWeight:600, color:CAT_META[a.cat]?.hex||"var(--gold)", background:`${CAT_META[a.cat]?.hex||"#d4a843"}18`, padding:"2px 8px", borderRadius:4 }}>{a.cat}</span>}
+                <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>{a.date}</span>
+              </div>
+              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.5 }}>{a.message}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Portfolio Actions — shared broadcast, same for every subscriber */}
       <div className="glass" style={{ borderRadius:12, overflow:"hidden", marginBottom:18 }}>
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)" }}>
           <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Portfolio Actions</span>
-          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>What to do with this, at a glance</span>
+          <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Curated by i3D Studio · same for all subscribers</span>
         </div>
         {alerts.map((a,i) => (
           <div key={i} style={{
@@ -568,6 +613,7 @@ function computeLiveTrackerData(age) {
   })();
   const trackerValues = trackerData?.values || {};
   const trackerTotal  = Number(trackerData?.totalPortfolio) || 0;
+  const customNames   = trackerData?.customNames || {};
 
   // If "Total Portfolio Value" is left blank, fall back to the sum of
   // whatever's actually been entered per-asset — so target-based scoring
@@ -581,7 +627,11 @@ function computeLiveTrackerData(age) {
     const finalPct   = alloc[a.cat] * a.catFrac;
     const targetVal  = effectiveTotal * finalPct / 100;
     const currentVal = rawCurrent[i];
-    return { ...a, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
+    // Subscriber's own fund name takes over everywhere this asset is shown
+    // (ISR, Dashboard, Rebalancing Priority, PDF) — the % framework underneath
+    // never changes, only the label of what's held in that slot.
+    const name = customNames[a.id] || a.name;
+    return { ...a, name, finalPct, targetVal, currentVal, variance: currentVal - targetVal };
   });
   const liveActualTotal = liveAssets.reduce((s, a) => s + a.currentVal, 0);
   const denom = liveActualTotal > 0 ? liveActualTotal : trackerTotal;
@@ -649,6 +699,76 @@ function healthLabelFor(score) {
   if (score >= 75) return { text: "Well Structured", color: "#7fb86a" };
   if (score >= 60) return { text: "Needs Attention", color: "var(--gold)" };
   return { text: "Rebalancing Required", color: "var(--danger)" };
+}
+
+/* ─── Personalized Portfolio Signals ─────────────────────────
+   Computed entirely from the subscriber's own Tracker entries —
+   no manual curation needed, unlike the shared Pulse feed below.
+   Purely descriptive math on their own numbers: safe, personal,
+   and automatically different for every subscriber. ─────────── */
+function computePersonalAlerts(age) {
+  const live = computeLiveTrackerData(age);
+  const { liveAssets, liveCat, alloc, hasLiveData, denom } = live;
+  if (!hasLiveData) return [];
+
+  const alerts = [];
+  const byId = id => liveAssets.find(a => a.id === id);
+  const fundedPct = id => {
+    const a = byId(id);
+    if (!a || !a.targetVal) return null;
+    return (a.currentVal / a.targetVal) * 100;
+  };
+
+  // Specific under-funded holdings worth a direct nudge
+  [
+    { id: "d_liq",   label: "Emergency liquidity" },
+    { id: "g_gold",  label: "Gold" },
+    { id: "e_etfus", label: "International exposure" },
+    { id: "e_hc",    label: "Healthcare allocation" },
+  ].forEach(({ id, label }) => {
+    const pct = fundedPct(id);
+    const a = byId(id);
+    if (pct !== null && pct < 50) {
+      alerts.push({
+        type: pct < 25 ? "red" : "yellow", cat: a.cat,
+        message: `${label} (${a.name}) is only ${Math.round(pct)}% funded vs target — consider adding`,
+        date: "Live"
+      });
+    }
+  });
+
+  // Category-level drift beyond 3% of total portfolio
+  CATS.forEach(cat => {
+    const diff = liveCat[cat].curPct - liveCat[cat].tgtPct;
+    if (Math.abs(diff) >= 3) {
+      alerts.push({
+        type: diff > 0 ? "yellow" : "red", cat,
+        message: diff > 0
+          ? `${CAT_META[cat].label} is ${diff.toFixed(1)}% above target — consider trimming`
+          : `${CAT_META[cat].label} is ${Math.abs(diff).toFixed(1)}% below target — consider adding`,
+        date: "Live"
+      });
+    }
+  });
+
+  // Top single most-overweight holding, if meaningfully off
+  const overweight = [...liveAssets]
+    .filter(a => a.targetVal > 0 && a.currentVal > 0)
+    .sort((a, b) => b.variance - a.variance)[0];
+  if (overweight && denom > 0 && (overweight.variance / denom * 100) >= 5) {
+    alerts.push({
+      type: "green", cat: overweight.cat,
+      message: `${overweight.name} is well ahead of target — could trim to fund the gaps above`,
+      date: "Live"
+    });
+  }
+
+  // Nothing flagged — genuinely well balanced
+  if (alerts.length === 0) {
+    alerts.push({ type: "green", cat: "", message: "Your portfolio is well balanced against the GRDE framework right now", date: "Live" });
+  }
+
+  return alerts;
 }
 
 /* ─── FIRE projection — purely arithmetic on user-supplied inputs.
@@ -1788,16 +1908,18 @@ function TrackerTab() {
   const [totalPortfolio, setTotalPortfolio] = useState(saved?.totalPortfolio ?? "");
   const [age, setAge] = useState(saved?.age ?? 50);
   const [values, setValues] = useState(saved?.values ?? {});
+  const [customNames, setCustomNames] = useState(saved?.customNames ?? {});
   const [reportDate, setReportDate] = useState(saved?.reportDate ?? new Date().toISOString().slice(0, 7));
   const [saveStatus, setSaveStatus] = useState("");
   const [focusedId, setFocusedId] = useState(null);
+  const [focusedNameId, setFocusedNameId] = useState(null);
 
   useEffect(() => {
     try {
-      localStorage.setItem(TRACKER_KEY, JSON.stringify({ totalPortfolio, age, values, reportDate }));
+      localStorage.setItem(TRACKER_KEY, JSON.stringify({ totalPortfolio, age, values, customNames, reportDate }));
       setSaveStatus("✓ Saved"); const t = setTimeout(() => setSaveStatus(""), 1200); return () => clearTimeout(t);
     } catch (e) {}
-  }, [totalPortfolio, age, values, reportDate]);
+  }, [totalPortfolio, age, values, customNames, reportDate]);
 
   const alloc = getAllocation(age);
   const total = Number(totalPortfolio) || 0;
@@ -1814,7 +1936,8 @@ function TrackerTab() {
     const targetVal = effectiveTotal * finalPct / 100;
     const currentVal = Number(values[a.id]) || 0;
     const variance = currentVal - targetVal;
-    return { ...a, finalPct, targetVal, currentVal, variance };
+    const name = customNames[a.id] || a.name;
+    return { ...a, name, finalPct, targetVal, currentVal, variance };
   });
 
   const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
@@ -1847,6 +1970,7 @@ function TrackerTab() {
   });
 
   const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
+  const handleName = (id, v) => setCustomNames(prev => ({ ...prev, [id]: v }));
 
   /* Show raw editable text while focused; 2-decimal formatted text once blurred. */
   const displayVal = (id, rawSourceVal) => {
@@ -1979,6 +2103,10 @@ function TrackerTab() {
           <h2 style={{ fontSize: 30, margin: "8px 0 4px" }}>
             Asset&nbsp;<span style={{ color: "var(--gold)", fontStyle: "italic" }}>Holdings</span>
           </h2>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, maxWidth: 480 }}>
+            The fund names below are examples — tap any name to rename it to your own actual holding.
+            The GRDE percentages and structure stay fixed either way.
+          </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
           {saveStatus && <span className="mono" style={{ fontSize: 10, color: "var(--good)", letterSpacing: "0.14em" }}>{saveStatus}</span>}
@@ -2069,8 +2197,19 @@ function TrackerTab() {
               }}>
                 <div><div style={{ width: 8, height: 8, borderRadius: "50%", background: CAT_META[cat].hex }} /></div>
                 <div>
-                  <div style={{ fontSize: 12, color: "var(--white)", fontWeight: 500 }}>{a.name}</div>
-                  <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{a.desc}</div>
+                  <input
+                    type="text" value={customNames[a.id] ?? ""} placeholder={a.name}
+                    onChange={e => handleName(a.id, e.target.value)}
+                    onFocus={e => { setFocusedNameId(a.id); e.target.select(); }}
+                    onBlur={() => setFocusedNameId(null)}
+                    style={{
+                      width: "100%", background: "transparent",
+                      border: focusedNameId === a.id ? "1px solid var(--gold-dim)" : "1px solid transparent",
+                      borderRadius: 5, padding: "2px 5px", margin: "-2px -5px",
+                      color: "var(--white)", fontFamily: "inherit", fontSize: 12, fontWeight: 500,
+                      outline: "none", boxSizing: "border-box"
+                    }} />
+                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>{a.desc}</div>
                 </div>
                 <div>
                   <input type="text" inputMode="decimal" value={displayVal(a.id, values[a.id])}
