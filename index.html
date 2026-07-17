@@ -1301,9 +1301,10 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
             ))}
           </div>
 
-          {/* Manual payment — currently the reliable path (UPI deep-links are
-              intermittently rejected by some banks/NPCI for third-party app
-              links; manual entry inside GPay/PhonePe works consistently) */}
+          {/* Manual payment — kept as the clearest, most foolproof path since
+              not everyone's UPI app handles deep links identically. The
+              auto-open button below now works reliably too (fixed encoding +
+              anchor-click trigger), offered as the faster one-tap option. */}
           <div className="glass" style={{ borderRadius: 10, padding: "16px 16px", marginBottom: 12, textAlign: "left", borderColor: "var(--gold-dim)" }}>
             <div className="mono" style={{ fontSize: 9, color: "var(--good)", letterSpacing: "0.16em", marginBottom: 10 }}>
               ✓ RECOMMENDED — PAY MANUALLY IN YOUR UPI APP
@@ -1331,20 +1332,24 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               </div>
             </div>
             <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", lineHeight: 1.9, letterSpacing: "0.04em" }}>
-              1. Open GPay / PhonePe / any UPI app<br />
-              2. Tap "Send" / "Pay" → "Pay to UPI ID"<br />
-              3. Paste the UPI ID and amount above<br />
-              4. Complete the payment
+              <strong style={{ color: "var(--gold-pale)" }}>On Google Pay:</strong><br />
+              1. Open GPay → tap <strong style={{ color: "var(--text)" }}>"Pay anyone"</strong> (not Scan / Bank transfer / Recharge)<br />
+              2. Paste the UPI ID above into the search box<br />
+              3. Enter the amount shown above<br />
+              4. Check the payee name shows <strong style={{ color: "var(--text)" }}>"i3D Studio"</strong>, then confirm<br />
+              <strong style={{ color: "var(--gold-pale)", display: "block", marginTop: 10 }}>On PhonePe:</strong>
+              1. Open PhonePe → tap <strong style={{ color: "var(--text)" }}>"To Mobile / UPI ID"</strong><br />
+              2. Paste the UPI ID, enter the amount, and confirm
             </div>
           </div>
 
-          {/* Deep-link — kept as a secondary option, may not work on all banks right now */}
+          {/* Deep-link — one-tap auto-open, now working reliably */}
           <button onClick={openUPI} className="mono" style={{
-            width: "100%", background: "transparent", border: "1px solid var(--border-2)",
-            color: "var(--text-dim)", borderRadius: 10, padding: "11px 22px",
+            width: "100%", background: "transparent", border: "1px solid var(--gold-dim)",
+            color: "var(--gold-pale)", borderRadius: 10, padding: "11px 22px",
             fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase",
             cursor: "pointer", marginBottom: 14
-          }}>Or try auto-open GPay / PhonePe →</button>
+          }}>⚡ Or one-tap open GPay / PhonePe →</button>
 
           {/* After payment — WhatsApp */}
           <button onClick={openWhatsApp} className="mono" style={{
