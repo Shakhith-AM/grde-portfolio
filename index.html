@@ -490,6 +490,34 @@ function getBand(age) {
   const lo = Math.floor(age / 5) * 5;
   return `${lo}-${lo + 5}`;
 }
+/* ─── Clipboard copy — with fallback for file:// / non-secure contexts ───
+   navigator.clipboard requires a secure context (https:// or localhost).
+   It's silently unavailable when the app is opened as a local file
+   (file://...), which is exactly how the desktop-backup version is used —
+   so we fall back to the older execCommand method in that case. ───────── */
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch(e) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch(e) {
+    return false;
+  }
+}
 function fmtINR(val) {
   if (val == null || isNaN(val)) return "—";
   const c = CURRENCIES[CCY];
@@ -862,8 +890,8 @@ function CodesTab() {
     persist(codes.map((c, idx) => idx === i ? { ...c, label } : c));
   };
   const copyOne = async (code) => {
-    try { await navigator.clipboard.writeText(code); flash("Copied " + code); }
-    catch(e) { flash("Copy failed — long-press to copy"); }
+    const ok = await copyText(code);
+    flash(ok ? "Copied " + code : "Copy failed — long-press to copy");
   };
   const buildMessage = (code) => (
 `Hi! Here's your i3D *GRDE Portfolio Engine* access 🔐
@@ -881,14 +909,14 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
   );
   const shareWhatsApp = async (code) => {
     const msg = buildMessage(code);
-    try { await navigator.clipboard.writeText(msg); } catch(e) {}
+    await copyText(msg);
     flash("Message copied — opening WhatsApp");
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
   const copyAll = async () => {
     const list = codes.filter(c => c.active).map(c => c.code).join("\n");
-    try { await navigator.clipboard.writeText(list); flash(`Copied ${codes.filter(c=>c.active).length} active codes`); }
-    catch(e) { flash("Copy failed"); }
+    const ok = await copyText(list);
+    flash(ok ? `Copied ${codes.filter(c=>c.active).length} active codes` : "Copy failed");
   };
   const exportCSV = () => {
     const rows = [["Code","Status","Label","Issued"]].concat(
@@ -1182,6 +1210,13 @@ function LockOverlay({ onUnlock }) {
   const [plan, setPlan]   = useState("monthly");
   const [code, setCode]   = useState("");
   const [err, setErr]     = useState("");
+  const [copiedField, setCopiedField] = useState(""); // "upi" | "amt" | ""
+
+  const doCopy = async (field, text) => {
+    const ok = await copyText(text);
+    if (ok) { setCopiedField(field); setTimeout(() => setCopiedField(""), 1800); }
+    else { alert(`Couldn't copy automatically — please select and copy manually:\n\n${text}`); }
+  };
 
   const amt = plan === "monthly" ? MONTHLY_AMT : ANNUAL_AMT;
 
@@ -1314,20 +1349,24 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
                 <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>UPI ID</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>{OWNER_UPI}</code>
-                  <button onClick={() => { navigator.clipboard.writeText(OWNER_UPI); }} className="mono" style={{
-                    background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                  <button onClick={() => doCopy("upi", OWNER_UPI)} className="mono" style={{
+                    background: copiedField === "upi" ? "rgba(82,168,106,0.15)" : "transparent",
+                    border: `1px solid ${copiedField === "upi" ? "var(--good)" : "var(--gold-dim)"}`,
+                    color: copiedField === "upi" ? "var(--good)" : "var(--gold)",
                     borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
-                  }}>COPY</button>
+                  }}>{copiedField === "upi" ? "✓ COPIED" : "COPY"}</button>
                 </div>
               </div>
               <div>
                 <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>Amount</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>₹{amt}</code>
-                  <button onClick={() => { navigator.clipboard.writeText(String(amt)); }} className="mono" style={{
-                    background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                  <button onClick={() => doCopy("amt", String(amt))} className="mono" style={{
+                    background: copiedField === "amt" ? "rgba(82,168,106,0.15)" : "transparent",
+                    border: `1px solid ${copiedField === "amt" ? "var(--good)" : "var(--gold-dim)"}`,
+                    color: copiedField === "amt" ? "var(--good)" : "var(--gold)",
                     borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
-                  }}>COPY</button>
+                  }}>{copiedField === "amt" ? "✓ COPIED" : "COPY"}</button>
                 </div>
               </div>
             </div>
