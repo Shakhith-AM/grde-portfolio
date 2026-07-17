@@ -1008,7 +1008,7 @@ The code unlocks the full GRDE framework on your device. Save it — you'll only
 }
 
 /* ─── UPI_ID — change this to your actual GPay / PhonePe UPI ID ─── */
-const OWNER_UPI   = "shakhith-1@okicici";
+const OWNER_UPI   = "interactive.dimensions0007@uboi";
 const OWNER_PHONE = "919363113693";
 const MONTHLY_AMT = 299;
 const ANNUAL_AMT  = 2499;
@@ -1187,7 +1187,7 @@ function LockOverlay({ onUnlock }) {
 
   /* UPI deep-link — works on mobile (GPay / PhonePe / Paytm) */
   const openUPI = () => {
-    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=GRDE+Engine&am=${amt}&cu=INR&tn=GRDE+${plan}+access`;
+    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=i3D+Studio&am=${amt}&cu=INR&tn=GRDE+${plan}+access`;
     window.location.href = upiUrl;
   };
 
