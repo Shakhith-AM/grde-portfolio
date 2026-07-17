@@ -1797,9 +1797,16 @@ function TrackerTab() {
   const alloc = getAllocation(age);
   const total = Number(totalPortfolio) || 0;
 
+  // Sum of whatever's actually been entered per-holding, computed first so
+  // we can use it as the target-basis fallback when "Total Portfolio Value"
+  // above is left blank — otherwise every row's Target shows blank and
+  // Variance just mirrors Current with nothing to compare against.
+  const rawCurrentSum = ASSET_TEMPLATE.reduce((s, a) => s + (Number(values[a.id]) || 0), 0);
+  const effectiveTotal = total > 0 ? total : rawCurrentSum;
+
   const assets = ASSET_TEMPLATE.map(a => {
     const finalPct = alloc[a.cat] * a.catFrac;       // % of total portfolio
-    const targetVal = total * finalPct / 100;
+    const targetVal = effectiveTotal * finalPct / 100;
     const currentVal = Number(values[a.id]) || 0;
     const variance = currentVal - targetVal;
     return { ...a, finalPct, targetVal, currentVal, variance };
@@ -2073,7 +2080,7 @@ function TrackerTab() {
                     onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"} />
                 </div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--text)", textAlign: "right" }}>
-                  {total > 0 ? fmtINR(a.targetVal) : "—"}
+                  {effectiveTotal > 0 ? fmtINR(a.targetVal) : "—"}
                 </div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--text-dim)", textAlign: "right" }}>
                   {a.finalPct.toFixed(2)}%
