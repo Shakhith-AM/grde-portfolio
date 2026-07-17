@@ -838,15 +838,34 @@ const NEWS_EDITION_BY_CCY = {
   GBP: { hl: "en-GB", gl: "GB", ceid: "GB:en" },
   AED: { hl: "en-AE", gl: "AE", ceid: "AE:en" },
 };
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+// Multiple free CORS proxies tried in sequence — if one is temporarily down
+// or rate-limited, the next is tried automatically before giving up. None
+// require signup or an API key.
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function fetchViaProxyChain(url) {
+  for (const buildProxyUrl of CORS_PROXIES) {
+    try {
+      const res = await fetch(buildProxyUrl(url), { cache: "no-store" });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.trim()) return text;
+      }
+    } catch (e) { /* try next proxy */ }
+  }
+  return null;
+}
 
 async function fetchCategoryNews(cat, query, scope, limit, edition) {
   const ed = edition || NEWS_EDITION_BY_CCY.INR;
   const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${ed.hl}&gl=${ed.gl}&ceid=${ed.ceid}`;
   try {
-    const res = await fetch(CORS_PROXY + encodeURIComponent(rssUrl), { cache: "no-store" });
-    if (!res.ok) return [];
-    const text = await res.text();
+    const text = await fetchViaProxyChain(rssUrl);
+    if (!text) return [];
     const xml = new DOMParser().parseFromString(text, "text/xml");
     const items = Array.from(xml.querySelectorAll("item")).slice(0, limit);
     return items.map(item => {
