@@ -1185,10 +1185,20 @@ function LockOverlay({ onUnlock }) {
 
   const amt = plan === "monthly" ? MONTHLY_AMT : ANNUAL_AMT;
 
-  /* UPI deep-link — works on mobile (GPay / PhonePe / Paytm) */
+  /* UPI deep-link — works on mobile (GPay / PhonePe / Paytm).
+     Triggered via a temporary <a> click rather than window.location.href —
+     more reliably handed off to the UPI app by mobile browsers, and less
+     likely to get flagged as an unusual/automated redirect by the receiving app. */
   const openUPI = () => {
-    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=i3D+Studio&am=${amt}&cu=INR&tn=GRDE+${plan}+access`;
-    window.location.href = upiUrl;
+    const pn = encodeURIComponent("i3D Studio");
+    const tn = encodeURIComponent(`GRDE ${plan} access`);
+    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=${pn}&am=${amt.toFixed(2)}&cu=INR&tn=${tn}`;
+    const a = document.createElement("a");
+    a.href = upiUrl;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   /* WhatsApp message after payment */
@@ -1291,25 +1301,50 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
             ))}
           </div>
 
-          {/* UPI Pay button */}
-          <button onClick={openUPI} className="mono" style={{
-            width: "100%", background: "linear-gradient(180deg, #c8a84b, #896e2f)",
-            color: "#0a1628", border: "none", borderRadius: 10, padding: "13px 22px",
-            fontSize: 11, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase",
-            cursor: "pointer", marginBottom: 10
-          }}>Pay ₹{amt} via GPay / PhonePe / UPI</button>
-
-          {/* UPI ID manual copy */}
-          <div className="glass" style={{ borderRadius: 8, padding: "10px 14px", marginBottom: 10, textAlign: "left" }}>
-            <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.16em", marginBottom: 4 }}>UPI ID (manual payment)</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>{OWNER_UPI}</code>
-              <button onClick={() => { navigator.clipboard.writeText(OWNER_UPI); }} className="mono" style={{
-                background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
-                borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
-              }}>COPY</button>
+          {/* Manual payment — currently the reliable path (UPI deep-links are
+              intermittently rejected by some banks/NPCI for third-party app
+              links; manual entry inside GPay/PhonePe works consistently) */}
+          <div className="glass" style={{ borderRadius: 10, padding: "16px 16px", marginBottom: 12, textAlign: "left", borderColor: "var(--gold-dim)" }}>
+            <div className="mono" style={{ fontSize: 9, color: "var(--good)", letterSpacing: "0.16em", marginBottom: 10 }}>
+              ✓ RECOMMENDED — PAY MANUALLY IN YOUR UPI APP
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+              <div>
+                <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>UPI ID</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>{OWNER_UPI}</code>
+                  <button onClick={() => { navigator.clipboard.writeText(OWNER_UPI); }} className="mono" style={{
+                    background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                    borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
+                  }}>COPY</button>
+                </div>
+              </div>
+              <div>
+                <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>Amount</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>₹{amt}</code>
+                  <button onClick={() => { navigator.clipboard.writeText(String(amt)); }} className="mono" style={{
+                    background: "transparent", border: "1px solid var(--gold-dim)", color: "var(--gold)",
+                    borderRadius: 6, padding: "4px 10px", fontSize: 9, cursor: "pointer", letterSpacing: "0.1em"
+                  }}>COPY</button>
+                </div>
+              </div>
+            </div>
+            <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", lineHeight: 1.9, letterSpacing: "0.04em" }}>
+              1. Open GPay / PhonePe / any UPI app<br />
+              2. Tap "Send" / "Pay" → "Pay to UPI ID"<br />
+              3. Paste the UPI ID and amount above<br />
+              4. Complete the payment
             </div>
           </div>
+
+          {/* Deep-link — kept as a secondary option, may not work on all banks right now */}
+          <button onClick={openUPI} className="mono" style={{
+            width: "100%", background: "transparent", border: "1px solid var(--border-2)",
+            color: "var(--text-dim)", borderRadius: 10, padding: "11px 22px",
+            fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase",
+            cursor: "pointer", marginBottom: 14
+          }}>Or try auto-open GPay / PhonePe →</button>
 
           {/* After payment — WhatsApp */}
           <button onClick={openWhatsApp} className="mono" style={{
