@@ -1,9 +1,9 @@
-const CACHE_NAME = 'grde-engine-v2.0';
+const CACHE_NAME = 'grde-engine-v2.1';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap'
 ];
 
 // Install — cache core assets
