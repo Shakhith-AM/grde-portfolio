@@ -410,7 +410,7 @@ function PulseTab({ currency }) {
         <div style={{ padding:"12px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <div>
             <span className="mono" style={{ fontSize:11, color:"var(--white)", letterSpacing:"0.18em", textTransform:"uppercase" }}>Live Market Headlines</span>
-            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Gold · Real Estate · Debt · Equity — {currency} region + Global</span>
+            <span className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginLeft:12, letterSpacing:"0.1em" }}>Gold · Real Estate · Debt · Equity — {currency} region + Global{currency !== "USD" ? " + US Markets" : ""}</span>
           </div>
           {newsLoading && <span className="mono" style={{ fontSize:9, color:"var(--text-dim)" }}>Loading…</span>}
         </div>
@@ -442,10 +442,10 @@ function PulseTab({ currency }) {
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
                   <span className="mono" style={{
                     fontSize:8, letterSpacing:"0.1em", textTransform:"uppercase",
-                    color: n.scope === "regional" ? "var(--gold-pale)" : "var(--text-dim)",
-                    border: `1px solid ${n.scope === "regional" ? "var(--gold-dim)" : "var(--border)"}`,
+                    color: n.scope === "regional" ? "var(--gold-pale)" : n.scope === "us_markets" ? "var(--e-color)" : "var(--text-dim)",
+                    border: `1px solid ${n.scope === "regional" ? "var(--gold-dim)" : n.scope === "us_markets" ? "var(--e-color)" : "var(--border)"}`,
                     borderRadius:3, padding:"1px 6px"
-                  }}>{n.scope === "regional" ? currency + " region" : "Global"}</span>
+                  }}>{n.scope === "regional" ? currency + " region" : n.scope === "us_markets" ? "US Markets" : "Global"}</span>
                 </div>
                 <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.4 }}>{n.title}</div>
                 <div className="mono" style={{ fontSize:9, color:"var(--text-dim)", marginTop:4 }}>
@@ -828,6 +828,12 @@ const NEWS_GLOBAL_QUERIES = {
   D: "bond yield interest rate global",
   E: "stock market global",
 };
+// The GRDE framework allocates 35% of Equity to US ETFs — that exposure is
+// structural, not tied to whichever display currency someone has selected.
+// So Equity always gets a dedicated US Markets feed too, in the US edition,
+// regardless of currency (skipped only when the region feed is already US,
+// to avoid near-duplicate headlines).
+const NEWS_US_MARKETS_QUERY = "S&P 500 nasdaq dow jones stock market";
 // Google News "edition" (language/country) to match — improves relevance
 // beyond just the query keywords, e.g. US edition surfaces US financial
 // press more readily than searching "US" from the India edition would.
@@ -901,6 +907,12 @@ async function fetchAllCategoryNews(ccy) {
     jobs.push(fetchCategoryNews(cat, regionQueries[cat], "regional", 1, edition));
     jobs.push(fetchCategoryNews(cat, NEWS_GLOBAL_QUERIES[cat], "global", 1, edition));
   });
+  // Equity's US ETF allocation is structural to the framework — surface US
+  // Markets news regardless of currency, unless the regional feed above is
+  // already the US edition (would just duplicate it).
+  if (ccy !== "USD") {
+    jobs.push(fetchCategoryNews("E", NEWS_US_MARKETS_QUERY, "us_markets", 1, NEWS_EDITION_BY_CCY.USD));
+  }
   const results = await Promise.all(jobs);
   return results.flat();
 }
@@ -2772,7 +2784,11 @@ function GRDEApp() {
             <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               GRDE Engine v3.0 · An Architect's Blueprint for Wealth
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="https://grde.in" target="_blank" rel="noopener noreferrer" className="mono" style={{
+                color: "var(--gold-pale)", fontSize: 10, letterSpacing: "0.12em",
+                textDecoration: "underline", textUnderlineOffset: 3
+              }}>About GRDE →</a>
               <button onClick={() => setShowOnboarding(true)} className="mono" style={{
                 background: "transparent", border: "none", color: "var(--gold-pale)", fontSize: 10,
                 letterSpacing: "0.12em", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3
