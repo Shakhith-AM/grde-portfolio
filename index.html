@@ -6,6 +6,10 @@
    <title>GRDE Portfolio Engine — i3D · An Architect's Blueprint to Wealth Creation</title>
     <meta name="description" content="GRDE Framework — Gold, Real Estate, Debt, Equity. Age-based portfolio allocation engine by Shakhith A.M., i3D Studio.">
     <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GRDE Engine">
     <meta name="theme-color" content="#0a1628">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2821,6 +2825,15 @@ function GRDEApp() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(GRDEApp));
+    </script>
+    <script>
+      // Register service worker — without this, manifest.json alone isn't
+      // enough for reliable "Add to Home Screen" / offline support.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        });
+      }
     </script>
 </body>
 </html>
