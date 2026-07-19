@@ -330,22 +330,34 @@ function PulseTab({ currency }) {
   const fetchData = async () => {
     setLoading(true);
     setFetchError("");
+    const bust = `&cb=${Date.now()}`;
+    let alertsOk = false, calendarOk = false;
+
+    // Fetch independently — a failure on one source should never discard a
+    // genuine success on the other (this was silently happening before).
     try {
-      // Cache-bust: Google's CDN + browsers cache published CSV aggressively,
-      // so append a fresh timestamp on every call and skip the HTTP cache.
-      const bust = `&cb=${Date.now()}`;
-      const [aR, cR] = await Promise.all([
-        fetch(ALERTS_URL + bust, { cache: "no-store" }),
-        fetch(CALENDAR_URL + bust, { cache: "no-store" })
-      ]);
-      if (!aR.ok || !cR.ok) throw new Error(`Sheet responded with ${aR.status}/${cR.status}`);
-      const [aT, cT] = await Promise.all([aR.text(), cR.text()]);
-      const pA = parseCSV(aT), pC = parseCSV(cT);
-      if (pA.length) setAlerts(pA);
-      if (pC.length) setCalendar(pC);
+      const aR = await fetch(ALERTS_URL + bust, { cache: "no-store" });
+      if (aR.ok) {
+        const aT = await aR.text();
+        const pA = parseCSV(aT);
+        if (pA.length) { setAlerts(pA); alertsOk = true; }
+      }
+    } catch (e) { /* keep whatever alerts we already had */ }
+
+    try {
+      const cR = await fetch(CALENDAR_URL + bust, { cache: "no-store" });
+      if (cR.ok) {
+        const cT = await cR.text();
+        const pC = parseCSV(cT);
+        if (pC.length) { setCalendar(pC); calendarOk = true; }
+      }
+    } catch (e) { /* keep whatever calendar we already had */ }
+
+    if (alertsOk || calendarOk) {
       setLive(true);
       setLastFetch(new Date());
-    } catch (e) {
+    }
+    if (!alertsOk && !calendarOk) {
       setFetchError("Couldn't reach the live sheet — showing last known data.");
     }
     setLoading(false);
