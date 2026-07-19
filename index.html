@@ -1882,9 +1882,9 @@ function DashboardTab({ onNavigate }) {
           "#e0982f"
         )}
         {statTile(
-          "Next Distribution",
-          nextEvent ? nextEvent.asset : "—",
-          nextEvent ? `${nextEvent.date} · in ${nextEvent.d}d` : "loading…",
+          "Next Income Event",
+          nextEvent ? nextEvent.type : "—",
+          nextEvent ? `${nextEvent.date} · in ${nextEvent.d}d · sector reference` : "loading…",
           "var(--gold-pale)",
           "#4a7fb8"
         )}
