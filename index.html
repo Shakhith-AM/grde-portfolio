@@ -75,6 +75,14 @@
         }
         button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+        /* ── Payment QR: desktop only. Mobile users get the deep link and the
+              copy-paste steps, so a QR they cannot scan with the same device
+              would only add confusion. ── */
+        .grde-qr-desktop { display: block; }
+        @media (max-width: 700px), (pointer: coarse) {
+          .grde-qr-desktop { display: none !important; }
+        }
+
         /* ── Mobile tweaks ── */
         @media (max-width: 480px) {
           .grde-header { padding: 12px 16px !important; gap: 8px; }
@@ -1509,7 +1517,7 @@ function LockOverlay({ onUnlock }) {
      more reliably handed off to the UPI app by mobile browsers, and less
      likely to get flagged as an unusual/automated redirect by the receiving app. */
   const openUPI = () => {
-    const pn = encodeURIComponent("i3D Studio");
+    const pn = encodeURIComponent("Interactive 3 Dimensions"); // must match the bank-registered name, not the trading name
     const tn = encodeURIComponent(`GRDE ${plan} access`);
     const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=${pn}&am=${amt.toFixed(2)}&cu=INR&tn=${tn}`;
     const a = document.createElement("a");
@@ -1628,6 +1636,31 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
             <div className="mono" style={{ fontSize: 9, color: "var(--good)", letterSpacing: "0.16em", marginBottom: 10 }}>
               ✓ RECOMMENDED — PAY MANUALLY IN YOUR UPI APP
             </div>
+
+            {/* Desktop: scan with the phone. Note the QR carries no amount —
+                Union Bank static QRs are payee-only — so the amount must be
+                typed in after scanning. Saying so prevents ₹0 attempts. */}
+            <div className="grde-qr-desktop" style={{ marginBottom: 14 }}>
+              <div style={{
+                background: "#ffffff", borderRadius: 8, padding: 10,
+                width: 172, height: 172, margin: "0 auto 8px",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <img src="data:image/png;base64,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"
+                     alt="Union Bank UPI QR for Interactive 3 Dimensions"
+                     style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+              </div>
+              <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", textAlign: "center", lineHeight: 1.8, letterSpacing: "0.06em" }}>
+                Scan with GPay, PhonePe or any UPI app<br />
+                Payee: <strong style={{ color: "var(--gold-pale)" }}>Interactive 3 Dimensions</strong> · Union Bank of India<br />
+                <span style={{ color: "var(--gold)" }}>The QR does not carry the amount — enter ₹{amt} yourself</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0 2px" }}>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                <span className="mono" style={{ fontSize: 8, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase" }}>or enter manually</span>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              </div>
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
               <div>
                 <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>UPI ID</div>
@@ -1658,11 +1691,11 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               <strong style={{ color: "var(--gold-pale)" }}>On Google Pay:</strong><br />
               1. Open GPay → tap <strong style={{ color: "var(--text)" }}>"Pay anyone"</strong> (not Scan / Bank transfer / Recharge)<br />
               2. Paste the UPI ID above into the search box<br />
-              3. Enter the amount shown above<br />
-              4. Check the payee name shows <strong style={{ color: "var(--text)" }}>"i3D Studio"</strong>, then confirm<br />
+              3. Enter the exact amount shown above<br />
+              4. Check the payee name shows <strong style={{ color: "var(--text)" }}>"Interactive 3 Dimensions"</strong>, then confirm<br />
               <strong style={{ color: "var(--gold-pale)", display: "block", marginTop: 10 }}>On PhonePe:</strong>
               1. Open PhonePe → tap <strong style={{ color: "var(--text)" }}>"To Mobile / UPI ID"</strong><br />
-              2. Paste the UPI ID, enter the amount, and confirm
+              2. Paste the UPI ID, enter the amount, check the payee name, and confirm
             </div>
           </div>
 
