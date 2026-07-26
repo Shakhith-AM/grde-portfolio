@@ -1531,7 +1531,7 @@ function LockOverlay({ onUnlock }) {
   /* WhatsApp message after payment */
   const openWhatsApp = () => {
     const msg =
-`Hi Shakhith, I've paid ₹${amt} for GRDE Engine ${plan} access.
+`Hi Shakhith, I've paid ₹${amt.toLocaleString("en-IN")} for GRDE Engine ${plan} access.
 Please share my access code.
 
 UPI ID used: ${OWNER_UPI}
@@ -1634,7 +1634,7 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               anchor-click trigger), offered as the faster one-tap option. */}
           <div className="glass" style={{ borderRadius: 10, padding: "16px 16px", marginBottom: 12, textAlign: "left", borderColor: "var(--gold-dim)" }}>
             <div className="mono" style={{ fontSize: 9, color: "var(--good)", letterSpacing: "0.16em", marginBottom: 10 }}>
-              ✓ RECOMMENDED — PAY MANUALLY IN YOUR UPI APP
+              ✓ RECOMMENDED — SCAN OR PAY MANUALLY IN YOUR UPI APP
             </div>
 
             {/* Desktop: scan with the phone. Note the QR carries no amount —
@@ -1653,7 +1653,7 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", textAlign: "center", lineHeight: 1.8, letterSpacing: "0.06em" }}>
                 Scan with GPay, PhonePe or any UPI app<br />
                 Payee: <strong style={{ color: "var(--gold-pale)" }}>Interactive 3 Dimensions</strong> · Union Bank of India<br />
-                <span style={{ color: "var(--gold)" }}>The QR does not carry the amount — enter ₹{amt} yourself</span>
+                <span style={{ color: "var(--gold)" }}>The QR does not carry the amount — enter ₹{amt.toLocaleString("en-IN")} yourself</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0 2px" }}>
                 <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
@@ -1677,7 +1677,7 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
               <div>
                 <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", marginBottom: 3 }}>Amount</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>₹{amt}</code>
+                  <code style={{ fontFamily: "JetBrains Mono", fontSize: 13, color: "var(--gold-pale)", flex: 1 }}>₹{amt.toLocaleString("en-IN")}</code>
                   <button onClick={() => doCopy("amt", String(amt))} className="mono" style={{
                     background: copiedField === "amt" ? "rgba(82,168,106,0.15)" : "transparent",
                     border: `1px solid ${copiedField === "amt" ? "var(--good)" : "var(--gold-dim)"}`,
