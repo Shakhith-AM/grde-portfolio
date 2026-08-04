@@ -183,9 +183,13 @@ const ASSET_TEMPLATE = [
   { id: "r_irb",    cat: "R", sub: "InvITs",              name: "IRB InvIT",            desc: "Roads / highways",             catFrac: 0.40 * 0.30  },
 
   // ── D  (Debt = 25%) ──
-  { id: "d_liq",    cat: "D", sub: "Liquidity",           name: "Liquid + Ultra-short", desc: "Liquid / ultra-short funds",   catFrac: 0.40 },
-  { id: "d_cap",    cat: "D", sub: "Capital Protection",  name: "FD + POMIS",           desc: "Fixed deposit / POMIS / PPF",  catFrac: 0.30 },
-  { id: "d_inc",    cat: "D", sub: "Income / Duration",   name: "Bonds / Target Maturity", desc: "Bonds / target maturity",   catFrac: 0.30 },
+  // ── D  (Debt = 25%) — six granular layers ──
+  { id: "d_liq",    cat: "D", sub: "Liquidity",           name: "Liquid Funds",               desc: "Liquid mutual funds — instant redemption",              catFrac: 0.25 },
+  { id: "d_ult",    cat: "D", sub: "Liquidity",           name: "Ultra Short Duration",       desc: "Ultra short duration funds — 3 to 6 month horizon",     catFrac: 0.20 },
+  { id: "d_fd",     cat: "D", sub: "Capital Protection",  name: "Fixed Deposits",             desc: "Bank fixed deposits — locked, guaranteed return",        catFrac: 0.15 },
+  { id: "d_pomis",  cat: "D", sub: "Capital Protection",  name: "POMIS / Income Instruments", desc: "Post Office MIS / income instruments — monthly income",  catFrac: 0.15 },
+  { id: "d_inc",    cat: "D", sub: "Income / Duration",   name: "Bonds",                      desc: "Bonds / target maturity / WINT — duration play",        catFrac: 0.15 },
+  { id: "d_nps",    cat: "D", sub: "Pension",             name: "NPS Tier I",                 desc: "National Pension System — Active Choice (50E/20C/30G)", catFrac: 0.10 },
 
   // ── E  (Equity = 50%) — Indian 60% · US 35% · Healthcare 5% ──
   { id: "e_mf",     cat: "E", sub: "Indian Equity",       name: "Indian Mutual Funds",  desc: "Domestic equity MFs (60% × 50%)",  catFrac: 0.60 * 0.50 },
@@ -262,6 +266,7 @@ const FALLBACK_CALENDAR = [
   { asset:"IRB InvIT",           type:"Distribution", date:"Oct 2026",  amount:"~₹2.1/unit",  notes:"Quarterly payout" },
   { asset:"Bonds / Target Mat.", type:"Maturity",     date:"Mar 2027",  amount:"Principal",    notes:"Plan reinvestment" },
   { asset:"FD + POMIS",          type:"Interest",     date:"Monthly",   amount:"Fixed credit", notes:"Auto-credited" },
+  { asset:"NPS Tier I (ICICI)",  type:"Contribution", date:"Monthly",   amount:"₹1,000+",      notes:"Target ₹50,000/yr · 80CCD(1B) benefit" },
 ];
 
 function parseCSV(text) {
@@ -754,6 +759,7 @@ function computePersonalAlerts(age) {
   // Specific under-funded holdings worth a direct nudge
   [
     { id: "d_liq",   label: "Emergency liquidity" },
+    { id: "d_nps",   label: "NPS Pension (target ₹50K/yr for 80CCD tax benefit)" },
     { id: "g_gold",  label: "Gold" },
     { id: "e_etfus", label: "International exposure" },
     { id: "e_hc",    label: "Healthcare allocation" },
