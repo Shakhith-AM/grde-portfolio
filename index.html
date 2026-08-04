@@ -2108,6 +2108,7 @@ function TrackerTab() {
   const [saveStatus, setSaveStatus] = useState("");
   const [focusedId, setFocusedId] = useState(null);
   const [focusedNameId, setFocusedNameId] = useState(null);
+  const [rawInputs, setRawInputs] = useState({});
 
   useEffect(() => {
     try {
@@ -2137,8 +2138,7 @@ function TrackerTab() {
 
   const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
 
-  /* 2-tier colour coding for variance: green = over/at target, red = shortfall.
-     Direction-based only — no magnitude thresholds, no yellow tier. */
+  /* 2-tier colour: green = over/at target, red = shortfall. No yellow tier. */
   const varianceDenom = total > 0 ? total : actualTotal;
   const varianceColor = (a) => {
     if (a.currentVal === 0) return "var(--text-dim)";
@@ -2164,19 +2164,53 @@ function TrackerTab() {
   const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
   const handleName = (id, v) => setCustomNames(prev => ({ ...prev, [id]: v }));
 
-  /* Show formatted 2-decimal value when not editing; raw number when focused.
-     e.target.select() on focus selects all text so typing replaces it cleanly. */
-  const displayVal = (id, rawSourceVal) => {
-    const raw = inrToInput(rawSourceVal);
-    if (raw === "" || raw == null) return "";
-    if (focusedId === id) return String(raw);
-    return Number(raw).toFixed(2);
-  };
   const sanitizeNum = (str) => {
     let cleaned = str.replace(/[^0-9.]/g, "");
     const parts = cleaned.split(".");
     if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
     return cleaned;
+  };
+
+  /* displayVal: during typing show raw string (preserves "1001." intermediate state);
+     when blurred show 2-decimal formatted value for clean display. */
+  const displayVal = (id, rawSourceVal) => {
+    if (focusedId === id && rawInputs[id] !== undefined) return rawInputs[id];
+    const raw = inrToInput(rawSourceVal);
+    if (raw === "" || raw == null) return "";
+    return Number(raw).toFixed(2);
+  };
+
+  /* Asset value input handlers — raw string preserved while typing */
+  const handleValInput = (id, str) => {
+    const cleaned = sanitizeNum(str);
+    setRawInputs(prev => ({ ...prev, [id]: cleaned }));
+    const num = inputToInr(cleaned);
+    if (num !== "" && num !== null && !isNaN(Number(num))) handleVal(id, num);
+  };
+  const handleValFocus = (id, currentVal) => {
+    setFocusedId(id);
+    const raw = inrToInput(currentVal);
+    setRawInputs(prev => ({ ...prev, [id]: (raw === "" || raw == null) ? "" : String(raw) }));
+  };
+  const handleValBlur = (id) => {
+    setFocusedId(null);
+    setRawInputs(prev => { const n = { ...prev }; delete n[id]; return n; });
+  };
+
+  /* Total portfolio field handlers */
+  const handleTotalInput = (str) => {
+    const cleaned = sanitizeNum(str);
+    setRawInputs(prev => ({ ...prev, "TOTAL": cleaned }));
+    setTotalPortfolio(inputToInr(cleaned));
+  };
+  const handleTotalFocus = () => {
+    setFocusedId("TOTAL");
+    const raw = inrToInput(totalPortfolio);
+    setRawInputs(prev => ({ ...prev, "TOTAL": (raw === "" || raw == null) ? "" : String(raw) }));
+  };
+  const handleTotalBlur = () => {
+    setFocusedId(null);
+    setRawInputs(prev => { const n = { ...prev }; delete n["TOTAL"]; return n; });
   };
 
   const reportRef = useRef(null);
@@ -2334,9 +2368,9 @@ function TrackerTab() {
         <div style={{ flex: "1 1 240px" }}>
           <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Total Portfolio Value ({ccySym()})</label>
           <input type="text" inputMode="decimal" value={displayVal("TOTAL", totalPortfolio)}
-            onChange={e => setTotalPortfolio(inputToInr(sanitizeNum(e.target.value)))}
-            onFocus={() => setFocusedId("TOTAL")}
-            onBlur={() => setFocusedId(null)}
+            onChange={e => handleTotalInput(e.target.value)}
+            onFocus={handleTotalFocus}
+            onBlur={handleTotalBlur}
             placeholder={CCY === "INR" ? "e.g. 3500000" : `e.g. ${Math.round(3500000 / CURRENCIES[CCY].rate)}`}
             style={inputStyle} />
         </div>
@@ -2406,9 +2440,9 @@ function TrackerTab() {
                 </div>
                 <div>
                   <input type="text" inputMode="decimal" value={displayVal(a.id, values[a.id])}
-                    onChange={e => handleVal(a.id, inputToInr(sanitizeNum(e.target.value)))} placeholder="0"
-                    onFocus={() => setFocusedId(a.id)}
-                    onBlur={() => setFocusedId(null)}
+                    onChange={e => handleValInput(a.id, e.target.value)} placeholder="0"
+                    onFocus={() => handleValFocus(a.id, values[a.id])}
+                    onBlur={() => handleValBlur(a.id)}
                     style={{
                       width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6,
                       padding: "6px 8px", color: "var(--white)", fontFamily: "JetBrains Mono", fontSize: 11,
