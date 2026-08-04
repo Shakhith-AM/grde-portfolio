@@ -2164,12 +2164,13 @@ function TrackerTab() {
   const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
   const handleName = (id, v) => setCustomNames(prev => ({ ...prev, [id]: v }));
 
-  /* Always show clean number — no .toFixed(2) suffix avoids cursor confusion
-     when typing. Value is stored as INR internally; display converts for currency. */
+  /* Show formatted 2-decimal value when not editing; raw number when focused.
+     e.target.select() on focus selects all text so typing replaces it cleanly. */
   const displayVal = (id, rawSourceVal) => {
     const raw = inrToInput(rawSourceVal);
-    if (raw === "" || raw == null || raw === 0) return "";
-    return String(raw);
+    if (raw === "" || raw == null) return "";
+    if (focusedId === id) return String(raw);
+    return Number(raw).toFixed(2);
   };
   const sanitizeNum = (str) => {
     let cleaned = str.replace(/[^0-9.]/g, "");
@@ -2406,7 +2407,7 @@ function TrackerTab() {
                 <div>
                   <input type="text" inputMode="decimal" value={displayVal(a.id, values[a.id])}
                     onChange={e => handleVal(a.id, inputToInr(sanitizeNum(e.target.value)))} placeholder="0"
-                    onFocus={e => { setFocusedId(a.id); e.target.select(); }}
+                    onFocus={() => setFocusedId(a.id)}
                     onBlur={() => setFocusedId(null)}
                     style={{
                       width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6,
