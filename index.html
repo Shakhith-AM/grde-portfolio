@@ -182,13 +182,10 @@ const ASSET_TEMPLATE = [
   { id: "r_indi",   cat: "R", sub: "InvITs",              name: "IndiGrid InvIT",       desc: "Power transmission",           catFrac: 0.40 * 0.70  },
   { id: "r_irb",    cat: "R", sub: "InvITs",              name: "IRB InvIT",            desc: "Roads / highways",             catFrac: 0.40 * 0.30  },
 
-  // ── D  (Debt = 25%) — six granular layers ──
-  { id: "d_liq",    cat: "D", sub: "Liquidity",           name: "Liquid Funds",               desc: "Liquid mutual funds — instant redemption",              catFrac: 0.25 },
-  { id: "d_ult",    cat: "D", sub: "Liquidity",           name: "Ultra Short Duration",       desc: "Ultra short duration funds — 3 to 6 month horizon",     catFrac: 0.20 },
-  { id: "d_fd",     cat: "D", sub: "Capital Protection",  name: "Fixed Deposits",             desc: "Bank fixed deposits — locked, guaranteed return",        catFrac: 0.15 },
-  { id: "d_pomis",  cat: "D", sub: "Capital Protection",  name: "POMIS / Income Instruments", desc: "Post Office MIS / income instruments — monthly income",  catFrac: 0.15 },
-  { id: "d_inc",    cat: "D", sub: "Income / Duration",   name: "Bonds",                      desc: "Bonds / target maturity / WINT — duration play",        catFrac: 0.15 },
-  { id: "d_nps",    cat: "D", sub: "Pension",             name: "NPS Tier I",                 desc: "National Pension System — Active Choice (50E/20C/30G)", catFrac: 0.10 },
+  // ── D  (Debt = 25%) ──
+  { id: "d_liq",    cat: "D", sub: "Liquidity",           name: "Liquid + Ultra-short", desc: "Liquid / ultra-short funds",   catFrac: 0.40 },
+  { id: "d_cap",    cat: "D", sub: "Capital Protection",  name: "FD + POMIS",           desc: "Fixed deposit / POMIS / PPF",  catFrac: 0.30 },
+  { id: "d_inc",    cat: "D", sub: "Income / Duration",   name: "Bonds / Target Maturity", desc: "Bonds / target maturity",   catFrac: 0.30 },
 
   // ── E  (Equity = 50%) — Indian 60% · US 35% · Healthcare 5% ──
   { id: "e_mf",     cat: "E", sub: "Indian Equity",       name: "Indian Mutual Funds",  desc: "Domestic equity MFs (60% × 50%)",  catFrac: 0.60 * 0.50 },
@@ -265,7 +262,6 @@ const FALLBACK_CALENDAR = [
   { asset:"IRB InvIT",           type:"Distribution", date:"Oct 2026",  amount:"~₹2.1/unit",  notes:"Quarterly payout" },
   { asset:"Bonds / Target Mat.", type:"Maturity",     date:"Mar 2027",  amount:"Principal",    notes:"Plan reinvestment" },
   { asset:"FD + POMIS",          type:"Interest",     date:"Monthly",   amount:"Fixed credit", notes:"Auto-credited" },
-  { asset:"NPS Tier I (ICICI)",  type:"Contribution", date:"Monthly",   amount:"₹1,000+",      notes:"Target ₹50,000/yr · 80CCD(1B) benefit" },
 ];
 
 function parseCSV(text) {
@@ -758,7 +754,6 @@ function computePersonalAlerts(age) {
   // Specific under-funded holdings worth a direct nudge
   [
     { id: "d_liq",   label: "Emergency liquidity" },
-    { id: "d_nps",   label: "NPS Pension (target ₹50K/yr for 80CCD tax benefit)" },
     { id: "g_gold",  label: "Gold" },
     { id: "e_etfus", label: "International exposure" },
     { id: "e_hc",    label: "Healthcare allocation" },
@@ -2142,15 +2137,12 @@ function TrackerTab() {
 
   const actualTotal = assets.reduce((s, a) => s + a.currentVal, 0);
 
-  /* 3-tier colour coding for variance: green (on-track), yellow (watch), red (act).
-     Deviation measured as % of the total portfolio, matching Split % scale. */
+  /* 2-tier colour coding for variance: green = over/at target, red = shortfall.
+     Direction-based only — no magnitude thresholds, no yellow tier. */
   const varianceDenom = total > 0 ? total : actualTotal;
   const varianceColor = (a) => {
     if (a.currentVal === 0) return "var(--text-dim)";
-    const pctDev = varianceDenom > 0 ? Math.abs(a.variance) / varianceDenom * 100 : 0;
-    if (pctDev < 1) return "var(--good)";
-    if (pctDev < 3) return "var(--gold)";
-    return "var(--danger)";
+    return a.variance >= 0 ? "var(--good)" : "var(--danger)";
   };
 
   // Use the actual sum of entered holdings when it's available; only fall
@@ -2172,12 +2164,12 @@ function TrackerTab() {
   const handleVal = (id, v) => setValues(prev => ({ ...prev, [id]: v }));
   const handleName = (id, v) => setCustomNames(prev => ({ ...prev, [id]: v }));
 
-  /* Show raw editable text while focused; 2-decimal formatted text once blurred. */
+  /* Always show clean number — no .toFixed(2) suffix avoids cursor confusion
+     when typing. Value is stored as INR internally; display converts for currency. */
   const displayVal = (id, rawSourceVal) => {
     const raw = inrToInput(rawSourceVal);
-    if (raw === "") return "";
-    if (focusedId === id) return String(raw);
-    return Number(raw).toFixed(2);
+    if (raw === "" || raw == null || raw === 0) return "";
+    return String(raw);
   };
   const sanitizeNum = (str) => {
     let cleaned = str.replace(/[^0-9.]/g, "");
@@ -2414,7 +2406,7 @@ function TrackerTab() {
                 <div>
                   <input type="text" inputMode="decimal" value={displayVal(a.id, values[a.id])}
                     onChange={e => handleVal(a.id, inputToInr(sanitizeNum(e.target.value)))} placeholder="0"
-                    onFocus={() => setFocusedId(a.id)}
+                    onFocus={e => { setFocusedId(a.id); e.target.select(); }}
                     onBlur={() => setFocusedId(null)}
                     style={{
                       width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6,
