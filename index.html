@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cache-control: always fetch fresh — prevents stale cached versions -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
    <title>GRDE Portfolio Engine — i3D · An Architect's Blueprint to Wealth Creation</title>
     <meta name="description" content="GRDE Framework — Gold, Real Estate, Debt, Equity. Age-based portfolio allocation engine by Shakhith A.M., i3D Studio.">
     <link rel="manifest" href="/manifest.json">
@@ -2177,8 +2181,7 @@ function TrackerTab() {
     return cleaned;
   };
 
-  /* displayVal: during typing show raw string (preserves "1001." intermediate state);
-     when blurred show 2-decimal formatted value for clean display. */
+  /* displayVal: raw string during typing (preserves "1001." state); formatted when blurred */
   const displayVal = (id, rawSourceVal) => {
     if (focusedId === id && rawInputs[id] !== undefined) return rawInputs[id];
     const raw = inrToInput(rawSourceVal);
@@ -2186,7 +2189,7 @@ function TrackerTab() {
     return Number(raw).toFixed(2);
   };
 
-  /* Asset value input handlers — raw string preserved while typing */
+  /* Asset value input handlers */
   const handleValInput = (id, str) => {
     const cleaned = sanitizeNum(str);
     setRawInputs(prev => ({ ...prev, [id]: cleaned }));
