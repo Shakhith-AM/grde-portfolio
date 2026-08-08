@@ -227,7 +227,13 @@ const OWNER_CODE = "I3D-SHAKHITH-2026";        // ← personal bypass
 const SUBSCRIBER_CODES = [                      // ← codes issued on payment
   "GRDE-WELCOME-001",
   "GRDE-FOUNDER-2026",
-  "GRDE-REVIEW-2026",
+];
+
+/* ─── Time-boxed review codes — auto-expire on the reviewer's own
+   device, no manual lock or GitHub edit needed to cut off access.
+   Add a name in a comment so you remember who each one is for. ─── */
+const REVIEW_CODES = [
+  { code: "GRDE-REVIEW-2026", expires: "2026-08-15" }, // finance professor — 1 week
 ];
 
 const UNLOCK_KEY    = "grde_unlocked_v3";
@@ -1555,8 +1561,17 @@ Plan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}
   const submitCode = () => {
     const c = code.trim().toUpperCase();
     const issued = loadIssuedCodes().filter(x => x.active).map(x => x.code.toUpperCase());
-    if (c === OWNER_CODE.toUpperCase() || SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c) || issued.includes(c)) {
-      onUnlock(c === OWNER_CODE.toUpperCase() ? "owner" : "subscriber");
+    const reviewMatch = REVIEW_CODES.find(r => r.code.toUpperCase() === c);
+    if (c === OWNER_CODE.toUpperCase()) {
+      onUnlock("owner");
+    } else if (reviewMatch) {
+      if (new Date() > new Date(reviewMatch.expires + "T23:59:59")) {
+        setErr("This access code has expired.");
+      } else {
+        onUnlock("reviewer:" + reviewMatch.expires);
+      }
+    } else if (SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(c) || issued.includes(c)) {
+      onUnlock("subscriber");
     } else {
       setErr("Invalid access code. Please verify and try again.");
     }
@@ -2767,6 +2782,16 @@ function GRDEApp() {
   });
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
+
+  useEffect(() => {
+    if (unlock && unlock.startsWith("reviewer:")) {
+      const expiry = unlock.split("reviewer:")[1];
+      if (new Date() > new Date(expiry + "T23:59:59")) {
+        setUnlock("");
+        try { localStorage.removeItem(UNLOCK_KEY); } catch(e) {}
+      }
+    }
+  }, [unlock]);
 
   useEffect(() => {
     const loadTicker = () => {
