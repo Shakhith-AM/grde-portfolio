@@ -34,17 +34,55 @@ export function App() {
   const isUnlocked = !!unlock;
   const isOwner = unlock === "owner";
 
-  // Tracker state loaded from local storage
+  // Tracker state loaded from local storage (defaults to July 2026 statement)
   const [trackerData, setTrackerData] = useState(() => {
     const saved = GRDE_STORAGE.getJSON(STORAGE_KEYS.TRACKER, null);
     return saved || {
-      holderName: "",
-      totalPortfolio: "",
-      age: 35,
+      holderName: "Shakhith A.M.",
+      totalPortfolio: 3872833.00,
+      age: 45,
       riskProfile: "balanced",
-      values: {},
-      customNames: {},
-      reportDate: new Date().toISOString().slice(0, 7)
+      reportDate: "2026-07",
+      values: {
+        "g_gold": 366659.93,
+        "g_silver": 34554.72,
+        "r_mind": 112862.28,
+        "r_krt": 102341.79,
+        "r_nexus": 124876.01,
+        "r_dc": 2939.30,
+        "r_indi": 184478.00,
+        "r_irb": 74553.00,
+        "d_liq": 63860.00,
+        "d_ult": 21440.00,
+        "d_fd": 250000.00,
+        "d_pomis": 450000.00,
+        "d_inc": 173770.00,
+        "d_nps": 10500.00,
+        "e_mf": 1277399.36,
+        "e_etfin": 236044.49,
+        "e_etfus": 317554.12,
+        "e_hc": 69000.00
+      },
+      customNames: {
+        "g_gold": "GoldBees (IND/ICI) & GLDM (US)",
+        "g_silver": "Tata Silver ETF (TATSILV)",
+        "r_mind": "Mindspace REIT",
+        "r_krt": "KRT REIT",
+        "r_nexus": "Nexus Select Trust REIT",
+        "r_dc": "Data Centre REITs",
+        "r_indi": "IndiGrid InvIT",
+        "r_irb": "IRB InvIT",
+        "d_liq": "Jio BlackRock Liquid Fund",
+        "d_ult": "Nippon Ultra Short Duration",
+        "d_fd": "Fixed Deposit (FD.1)",
+        "d_pomis": "Post Office MIS (POMIS)",
+        "d_inc": "Wint Bonds & Fixed Income",
+        "d_nps": "NPS Tier I",
+        "e_mf": "Active MFs (PPFAS / ICICI / Franklin / MO / HDFC)",
+        "e_etfin": "Indian ETFs (NiftyBees & JuniorBees)",
+        "e_etfus": "US ETFs (VOO / MON100 / SCHD)",
+        "e_hc": "Mirae Asset Healthcare Fund"
+      }
     };
   });
 
