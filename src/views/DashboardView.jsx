@@ -16,7 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export function DashboardView({ portfolioState, currency, onNavigate, onOpenExcelModal }) {
+export function DashboardView({ portfolioState, currency, onNavigate, onOpenExcelModal, age }) {
   const [expandHealth, setExpandHealth] = useState(false);
   const { alloc, assets, catSummary, hasData, effectiveTotal, isr } = portfolioState;
 
@@ -33,6 +33,8 @@ export function DashboardView({ portfolioState, currency, onNavigate, onOpenExce
     val: hasData ? catSummary[cat].cur : (effectiveTotal * alloc[cat] / 100),
     color: CAT_META[cat].hex
   }));
+
+  const activeAge = age || alloc?.age || 50;
 
   return (
     <div>
@@ -247,7 +249,7 @@ export function DashboardView({ portfolioState, currency, onNavigate, onOpenExce
       </div>
 
       {/* FIRE & Wealth Projector */}
-      <WealthProjector netWorth={effectiveTotal} currency={currency} age={alloc.age || 35} />
+      <WealthProjector netWorth={effectiveTotal} currency={currency} age={activeAge} />
     </div>
   );
 }

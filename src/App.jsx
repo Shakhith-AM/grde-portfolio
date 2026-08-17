@@ -251,6 +251,7 @@ export function App() {
                 <DashboardView
                   portfolioState={portfolioState}
                   currency={currency}
+                  age={age}
                   onNavigate={setActiveTab}
                   onOpenExcelModal={() => setIsExcelModalOpen(true)}
                 />

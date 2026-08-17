@@ -535,7 +535,7 @@ export function TrackerView({
                 Smart Cash-Injection Top-Up Engine
               </div>
               <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 2 }}>
-                Rebalance seamlessly with fresh capital — zero tax-triggering sales
+                Fresh-capital rebalancing — no forced sales
               </div>
             </div>
           </div>

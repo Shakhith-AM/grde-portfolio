@@ -36,7 +36,7 @@ export function getBaseAllocation(age) {
   const R = round1(interpolateR(a));
   const D = round1(interpolateD(a));
   const E = round1(100 - G - R - D);
-  return { range: getBand(a), G, R, D, E };
+  return { age: a, range: getBand(a), G, R, D, E };
 }
 
 export function getAllocation(age, riskProfile = "balanced") {
@@ -51,7 +51,7 @@ export function getAllocation(age, riskProfile = "balanced") {
   const R = round1(base.R * stableFactor);
   const D = round1(base.D * stableFactor);
   const E = round1(100 - G - R - D);
-  return { range: base.range, G, R, D, E };
+  return { age: base.age, range: base.range, G, R, D, E };
 }
 
 /**

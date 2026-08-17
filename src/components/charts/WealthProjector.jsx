@@ -2,32 +2,40 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { calculateFireTrajectory } from '../../utils/calculations';
 import { formatCurrency } from '../../constants/currencies';
 import confetti from 'canvas-confetti';
-import { Sparkles, TrendingUp } from 'lucide-react';
+import { Sparkles, TrendingUp, RotateCcw } from 'lucide-react';
 
-export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
-  const [targetCorpus, setTargetCorpus] = useState(() => {
+export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
+  const [savedGoals] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("grde_fire_goals_v1") || "{}");
-      return saved.targetCorpus || 50000000;
+      return JSON.parse(localStorage.getItem("grde_fire_goals_v1") || "{}");
     } catch (e) {
-      return 50000000;
+      return {};
     }
   });
 
-  const [monthlySip, setMonthlySip] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("grde_fire_goals_v1") || "{}");
-      return saved.monthlySip || 50000;
-    } catch (e) {
-      return 50000;
+  const [targetCorpus, setTargetCorpus] = useState(() => savedGoals.targetCorpus || 35000000);
+  const [monthlySip, setMonthlySip] = useState(() => savedGoals.monthlySip || 65000);
+  const [assumedRate, setAssumedRate] = useState(() => savedGoals.assumedRate || 11);
+  const [stepUp, setStepUp] = useState(() => (savedGoals.stepUp !== undefined ? savedGoals.stepUp : 5));
+  const [horizonYears, setHorizonYears] = useState(30);
+
+  // Age inheritance from Portfolio Tracker with optional override toggle
+  const [isOverrideAge, setIsOverrideAge] = useState(() => savedGoals.isOverrideAge || false);
+  const [currentAge, setCurrentAge] = useState(() => {
+    if (savedGoals.isOverrideAge && savedGoals.currentAge) {
+      return savedGoals.currentAge;
     }
+    return age || 50;
   });
 
-  const [assumedRate, setAssumedRate] = useState(11);
-  const [stepUp, setStepUp] = useState(5); // 5% annual step-up
-  const [currentAge, setCurrentAge] = useState(age || 35);
-  const [horizonYears, setHorizonYears] = useState(25);
+  // Automatically inherit and sync Portfolio Tracker age whenever it changes (unless user explicitly toggles override)
+  useEffect(() => {
+    if (!isOverrideAge && age) {
+      setCurrentAge(age);
+    }
+  }, [age, isOverrideAge]);
 
+  // Auto-save goals to localStorage
   useEffect(() => {
     try {
       localStorage.setItem("grde_fire_goals_v1", JSON.stringify({
@@ -35,10 +43,11 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
         monthlySip,
         assumedRate,
         currentAge,
-        stepUp
+        stepUp,
+        isOverrideAge
       }));
     } catch (e) {}
-  }, [targetCorpus, monthlySip, assumedRate, currentAge, stepUp]);
+  }, [targetCorpus, monthlySip, assumedRate, currentAge, stepUp, isOverrideAge]);
 
   const trajectory = useMemo(() => {
     return calculateFireTrajectory({
@@ -46,11 +55,11 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
       monthlySip: Number(monthlySip) || 0,
       annualGrowthRate: assumedRate,
       targetCorpus: Number(targetCorpus) || 0,
-      currentAge: Number(currentAge) || 35,
+      currentAge: Number(currentAge) || (age || 50),
       yearsToProject: horizonYears,
       stepUpPct: stepUp
     });
-  }, [netWorth, monthlySip, assumedRate, targetCorpus, currentAge, horizonYears, stepUp]);
+  }, [netWorth, monthlySip, assumedRate, targetCorpus, currentAge, age, horizonYears, stepUp]);
 
   const target = Number(targetCorpus) || 0;
   const progress = target > 0 ? Math.min(100, (netWorth / target) * 100) : 0;
@@ -110,27 +119,43 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
           </span>
         </div>
 
-        {trajectory.reachedAge && (
+        {/* Milestone Badge with Visible Regulatory Assumptions */}
+        {trajectory.reachedAge ? (
           <div style={{
             background: "rgba(82,168,106,0.12)",
             border: "1px solid var(--good)",
             borderRadius: 999,
-            padding: "4px 14px",
+            padding: "5px 14px",
             display: "inline-flex",
             alignItems: "center",
             gap: 6
           }}>
             <Sparkles size={13} style={{ color: "var(--good)" }} />
             <span className="mono" style={{ fontSize: 10, color: "var(--good)", fontWeight: 600 }}>
-              Financial Freedom: Age {trajectory.reachedAge} (~{trajectory.reachedAge - currentAge} yrs)
+              Projected target age: Age {trajectory.reachedAge} (~{trajectory.reachedAge - currentAge} yrs) · Based on current assumptions
             </span>
           </div>
-        )}
+        ) : target > 0 && netWorth >= target ? (
+          <div style={{
+            background: "rgba(82,168,106,0.12)",
+            border: "1px solid var(--good)",
+            borderRadius: 999,
+            padding: "5px 14px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6
+          }}>
+            <Sparkles size={13} style={{ color: "var(--good)" }} />
+            <span className="mono" style={{ fontSize: 10, color: "var(--good)", fontWeight: 600 }}>
+              Target corpus already achieved at current net worth
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <div style={{ padding: "20px 22px" }}>
         {/* Controls grid */}
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 16 }}>
           <div style={{ flex: "1 1 180px" }}>
             <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>
               Target Corpus ({currency})
@@ -175,26 +200,35 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
             />
           </div>
 
-          <div style={{ flex: "0 0 110px" }}>
-            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>
-              Current Age
-            </label>
+          <div style={{ flex: "0 0 140px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
+                Current Age
+              </label>
+              {!isOverrideAge && (
+                <span className="mono" style={{ fontSize: 8, color: "var(--good)", letterSpacing: "0.06em" }}>
+                  SYNCED
+                </span>
+              )}
+            </div>
             <input
               type="number"
               min={18}
               max={90}
               value={currentAge}
+              disabled={!isOverrideAge}
               onChange={(e) => setCurrentAge(Number(e.target.value))}
               style={{
                 width: "100%",
-                background: "var(--bg)",
-                border: "1px solid var(--border-2)",
+                background: isOverrideAge ? "var(--bg)" : "rgba(15, 22, 32, 0.8)",
+                border: `1px solid ${isOverrideAge ? "var(--gold-dim)" : "var(--border-2)"}`,
                 borderRadius: 8,
                 padding: "9px 12px",
-                color: "var(--white)",
+                color: isOverrideAge ? "var(--gold-pale)" : "var(--white)",
                 fontFamily: "Oxygen, Questrial, sans-serif",
                 fontSize: 13,
-                outline: "none"
+                outline: "none",
+                cursor: isOverrideAge ? "text" : "default"
               }}
             />
           </div>
@@ -224,6 +258,51 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
               <option value={15}>15% Step-Up</option>
             </select>
           </div>
+        </div>
+
+        {/* Age Sync & Override Toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={isOverrideAge}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setIsOverrideAge(checked);
+                if (!checked && age) {
+                  setCurrentAge(age);
+                }
+              }}
+              style={{ accentColor: "var(--gold)" }}
+            />
+            <span className="mono" style={{ fontSize: 9.5, color: isOverrideAge ? "var(--gold-pale)" : "var(--text-dim)" }}>
+              Override simulation age (test hypothetical scenario)
+            </span>
+          </label>
+          {isOverrideAge && (
+            <button
+              onClick={() => {
+                setIsOverrideAge(false);
+                if (age) setCurrentAge(age);
+              }}
+              className="mono"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--gold)",
+                fontSize: 9,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 3,
+                marginLeft: 8,
+                textDecoration: "underline"
+              }}
+            >
+              <RotateCcw size={10} />
+              <span>Reset to portfolio age ({age})</span>
+            </button>
+          )}
         </div>
 
         {/* Progress bar to target */}
@@ -314,14 +393,14 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
           </svg>
         </div>
 
-        {/* Growth Rate Slider */}
-        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        {/* Growth Rate Slider with Regulatory Caption */}
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border)", display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
               <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", textTransform: "uppercase" }}>
                 Assumed Portfolio CAGR: <strong style={{ color: "var(--gold)" }}>{assumedRate}%</strong>
               </span>
-              <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)" }}>Conservative (7%) → Aggressive (14%)</span>
+              <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)" }}>Conservative (6%) → Aggressive (15%)</span>
             </div>
             <input
               type="range"
@@ -332,6 +411,10 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 35 }) {
               onChange={(e) => setAssumedRate(Number(e.target.value))}
               style={{ width: "100%", cursor: "pointer" }}
             />
+            {/* Explicit Regulatory Positioning Caption */}
+            <div className="mono" style={{ fontSize: 9.5, color: "var(--text-dim)", marginTop: 6, fontStyle: "italic", letterSpacing: "0.02em" }}>
+              Illustrative projection — not a return forecast. Based on user-selected growth assumption.
+            </div>
           </div>
 
           <button
