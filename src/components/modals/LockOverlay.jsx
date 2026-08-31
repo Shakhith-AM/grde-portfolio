@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { OWNER_UPI, OWNER_PHONE, MONTHLY_AMT, ANNUAL_AMT } from '../../constants/masterData';
+import { 
+  OWNER_BANK_NAME, 
+  OWNER_ACCOUNT_TYPE, 
+  OWNER_ACCOUNT_NO, 
+  OWNER_ACCOUNT_HOLDER, 
+  OWNER_IFSC, 
+  OWNER_PHONE, 
+  MONTHLY_AMT, 
+  ANNUAL_AMT 
+} from '../../constants/masterData';
 import { validateAccessCode } from '../../utils/accessTokens';
-import { Lock, QrCode, Send, KeyRound, Check, Copy } from 'lucide-react';
+import { Lock, Building2, KeyRound, Check, Copy, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export function LockOverlay({ onUnlock }) {
   const [view, setView] = useState("home"); // "home" | "pay" | "code"
@@ -22,20 +31,8 @@ export function LockOverlay({ onUnlock }) {
     }
   };
 
-  const openUPI = () => {
-    const pn = encodeURIComponent("Interactive 3 Dimensions");
-    const tn = encodeURIComponent(`GRDE ${plan} access`);
-    const upiUrl = `upi://pay?pa=${OWNER_UPI}&pn=${pn}&am=${amt.toFixed(2)}&cu=INR&tn=${tn}`;
-    const a = document.createElement("a");
-    a.href = upiUrl;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
   const openWhatsApp = () => {
-    const msg = `Hi Shakhith, I've paid ₹${amt.toLocaleString("en-IN")} for GRDE Engine ${plan} access.\nPlease share my access code.\n\nUPI ID used: ${OWNER_UPI}\nPlan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}\n\n— Sent from GRDE App`;
+    const msg = `Hi Shakhith, I have completed the payment of ₹${amt.toLocaleString("en-IN")} for GRDE Engine ${plan} access to your ICICI Bank account.\n\nBank: ICICI Bank (Savings)\nAccount No: ${OWNER_ACCOUNT_NO}\nBeneficiary: ${OWNER_ACCOUNT_HOLDER}\nPlan: ${plan === "monthly" ? "Monthly ₹299" : "Annual ₹2,499"}\n\nPlease verify and share my access code.\n\n— Sent from GRDE App`;
     window.open(`https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -59,12 +56,12 @@ export function LockOverlay({ onUnlock }) {
       WebkitBackdropFilter: "blur(12px)",
       background: "rgba(10, 22, 40, 0.82)",
       borderRadius: 14,
-      padding: 24
+      padding: 20
     }}>
       <div className="glass" style={{
         borderRadius: 16,
-        padding: "32px 36px",
-        maxWidth: 480,
+        padding: "32px 34px",
+        maxWidth: 500,
         width: "100%",
         textAlign: "center",
         boxShadow: "0 24px 80px rgba(0,0,0,0.7)",
@@ -92,7 +89,7 @@ export function LockOverlay({ onUnlock }) {
             </h3>
 
             <p style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.6, margin: "0 0 20px" }}>
-              Track personal holdings, live variance alerts, smart cash-injection rebalancing, and ISR analysis.
+              Track personal holdings, live variance alerts, smart fresh-capital rebalancing, and ISR analysis.
             </p>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
@@ -128,7 +125,7 @@ export function LockOverlay({ onUnlock }) {
                 marginBottom: 10
               }}
             >
-              Subscribe via UPI
+              Subscribe / Bank Transfer
             </button>
 
             <button
@@ -155,13 +152,13 @@ export function LockOverlay({ onUnlock }) {
         {/* ── PAY VIEW ── */}
         {view === "pay" && (
           <>
-            <div className="label" style={{ marginBottom: 8 }}>Choose Subscription Plan</div>
+            <div className="label" style={{ marginBottom: 6 }}>Bank Transfer Details</div>
             <h3 style={{ fontFamily: "Cinzel", fontSize: 20, color: "var(--white)", margin: "0 0 16px" }}>
-              Pay via <span style={{ color: "var(--gold)", fontStyle: "italic" }}>UPI</span>
+              Pay via <span style={{ color: "var(--gold)", fontStyle: "italic" }}>ICICI Bank</span>
             </h3>
 
             {/* Plan Switcher */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
               {[
                 { key: "monthly", label: "₹299 / mo", sub: "Monthly · Cancel anytime" },
                 { key: "annual",  label: "₹2,499 / yr", sub: "Annual · Save ₹1,089", badge: "BEST VALUE" }
@@ -174,15 +171,15 @@ export function LockOverlay({ onUnlock }) {
                     background: plan === p.key ? "rgba(212,168,67,0.12)" : "transparent",
                     border: `2px solid ${plan === p.key ? "var(--gold)" : "var(--border)"}`,
                     borderRadius: 10,
-                    padding: "12px 8px",
+                    padding: "10px 8px",
                     cursor: "pointer",
                     textAlign: "center"
                   }}
                 >
-                  <div style={{ fontFamily: "Cinzel", fontSize: 18, color: "var(--gold)", fontWeight: 600 }}>
+                  <div style={{ fontFamily: "Cinzel", fontSize: 17, color: "var(--gold)", fontWeight: 600 }}>
                     {p.label}
                   </div>
-                  <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 3 }}>
+                  <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)", marginTop: 2 }}>
                     {p.sub}
                   </div>
                   {p.badge && (
@@ -192,9 +189,9 @@ export function LockOverlay({ onUnlock }) {
                       background: "rgba(82,168,106,0.12)",
                       border: "1px solid var(--good)",
                       borderRadius: 4,
-                      padding: "2px 6px",
+                      padding: "1px 5px",
                       display: "inline-block",
-                      marginTop: 4
+                      marginTop: 3
                     }}>
                       {p.badge}
                     </div>
@@ -203,34 +200,89 @@ export function LockOverlay({ onUnlock }) {
               ))}
             </div>
 
-            {/* Details Box */}
-            <div className="glass" style={{ borderRadius: 10, padding: 14, marginBottom: 14, textAlign: "left" }}>
+            {/* Bank Details Box */}
+            <div className="glass" style={{ borderRadius: 10, padding: "14px 16px", marginBottom: 14, textAlign: "left", borderColor: "var(--gold-dim)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>
+                <Building2 size={15} style={{ color: "var(--gold)" }} />
+                <span className="mono" style={{ fontSize: 10, color: "var(--gold-pale)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>
+                  {OWNER_BANK_NAME} ({OWNER_ACCOUNT_TYPE})
+                </span>
+              </div>
+
+              {/* Beneficiary Name */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <div>
-                  <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)" }}>UPI ID</div>
-                  <div className="mono" style={{ fontSize: 12, color: "var(--gold-pale)", fontWeight: 500 }}>{OWNER_UPI}</div>
+                  <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)" }}>Account Holder Name</div>
+                  <div className="mono" style={{ fontSize: 12, color: "var(--white)", fontWeight: 600 }}>{OWNER_ACCOUNT_HOLDER}</div>
                 </div>
                 <button
-                  onClick={() => copyText("upi", OWNER_UPI)}
+                  onClick={() => copyText("name", OWNER_ACCOUNT_HOLDER)}
                   className="mono"
                   style={{
-                    background: copiedField === "upi" ? "rgba(82,168,106,0.2)" : "transparent",
-                    border: `1px solid ${copiedField === "upi" ? "var(--good)" : "var(--gold-dim)"}`,
-                    color: copiedField === "upi" ? "var(--good)" : "var(--gold)",
+                    background: copiedField === "name" ? "rgba(82,168,106,0.2)" : "transparent",
+                    border: `1px solid ${copiedField === "name" ? "var(--good)" : "var(--gold-dim)"}`,
+                    color: copiedField === "name" ? "var(--good)" : "var(--gold)",
                     borderRadius: 6,
-                    padding: "4px 8px",
-                    fontSize: 9,
+                    padding: "3px 8px",
+                    fontSize: 8.5,
                     cursor: "pointer"
                   }}
                 >
-                  {copiedField === "upi" ? "✓ COPIED" : "COPY"}
+                  {copiedField === "name" ? "✓ COPIED" : "COPY"}
                 </button>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {/* Account Number */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <div>
-                  <div className="mono" style={{ fontSize: 9, color: "var(--text-dim)" }}>Amount</div>
-                  <div className="mono" style={{ fontSize: 13, color: "var(--white)", fontWeight: 600 }}>₹{amt.toLocaleString("en-IN")}</div>
+                  <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)" }}>Account Number</div>
+                  <div className="num" style={{ fontSize: 13, color: "var(--gold-pale)", fontWeight: 700, letterSpacing: "0.05em" }}>{OWNER_ACCOUNT_NO}</div>
+                </div>
+                <button
+                  onClick={() => copyText("acc", OWNER_ACCOUNT_NO)}
+                  className="mono"
+                  style={{
+                    background: copiedField === "acc" ? "rgba(82,168,106,0.2)" : "transparent",
+                    border: `1px solid ${copiedField === "acc" ? "var(--good)" : "var(--gold-dim)"}`,
+                    color: copiedField === "acc" ? "var(--good)" : "var(--gold)",
+                    borderRadius: 6,
+                    padding: "3px 8px",
+                    fontSize: 8.5,
+                    cursor: "pointer"
+                  }}
+                >
+                  {copiedField === "acc" ? "✓ COPIED" : "COPY"}
+                </button>
+              </div>
+
+              {/* IFSC Code */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)" }}>IFSC Code</div>
+                  <div className="mono" style={{ fontSize: 12, color: "var(--white)", fontWeight: 600, letterSpacing: "0.05em" }}>{OWNER_IFSC}</div>
+                </div>
+                <button
+                  onClick={() => copyText("ifsc", OWNER_IFSC)}
+                  className="mono"
+                  style={{
+                    background: copiedField === "ifsc" ? "rgba(82,168,106,0.2)" : "transparent",
+                    border: `1px solid ${copiedField === "ifsc" ? "var(--good)" : "var(--gold-dim)"}`,
+                    color: copiedField === "ifsc" ? "var(--good)" : "var(--gold)",
+                    borderRadius: 6,
+                    padding: "3px 8px",
+                    fontSize: 8.5,
+                    cursor: "pointer"
+                  }}
+                >
+                  {copiedField === "ifsc" ? "✓ COPIED" : "COPY"}
+                </button>
+              </div>
+
+              {/* Amount */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                <div>
+                  <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)" }}>Amount to Pay</div>
+                  <div className="mono" style={{ fontSize: 13, color: "var(--good)", fontWeight: 700 }}>₹{amt.toLocaleString("en-IN")}</div>
                 </div>
                 <button
                   onClick={() => copyText("amt", String(amt))}
@@ -240,8 +292,8 @@ export function LockOverlay({ onUnlock }) {
                     border: `1px solid ${copiedField === "amt" ? "var(--good)" : "var(--gold-dim)"}`,
                     color: copiedField === "amt" ? "var(--good)" : "var(--gold)",
                     borderRadius: 6,
-                    padding: "4px 8px",
-                    fontSize: 9,
+                    padding: "3px 8px",
+                    fontSize: 8.5,
                     cursor: "pointer"
                   }}
                 >
@@ -250,26 +302,10 @@ export function LockOverlay({ onUnlock }) {
               </div>
             </div>
 
-            {/* Direct Open Button */}
-            <button
-              onClick={openUPI}
-              className="mono"
-              style={{
-                width: "100%",
-                background: "transparent",
-                border: "1px solid var(--gold-dim)",
-                color: "var(--gold-pale)",
-                borderRadius: 8,
-                padding: "10px 16px",
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-                marginBottom: 10
-              }}
-            >
-              ⚡ One-Tap Open GPay / PhonePe
-            </button>
+            {/* Instruction Tip */}
+            <div className="mono" style={{ fontSize: 8.5, color: "var(--text-dim)", textAlign: "left", lineHeight: 1.6, marginBottom: 12, paddingLeft: 4 }}>
+              💡 Transfer via <strong>GPay / PhonePe (To Bank Account & IFSC)</strong> or <strong>Net Banking (IMPS/NEFT)</strong>.
+            </div>
 
             {/* WhatsApp Verification */}
             <button
@@ -286,7 +322,11 @@ export function LockOverlay({ onUnlock }) {
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
                 cursor: "pointer",
-                marginBottom: 14
+                marginBottom: 12,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6
               }}
             >
               ✓ Paid — Send Screenshot on WhatsApp

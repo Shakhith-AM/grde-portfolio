@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i3d — Architectural Consultation Charges & Fee Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080f18;
+    --surface: #0e1a29;
+    --surface-card: #112135;
+    --surface-hover: #152942;
+    --surface-elevated: #182f4c;
+    --border: #1d334d;
+    --border-soft: #16273c;
+    --border-focus: #d4a853;
+    
+    --gold: #d4a853;
+    --gold-light: #f3d48d;
+    --gold-dim: #8e7238;
+    --gold-bg: rgba(212, 168, 83, 0.12);
+    
+    --green: #2e6b4f;
+    --green-bright: #44c77b;
+    --green-bg: rgba(68, 199, 123, 0.12);
+    --green-border: rgba(68, 199, 123, 0.35);
+    
+    --amber: #f0a32f;
+    --amber-bg: rgba(240, 163, 47, 0.12);
+    --amber-border: rgba(240, 163, 47, 0.35);
+
+    --cyan: #48b0e8;
+    --cyan-bg: rgba(72, 176, 232, 0.12);
+    --cyan-border: rgba(72, 176, 232, 0.35);
+
+    --red: #e05d44;
+    --red-bg: rgba(224, 93, 68, 0.12);
+    
+    --text: #c8d8ec;
+    --text-dim: #7f95b0;
+    --text-muted: #4e627a;
+    --white: #f5f9ff;
+    
+    /* Stage badges */
+    --st-rcv-bg: #0e291e;
+    --st-rcv-txt: #4ee08f;
+    --st-rcv-bdr: #1d573c;
+    
+    --st-due-bg: #302008;
+    --st-due-txt: #f8b032;
+    --st-due-bdr: #674712;
+    
+    --st-nxt-bg: #0f233a;
+    --st-nxt-txt: #56baf0;
+    --st-nxt-bdr: #1e4b78;
+    
+    --st-pnd-bg: #141c28;
+    --st-pnd-txt: #687e9b;
+    --st-pnd-bdr: #263448;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.35);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.55);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #060a10 0%, #0a111a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .brand-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .logo-main {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    background: var(--gold-bg);
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .logo-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.38em;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-top: 6px;
+  }
+  .logo-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: var(--gold-dim);
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  
+  .hdr-right {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+  .hdr-right strong {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: var(--white);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .hdr-right a {
+    color: var(--gold-light);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hdr-right a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar-l {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .project-badge-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .project-badge {
+    background: linear-gradient(135deg, #d4a853, #a67c2e);
+    color: #080f18;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+  .project-badge:hover {
+    background: linear-gradient(135deg, #e4be6c, #ba8e3a);
+    transform: translateY(-1px);
+  }
+  .project-badge .ei { font-size: 0.75rem; opacity: 0.75; }
+  .badge-input {
+    display: none;
+    background: var(--surface-card);
+    border: 1px solid var(--gold);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 6px 12px;
+    border-radius: 4px;
+    outline: none;
+    width: 220px;
+    text-transform: uppercase;
+  }
+  .badge-input.active { display: block; }
+  .project-badge.hidden { display: none; }
+
+  .doc-title-meta {
+    display: flex;
+    flex-direction: column;
+  }
+  .toolbar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .toolbar-sublabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 7px 13px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .18s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn:active { transform: translateY(1px); }
+  
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover {
+    border-color: var(--text-dim);
+    color: var(--white);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #d4a853, #a67c2e);
+    color: #0a111a;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, #e4be6c, #ba8e3a);
+    box-shadow: 0 4px 12px rgba(212,168,83,0.25);
+  }
+
+  .btn-index {
+    background: linear-gradient(135deg, #1b563b, #123d29);
+    color: #4ee08f;
+    border: 1px solid rgba(78, 224, 143, 0.4);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-index:hover {
+    background: linear-gradient(135deg, #256f4e, #1a4f36);
+    border-color: #4ee08f;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .btn-share {
+    background: linear-gradient(135deg, #2578b8, #184c78);
+    color: #f5f9ff;
+    border: 1px solid rgba(86, 186, 240, 0.4);
+    font-weight: 700;
+  }
+  .btn-share:hover {
+    background: linear-gradient(135deg, #328eca, #1e5a8c);
+    border-color: #56baf0;
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(224, 93, 68, 0.3);
+  }
+  .btn-danger:hover {
+    background: rgba(224, 93, 68, 0.22);
+    border-color: var(--red);
+  }
+
+  .btn-toggle {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    font-size: 0.65rem;
+  }
+  .btn-toggle.active {
+    background: var(--gold-bg);
+    color: var(--gold);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* ── MAIN ── */
+  main {
+    padding: 32px 48px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── EXECUTIVE OVERVIEW HERO (GLOBAL SUMMARY) ── */
+  .hero-summary {
+    background: linear-gradient(145deg, #0e1c2e, #0a1524);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-summary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-light), var(--gold-dim));
+  }
+  
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.06em;
+  }
+  .hero-badge-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .summary-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .sum-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    transition: transform .18s, border-color .18s;
+  }
+  .sum-card:hover {
+    transform: translateY(-2px);
+    border-color: #2b4566;
+  }
+  .sum-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sum-card-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .sum-card-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .val-civil { color: var(--white); }
+  .val-fee { color: var(--gold); }
+  .val-rcv { color: var(--green-bright); }
+  .val-due { color: #e57c63; }
+
+  /* Master Progress Bar */
+  .master-prog-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+  }
+  .master-prog-head {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .prog-track-master {
+    height: 10px;
+    background: #09121d;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .master-seg {
+    height: 100%;
+    transition: width .4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ms-rcv { background: linear-gradient(90deg, #2e9f64, #4ee08f); }
+  .ms-due { background: linear-gradient(90deg, #d48b15, #f8b032); }
+  .ms-nxt { background: linear-gradient(90deg, #2578b8, #56baf0); }
+  .ms-pnd { background: #1c2a3d; }
+
+  .prog-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .ldot {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .ld-r { background: #4ee08f; }
+  .ld-d { background: #f8b032; }
+  .ld-n { background: #56baf0; }
+  .ld-p { background: #2f435e; }
+
+  /* ── SECTION CONTROLS BAR ── */
+  .section-controls-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sec-count-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .sec-count-badge strong { color: var(--gold); }
+
+  /* ── SECTION CARD ── */
+  .section-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 18px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .section-card:hover {
+    border-color: #2e496b;
+  }
+  .section-card.is-open {
+    border-color: #3b5a82;
+    box-shadow: var(--shadow-md);
+  }
+
+  .sec-head {
+    padding: 22px 28px 18px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+    gap: 16px;
+  }
+  .sec-head:hover {
+    background: var(--surface-hover);
+  }
+
+  .sec-head-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    flex: 1;
+    min-width: 0;
+  }
+  .sec-num {
+    font-family: 'Cinzel', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    color: var(--gold-dim);
+    line-height: 1;
+    min-width: 48px;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+  .sec-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .title-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sec-title-static {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.02em;
+  }
+  
+  .fee-inline-wrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    background: rgba(212,168,83,0.08);
+    border: 1px solid rgba(212,168,83,0.3);
+    padding: 1px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    cursor: text;
+    transition: all .2s;
+  }
+  .fee-inline-wrap:hover {
+    border-color: var(--gold);
+    background: rgba(212,168,83,0.15);
+  }
+  .fee-at {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .fee-pct-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    width: 42px;
+    text-align: center;
+  }
+  .fee-pct-suffix {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .sec-subtitle {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-top: 6px;
+    word-break: break-word;
+  }
+  
+  .sec-descriptor {
+    margin-top: 6px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .desc-static {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .visit-term-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--text-muted);
+    outline: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    padding: 0 4px;
+    width: 320px;
+    transition: all .2s;
+  }
+  .visit-term-input:focus {
+    border-bottom-color: var(--gold);
+    color: var(--white);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .sec-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .18s;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .status-badge:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .status-badge:active { transform: translateY(0); }
+
+  .status-in-progress {
+    background: var(--green-bg);
+    color: var(--green-bright);
+    border: 1px solid var(--green-border);
+  }
+  .status-pending {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid var(--amber-border);
+  }
+  .status-complete {
+    background: var(--cyan-bg);
+    color: var(--cyan);
+    border: 1px solid var(--cyan-border);
+  }
+
+  .chevron {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: transform .22s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .chevron.open { transform: rotate(180deg); color: var(--gold); }
+
+  /* ── SECTION METRICS ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    background: rgba(8, 15, 24, 0.4);
+  }
+  .metric {
+    padding: 16px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .metric:last-child { border-right: none; }
+  .m-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .m-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .mv-civil { color: var(--white); }
+  .mv-fee { color: var(--gold); }
+  .mv-received { color: var(--green-bright); }
+  .mv-balance { color: #e57c63; }
+  
+  .m-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--amber);
+    margin-top: 4px;
+  }
+
+  /* ── EXPANDABLE BODY ── */
+  .sec-body {
+    display: none;
+    border-top: 1px solid var(--border-soft);
+    background: rgba(14, 26, 41, 0.4);
+  }
+  .sec-body.open { display: block; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RECONCILIATION BANNER ── */
+  .recon-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 28px;
+    background: rgba(240, 163, 47, 0.08);
+    border-bottom: 1px solid rgba(240, 163, 47, 0.2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--amber);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .recon-btn {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber);
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .recon-btn:hover {
+    background: rgba(240, 163, 47, 0.25);
+    color: #fff;
+  }
+
+  /* ── PAYMENT SCHEDULE TABLE ── */
+  .stages-wrap {
+    padding: 24px 28px 16px;
+  }
+  .stages-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .stages-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+  .stages-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .stages-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    font-weight: 700;
+    text-align: left;
+    padding: 10px 12px;
+    background: rgba(8, 15, 24, 0.6);
+    border-bottom: 1px solid var(--border);
+  }
+  .stages-table th:nth-child(3) { text-align: right; }
+  .stages-table th:nth-child(4) { text-align: center; }
+  .stages-table th:last-child { text-align: right; }
+  
+  .stages-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+  }
+  .stages-table tr:hover td {
+    background: rgba(255, 255, 255, 0.015);
+  }
+  .stages-table tr:last-child td { border-bottom: none; }
+  
+  .stage-lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .ci {
+    background: transparent;
+    border: 1px solid transparent;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: all .15s;
+    width: 100%;
+  }
+  .ci:hover {
+    border-color: var(--border);
+    background: rgba(0,0,0,0.15);
+  }
+  .ci:focus {
+    border-color: var(--gold);
+    color: var(--white);
+    background: var(--surface-card);
+  }
+  
+  .ci-amt {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    text-align: right;
+    width: 110px;
+    color: var(--gold-light);
+  }
+  .ci-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-align: center;
+    width: 55px;
+  }
+  .ci-date {
+    width: 130px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+  .ci-rem {
+    color: var(--text-dim);
+  }
+
+  .st-sel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: all .18s;
+  }
+  .ssel-received { background: var(--st-rcv-bg); color: var(--st-rcv-txt); border: 1px solid var(--st-rcv-bdr); }
+  .ssel-due      { background: var(--st-due-bg); color: var(--st-due-txt); border: 1px solid var(--st-due-bdr); }
+  .ssel-next     { background: var(--st-nxt-bg); color: var(--st-nxt-txt); border: 1px solid var(--st-nxt-bdr); }
+  .ssel-pending  { background: var(--st-pnd-bg); color: var(--st-pnd-txt); border: 1px solid var(--st-pnd-bdr); }
+
+  .rm-stage {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: color .15s;
+  }
+  .rm-stage:hover { color: var(--red); background: var(--red-bg); }
+
+  .stages-total-row td {
+    border-top: 1px solid var(--border);
+    background: rgba(8, 15, 24, 0.7);
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  /* ── SECTION PROGRESS TRACK ── */
+  .sec-progress-wrap {
+    padding: 10px 28px 20px;
+  }
+  .prog-track-sec {
+    height: 6px;
+    background: #09121d;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+  }
+  .pseg {
+    height: 100%;
+    transition: width .35s ease;
+  }
+  .ps-r { background: #4ee08f; }
+  .ps-d { background: #f8b032; }
+  .ps-n { background: #56baf0; }
+  .ps-p { background: #26384f; }
+
+  /* ── EDIT SETTINGS PANEL ── */
+  .edit-panel {
+    background: rgba(6, 12, 20, 0.45);
+    border-top: 1px solid var(--border-soft);
+    padding: 22px 28px 22px;
+  }
+  .ep-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.25em;
+    color: var(--gold-dim);
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .edit-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .ef label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .ef input, .ef select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .ef input:focus, .ef select:focus {
+    border-color: var(--gold);
+    background: var(--surface-card);
+  }
+
+  .sv-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    background: rgba(212, 168, 83, 0.05);
+    border: 1px solid rgba(212, 168, 83, 0.2);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .sv-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
+    color: var(--amber);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sv-row input {
+    width: 80px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    outline: none;
+  }
+  .sv-note {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    flex: 1;
+  }
+  .sv-total {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--amber);
+    font-weight: 700;
+  }
+
+  .ep-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 14px;
+  }
+
+  /* ── ADD SECTION BUTTON ── */
+  .add-sec-card-btn {
+    width: 100%;
+    padding: 16px;
+    background: rgba(212, 168, 83, 0.02);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    color: var(--gold-light);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .add-sec-card-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212, 168, 83, 0.06);
+    transform: translateY(-1px);
+  }
+
+  /* ── TAX / GST SUMMARY STRIP ── */
+  .tax-summary-strip {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 28px;
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .tax-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .tax-switch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+  .tax-right {
+    display: flex;
+    gap: 32px;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .tax-amt-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .tax-amt-lbl {
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 2px;
+  }
+  .tax-amt-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* ── SHARE & EXPORT MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(4, 8, 14, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .modal-overlay.active {
+    display: flex;
+    animation: fadeInModal .2s ease;
+  }
+  @keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: var(--surface-card);
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+  .modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(180deg, #101f33 0%, #0d192a 100%);
+  }
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all .15s;
+  }
+  .modal-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+  }
+  .m-tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .m-tab-btn.active {
+    background: var(--gold-bg);
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  .wa-preview-box {
+    background: #09131f;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #a9c2df;
+    line-height: 1.6;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin-bottom: 16px;
+  }
+
+  .feature-box-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .feature-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .feature-box h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: var(--white);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .feature-box p {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── TOAST NOTIFICATIONS ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--gold);
+    color: var(--white);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    box-shadow: var(--shadow-md);
+    display: none;
+    z-index: 99999;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ── PRINT & PDF STYLING ── */
+  @media print {
+    body {
+      background: #ffffff !important;
+      color: #111827 !important;
+      font-size: 10pt;
+    }
+    header {
+      background: #ffffff !important;
+      border-bottom: 2px solid #997a3a !important;
+      padding: 12px 0 !important;
+    }
+    .logo-main { color: #8e6c27 !important; }
+    .logo-sub, .logo-tag { color: #555 !important; }
+    .hdr-right strong { color: #000 !important; }
+    .hdr-right { color: #444 !important; }
+    .hdr-right a { color: #000 !important; text-decoration: none; }
+    
+    .toolbar, .section-controls-bar, .add-sec-card-btn, .recon-banner, 
+    .edit-panel, .add-stage-btn, .rm-stage, .btn, #toast, .tax-left, .modal-overlay {
+      display: none !important;
+    }
+    
+    main { padding: 12px 0 !important; max-width: 100% !important; }
+    
+    .hero-summary {
+      background: #fdfaf3 !important;
+      border: 1px solid #d4c29d !important;
+      box-shadow: none !important;
+      padding: 14px 18px !important;
+      page-break-inside: avoid;
+    }
+    .hero-title { color: #111 !important; }
+    .sum-card {
+      background: #fff !important;
+      border: 1px solid #e2d7c0 !important;
+      padding: 10px 14px !important;
+    }
+    .val-civil { color: #111 !important; }
+    .val-fee { color: #8e6c27 !important; }
+    .val-rcv { color: #1e7040 !important; }
+    .val-due { color: #a83d25 !important; }
+    
+    .section-card {
+      background: #ffffff !important;
+      border: 1px solid #d0d7de !important;
+      margin-bottom: 16px !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }
+    .sec-body { display: block !important; }
+    .sec-num { color: #8e6c27 !important; }
+    .sec-title-static { color: #111 !important; }
+    .sec-subtitle { color: #6b511c !important; }
+    
+    .metrics {
+      background: #f8fafc !important;
+      border-top: 1px solid #e2e8f0 !important;
+    }
+    .mv-civil { color: #111 !important; }
+    .mv-fee { color: #8e6c27 !important; }
+    .mv-received { color: #1e7040 !important; }
+    .mv-balance { color: #a83d25 !important; }
+    
+    .stages-table-container {
+      border: 1px solid #e2e8f0 !important;
+      background: #fff !important;
+    }
+    .stages-table th {
+      background: #f1f5f9 !important;
+      color: #334155 !important;
+      border-bottom: 1px solid #cbd5e1 !important;
+    }
+    .stages-table td {
+      border-bottom: 1px solid #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    .ci { color: #0f172a !important; }
+    .ci-amt { color: #0f172a !important; font-weight: 700 !important; }
+    .st-sel { border: 1px solid #94a3b8 !important; }
+    .ssel-received { background: #e6f7ee !important; color: #0e623b !important; }
+    .ssel-due { background: #fef3c7 !important; color: #92400e !important; }
+    .ssel-next { background: #e0f2fe !important; color: #075985 !important; }
+    .ssel-pending { background: #f1f5f9 !important; color: #475569 !important; }
+
+    .tax-summary-strip {
+      background: #f8fafc !important;
+      border: 1px solid #cbd5e1 !important;
+      page-break-inside: avoid;
+    }
+    .tax-amt-val { color: #8e6c27 !important; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1024px) {
+    header, .toolbar, main { padding-left: 20px; padding-right: 20px; }
+    .summary-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .edit-grid { grid-template-columns: repeat(2, 1fr); }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .metric:nth-child(2) { border-right: none; }
+    .metric:nth-child(3) { border-top: 1px solid var(--border); }
+    .metric:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+    .feature-box-grid { grid-template-columns: 1fr; }
+  }
+  
+  @media (max-width: 640px) {
+    header { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .hdr-right { text-align: left; }
+    .toolbar-l { flex-direction: column; align-items: flex-start; }
+    .summary-metrics-grid { grid-template-columns: 1fr; }
+    .edit-grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr; }
+    .metric { border-right: none; border-bottom: 1px solid var(--border); }
+    .stages-table th:nth-child(5), .stages-table td:nth-child(5) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-block">
+    <div class="logo-main">
+      i3d <span class="logo-pill">STUDIO</span>
+    </div>
+    <div class="logo-sub">INTERACTIVE 3 DIMENSIONS</div>
+    <div class="logo-tag">Architectural Visualisation &amp; Design Studio</div>
+  </div>
+  <div class="hdr-right">
+    <strong>Shakhith A.M.</strong>
+    Architect · COA Reg: CA/97/21884<br>
+    Ph: +91 93631 13693<br>
+    <a href="mailto:shakhith@gmail.com">shakhith@gmail.com</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-l">
+    <div class="project-badge-wrap">
+      <div class="project-badge" id="badge-label" onclick="startBadgeEdit()" title="Click to rename client/project">
+        <span id="badge-text">SNGC</span><span class="ei">✎</span>
+      </div>
+      <input class="badge-input" id="badge-input" type="text" value="SNGC"
+        onblur="endBadgeEdit()" onkeydown="if(event.key==='Enter')endBadgeEdit()" maxlength="40"/>
+    </div>
+    <div class="doc-title-meta">
+      <div class="toolbar-label">Architectural Consultation &amp; Fee Schedule</div>
+      <div class="toolbar-sublabel" id="doc-meta-date">Live Financial Portfolio Tracker</div>
+    </div>
+  </div>
+  <div class="toolbar-actions">
+    <!-- Highlighted Tab for Exporting as Index File -->
+    <button class="btn btn-index" onclick="exportAsIndexFile()" title="Download as standalone index.html ready for website hosting or mobile sharing">
+      📥 PRINT AS INDEX FILE
+    </button>
+    <!-- Share / WhatsApp Hub Button -->
+    <button class="btn btn-share" onclick="openShareModal()" title="Share live schedule via WhatsApp, Mobile, or Web">
+      📲 SHARE / WHATSAPP
+    </button>
+    <button class="btn btn-ghost" onclick="toggleExpandAll()" id="expand-all-btn" title="Toggle all packages">↕ EXPAND ALL</button>
+    <button class="btn btn-ghost" onclick="exportCSV()" title="Download Excel/CSV schedule" style="border-color:rgba(78,224,143,0.3);color:#4ee08f">📊 CSV</button>
+    <button class="btn btn-ghost" onclick="exportSession()" title="Download JSON session backup" style="border-color:rgba(212,168,83,0.45);color:#d4a853">💾 JSON</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('import-input').click()" title="Load JSON backup" style="border-color:rgba(86,186,240,0.4);color:#56baf0">📂 LOAD</button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSession(event)"/>
+    <button class="btn btn-gold" onclick="addSection()">+ ADD PACKAGE</button>
+    <button class="btn btn-ghost" onclick="window.print()">🖨️ PRINT / PDF</button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<!-- Share / WhatsApp Modal -->
+<div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal-content">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span>📲 Share &amp; Export Schedule</span>
+      </div>
+      <button class="modal-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="m-tab-btn active" onclick="switchShareTab('tab-wa', this)">💬 WhatsApp &amp; Text</button>
+        <button class="m-tab-btn" onclick="switchShareTab('tab-file', this)">📁 Standalone Index File</button>
+        <button class="m-tab-btn" onclick="switchShareTab('tab-web', this)">🌐 Website Hosting</button>
+      </div>
+
+      <!-- Tab 1: WhatsApp -->
+      <div class="tab-pane active" id="tab-wa">
+        <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px">
+          Live formatted financial summary generated for <strong><span class="share-client-name">SNGC</span></strong>:
+        </p>
+        <div class="wa-preview-box" id="wa-text-preview"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="sendToWhatsApp()" style="flex:1;justify-content:center;padding:10px">
+            📱 OPEN IN WHATSAPP
+          </button>
+          <button class="btn btn-ghost" onclick="copyWhatsAppSummary()" style="flex:1;justify-content:center;padding:10px">
+            📋 COPY TEXT SUMMARY
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Standalone Index File -->
+      <div class="tab-pane" id="tab-file">
+        <div class="feature-box-grid">
+          <div class="feature-box">
+            <h4>📥 Single Self-Contained File</h4>
+            <p>Bakes all your live packages, fees, milestones, and client details directly into a standalone <strong>index.html</strong> file.</p>
+          </div>
+          <div class="feature-box">
+            <h4>📱 Works on Any Device</h4>
+            <p>Open directly on iPhones, Android phones, tablets, and computers with no web server or installation required.</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-index" onclick="exportAsIndexFile()" style="flex:1;justify-content:center;padding:12px">
+            📥 DOWNLOAD INDEX.HTML FILE
+          </button>
+          <button class="btn btn-share" onclick="triggerWebShare()" style="flex:1;justify-content:center;padding:12px">
+            📤 SHARE VIA MOBILE / AIRDROP
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Website Hosting -->
+      <div class="tab-pane" id="tab-web">
+        <p style="font-size:0.75rem;color:var(--text);margin-bottom:12px">
+          To host this live tracker on your own website or send clients a short link:
+        </p>
+        <div class="feature-box-grid">
+          <div class="feature-box">
+            <h4>🚀 Free Instant Web Link</h4>
+            <p>1. Download the <strong>index.html</strong> file.<br>2. Drag & drop the file at <a href="https://app.netlify.com/drop" target="_blank" style="color:var(--gold)">app.netlify.com/drop</a>.<br>3. Get a live URL like <code>i3d-sngc.netlify.app</code> instantly.</p>
+          </div>
+          <div class="feature-box">
+            <h4>🏛️ Host on Your Domain</h4>
+            <p>Upload <strong>index.html</strong> to any folder on your website server (e.g. <code>i3d.in/proposals/sngc/index.html</code>) via cPanel or FTP.</p>
+          </div>
+        </div>
+        <button class="btn btn-index" onclick="exportAsIndexFile()" style="width:100%;justify-content:center;padding:10px">
+          📥 DOWNLOAD INDEX.HTML NOW
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/**
+ * i3d Architectural Consultation Charges Application
+ * Professional Single-Page Financial Management & Billing Tracker
+ */
+
+// ── DEFAULT DATA ───────────────────────────────────
+let sections = [
+  {
+    id: 1,
+    subtitle: "Entrance Gateway — SNGC",
+    status: "IN PROGRESS",
+    feeMode: "pct",
+    feePct: 4,
+    lumpAmt: 68000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 1700000,
+    received: 20000,
+    visitTerms: "1 site visit per week; additional visits at ₹3,000 per visit",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "Mobilization Advance", amt: 20000, date: "30 Dec 2025", rem: "Upon agreement signing", st: "received" },
+      { m: "Design Completion",    amt: 30000, date: "",            rem: "Upon approval of drawings & BOQ", st: "due" },
+      { m: "Foundation Complete",  amt: 20000, date: "",            rem: "Post-foundation inspection", st: "next" },
+      { m: "Structure Complete",   amt: 15000, date: "",            rem: "Post-superstructure completion", st: "pending" }
+    ]
+  },
+  {
+    id: 2,
+    subtitle: "Ladies Hostel → Classroom Conversion — SNGC",
+    status: "IN PROGRESS",
+    feeMode: "pct",
+    feePct: 4,
+    lumpAmt: 88000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 2200000,
+    received: 96000,
+    visitTerms: "1 site visit per week; additional visits at ₹3,000 per visit",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "Mobilization Advance", amt: 96000, date: "16 Feb 2026", rem: "Upon agreement signing", st: "received" },
+      { m: "Design Completion",    amt: 80000, date: "",            rem: "Upon approval of drawings & BOQ", st: "due" },
+      { m: "Foundation Complete",  amt: 80000, date: "",            rem: "Post-foundation inspection", st: "next" },
+      { m: "Structure Complete",   amt: 80000, date: "",            rem: "Post-superstructure completion", st: "pending" },
+      { m: "Finishing Complete",   amt: 40000, date: "",            rem: "Post-finishing works", st: "pending" },
+      { m: "Final Handover",       amt: 24000, date: "",            rem: "Upon project completion", st: "pending" }
+    ]
+  },
+  {
+    id: 3,
+    subtitle: "Admission Room & Classroom Refurbishing — SNGC",
+    status: "PENDING",
+    feeMode: "pct",
+    feePct: 5,
+    lumpAmt: 35000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 700000,
+    received: 0,
+    visitTerms: "Visits at crucial stages of construction as mutually agreed",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "Design Completion",  amt: 17500, date: "", rem: "Upon approval of drawings & BOQ", st: "next" },
+      { m: "Finishing Complete", amt: 17500, date: "", rem: "Post-finishing works", st: "pending" }
+    ]
+  },
+  {
+    id: 4,
+    subtitle: "Landscaping Design — SNGC",
+    status: "PENDING",
+    feeMode: "lump",
+    feePct: 5,
+    lumpAmt: 50000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 750000,
+    received: 0,
+    visitTerms: "Visits at crucial stages; 3D visualisation included",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "3D Viz & Design Charges", amt: 20000, date: "", rem: "Upon design finalisation", st: "due" },
+      { m: "Design Completion",       amt: 30000, date: "", rem: "Upon work completion",     st: "next" }
+    ]
+  },
+  {
+    id: 5,
+    subtitle: "Staff Toilet Refurbishing — SNGC",
+    status: "PENDING",
+    feeMode: "pct",
+    feePct: 5,
+    lumpAmt: 35000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 700000,
+    received: 0,
+    visitTerms: "Visits at crucial stages of construction as mutually agreed",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "Mobilization Advance", amt: 17500, date: "", rem: "Upon design finalisation", st: "next" },
+      { m: "Design Completion",    amt: 17500, date: "", rem: "Upon work completion",     st: "pending" }
+    ]
+  }
+];
+
+let nextId = 6;
+const open = new Set([0, 1]);
+let includeGST = false;
+let gstRate = 18;
+
+// ── UTILITIES ─────────────────────────────────────
+function fmtINR(n) {
+  const num = Math.round(n || 0);
+  const a = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+  if (a >= 10000000) return sign + '₹' + (a / 10000000).toFixed(2) + ' Cr';
+  if (a >= 100000) return sign + '₹' + (a / 100000).toFixed(2) + ' L';
+  return sign + '₹' + a.toLocaleString('en-IN');
+}
+
+function fmtCurrencyExact(n) {
+  const num = Math.round(n || 0);
+  return '₹' + num.toLocaleString('en-IN');
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+// ── CALCULATIONS ──────────────────────────────────
+function calcFee(s) {
+  let base = 0;
+  if (s.feeMode === 'lump') {
+    base = Math.round(s.lumpAmt || 0);
+  } else if (s.feeMode === 'sqft') {
+    base = Math.round((s.sqftRate || 0) * (s.areaSqft || 0));
+  } else {
+    base = Math.round((s.civilCost || 0) * (s.feePct || 0) / 100);
+  }
+  const extra = Math.round((s.extraVisits || 0) * (s.visitRate || 3000));
+  return { base, extra, total: base + extra };
+}
+
+function stTotal(s) {
+  return (s.stages || []).reduce((a, st) => a + (parseFloat(st.amt) || 0), 0);
+}
+
+function totals() {
+  let c = 0, f = 0, r = 0, d = 0, n = 0, p = 0;
+  sections.forEach(s => {
+    const { total } = calcFee(s);
+    c += (s.civilCost || 0);
+    f += total;
+    
+    const secRcv = (s.stages || []).filter(x => x.st === 'received').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const secDue = (s.stages || []).filter(x => x.st === 'due').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const secNxt = (s.stages || []).filter(x => x.st === 'next').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const secPnd = (s.stages || []).filter(x => x.st === 'pending').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+
+    r += secRcv;
+    d += secDue;
+    n += secNxt;
+    p += secPnd;
+  });
+  
+  const b = f - r;
+  const gstAmt = includeGST ? Math.round(f * (gstRate / 100)) : 0;
+  const grandTotal = f + gstAmt;
+  
+  return { c, f, r, b, d, n, p, gstAmt, grandTotal };
+}
+
+// ── STATUS CLASSIFIERS ────────────────────────────
+function secStatusCls(status) {
+  const norm = (status || '').toUpperCase();
+  if (norm === 'IN PROGRESS') return 'status-in-progress';
+  if (norm === 'PENDING') return 'status-pending';
+  if (norm === 'COMPLETE' || norm === 'COMPLETED') return 'status-complete';
+  return 'status-pending';
+}
+
+function selCls(v) {
+  if (v === 'received') return 'ssel-received';
+  if (v === 'due') return 'ssel-due';
+  if (v === 'next') return 'ssel-next';
+  return 'ssel-pending';
+}
+
+function cycleStatus(idx) {
+  const order = ['IN PROGRESS', 'PENDING', 'COMPLETE'];
+  const cur = sections[idx].status || 'PENDING';
+  const next = order[(order.indexOf(cur) + 1) % order.length];
+  sections[idx].status = next;
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+// ── BADGE EDITING ─────────────────────────────────
+function startBadgeEdit() {
+  document.getElementById('badge-label').classList.add('hidden');
+  const i = document.getElementById('badge-input');
+  i.classList.add('active');
+  i.focus();
+  i.select();
+}
+
+function endBadgeEdit() {
+  const i = document.getElementById('badge-input');
+  const v = i.value.trim().toUpperCase() || 'CLIENT';
+  i.value = v;
+  document.getElementById('badge-text').textContent = v;
+  i.classList.remove('active');
+  document.getElementById('badge-label').classList.remove('hidden');
+  autoSave();
+  renderAll();
+}
+
+// ── CARD TOGGLING ─────────────────────────────────
+function togglePanel(idx) {
+  const b = document.getElementById('sb-' + idx);
+  const v = document.getElementById('chv-' + idx);
+  const card = document.getElementById('card-' + idx);
+  
+  if (open.has(idx)) {
+    open.delete(idx);
+    if (b) b.classList.remove('open');
+    if (v) v.classList.remove('open');
+    if (card) card.classList.remove('is-open');
+  } else {
+    open.add(idx);
+    if (b) b.classList.add('open');
+    if (v) v.classList.add('open');
+    if (card) card.classList.add('is-open');
+  }
+}
+
+function toggleExpandAll() {
+  const btn = document.getElementById('expand-all-btn');
+  if (open.size === sections.length) {
+    open.clear();
+    btn.textContent = '↕ EXPAND ALL';
+  } else {
+    sections.forEach((_, i) => open.add(i));
+    btn.textContent = '↕ COLLAPSE ALL';
+  }
+  renderAll();
+  syncOpen();
+}
+
+function syncOpen() {
+  sections.forEach((_, i) => {
+    const b = document.getElementById('sb-' + i);
+    const v = document.getElementById('chv-' + i);
+    const card = document.getElementById('card-' + i);
+    if (open.has(i)) {
+      if (b) b.classList.add('open');
+      if (v) v.classList.add('open');
+      if (card) card.classList.add('is-open');
+    } else {
+      if (b) b.classList.remove('open');
+      if (v) v.classList.remove('open');
+      if (card) card.classList.remove('is-open');
+    }
+  });
+}
+
+// ── SECTION & STAGE MUTATIONS ─────────────────────
+function updSec(idx, field, raw) {
+  const textFields = ['status', 'visitTerms', 'subtitle', 'feeMode'];
+  sections[idx][field] = textFields.includes(field) ? raw : (parseFloat(raw) || 0);
+  sections[idx].received = (sections[idx].stages || []).filter(x => x.st === 'received').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+function updStage(idx, si, field, raw) {
+  const st = sections[idx].stages[si];
+  if (field === 'amt') st.amt = parseFloat(raw) || 0;
+  else st[field] = raw;
+  sections[idx].received = sections[idx].stages.filter(x => x.st === 'received').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+function addStage(idx) {
+  sections[idx].stages.push({
+    m: "New Milestone Stage",
+    amt: 0,
+    date: "",
+    rem: "Scope milestone",
+    st: "pending"
+  });
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+function rmStage(idx, si, e) {
+  if (e) e.stopPropagation();
+  if (sections[idx].stages.length <= 1) {
+    showToast("At least 1 milestone is required per package.");
+    return;
+  }
+  sections[idx].stages.splice(si, 1);
+  sections[idx].received = sections[idx].stages.filter(x => x.st === 'received').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+function autoBalanceStages(idx) {
+  const s = sections[idx];
+  const { total } = calcFee(s);
+  const count = s.stages.length;
+  if (count === 0) return;
+  
+  const perStage = Math.round(total / count);
+  let accumulated = 0;
+  
+  s.stages.forEach((st, i) => {
+    if (i === count - 1) {
+      st.amt = total - accumulated;
+    } else {
+      st.amt = perStage;
+      accumulated += perStage;
+    }
+  });
+  
+  s.received = s.stages.filter(x => x.st === 'received').reduce((a, x) => a + x.amt, 0);
+  renderAll();
+  syncOpen();
+  autoSave();
+  showToast(`Stages auto-balanced to ₹${total.toLocaleString('en-IN')}`);
+}
+
+function addSection() {
+  const newSec = {
+    id: nextId++,
+    subtitle: "New Work Package",
+    status: "PENDING",
+    feeMode: "pct",
+    feePct: 5,
+    lumpAmt: 50000,
+    sqftRate: 0,
+    areaSqft: 0,
+    civilCost: 1000000,
+    received: 0,
+    visitTerms: "Site supervision visits as mutually agreed",
+    extraVisits: 0,
+    visitRate: 3000,
+    stages: [
+      { m: "Mobilization Advance", amt: 25000, date: "", rem: "Upon signing", st: "next" },
+      { m: "Design & Approvals",   amt: 25000, date: "", rem: "Upon final drawings", st: "pending" }
+    ]
+  };
+  sections.push(newSec);
+  const ni = sections.length - 1;
+  open.add(ni);
+  renderAll();
+  syncOpen();
+  autoSave();
+  setTimeout(() => {
+    const c = document.getElementById('card-' + ni);
+    if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 60);
+}
+
+function duplicateSection(idx, e) {
+  if (e) e.stopPropagation();
+  const src = sections[idx];
+  const clone = JSON.parse(JSON.stringify(src));
+  clone.id = nextId++;
+  clone.subtitle = src.subtitle + " (Copy)";
+  clone.status = "PENDING";
+  sections.splice(idx + 1, 0, clone);
+  open.add(idx + 1);
+  renderAll();
+  syncOpen();
+  autoSave();
+  showToast("Package duplicated successfully");
+}
+
+function moveSection(idx, direction, e) {
+  if (e) e.stopPropagation();
+  const target = idx + direction;
+  if (target < 0 || target >= sections.length) return;
+  const item = sections.splice(idx, 1)[0];
+  sections.splice(target, 0, item);
+  open.clear();
+  open.add(target);
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+function rmSection(idx, e) {
+  if (e) e.stopPropagation();
+  if (sections.length === 1) {
+    showToast("At least 1 package must remain.");
+    return;
+  }
+  if (!confirm(`Are you sure you want to remove package 0${idx+1}: "${sections[idx].subtitle}"?`)) return;
+  sections.splice(idx, 1);
+  open.clear();
+  renderAll();
+  autoSave();
+  showToast("Package removed");
+}
+
+function toggleGST() {
+  includeGST = !includeGST;
+  renderAll();
+  syncOpen();
+  autoSave();
+}
+
+// ── AUTO-SAVE & LOCAL STORAGE ─────────────────────
+const LS_KEY = 'i3d-consultation-master-sngc';
+let saveTimer = null;
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      const payload = {
+        _saved: new Date().toISOString(),
+        sections,
+        nextId,
+        includeGST,
+        gstRate,
+        badge: document.getElementById('badge-text')?.textContent || 'SNGC'
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    } catch (e) {}
+  }, 1000);
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (Array.isArray(d.sections) && d.sections.length > 0) {
+      sections = d.sections.map(s => ({
+        feeMode: s.feeMode || 'pct',
+        feePct: s.feePct || 5,
+        lumpAmt: s.lumpAmt || 0,
+        sqftRate: s.sqftRate || 0,
+        areaSqft: s.areaSqft || 0,
+        civilCost: s.civilCost || 0,
+        extraVisits: s.extraVisits || 0,
+        visitRate: s.visitRate || 3000,
+        status: s.status || 'PENDING',
+        stages: Array.isArray(s.stages) ? s.stages : [],
+        ...s
+      }));
+    }
+    if (d.nextId) nextId = d.nextId;
+    if (typeof d.includeGST !== 'undefined') includeGST = d.includeGST;
+    if (d.gstRate) gstRate = d.gstRate;
+    if (d.badge) {
+      const bt = document.getElementById('badge-text');
+      const bi = document.getElementById('badge-input');
+      if (bt) bt.textContent = d.badge;
+      if (bi) bi.value = d.badge;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ── PRINT / EXPORT AS SELF-CONTAINED INDEX.HTML ───
+function exportAsIndexFile() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  
+  // Clone complete current HTML source and bake in current live data
+  let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // Replace default data array with live sections
+  const liveSectionsJson = JSON.stringify(sections, null, 2);
+  const regexSections = /let sections = \[[\s\S]*?\];/;
+  fullHtml = fullHtml.replace(regexSections, `let sections = ${liveSectionsJson};`);
+  
+  // Replace default badge text and input
+  fullHtml = fullHtml.replace(/<span id="badge-text">.*?<\/span>/, `<span id="badge-text">${badge}<\/span>`);
+  fullHtml = fullHtml.replace(/<input class="badge-input" id="badge-input" type="text" value=".*?"/, `<input class="badge-input" id="badge-input" type="text" value="${badge}"`);
+  
+  // Replace GST settings
+  fullHtml = fullHtml.replace(/let includeGST = .*?;/, `let includeGST = ${includeGST};`);
+  fullHtml = fullHtml.replace(/let gstRate = .*?;/, `let gstRate = ${gstRate};`);
+  
+  const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'index.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`index.html (${badge}) downloaded ✓ Ready to share or host!`);
+}
+
+// ── WHATSAPP & SHARE HUB ──────────────────────────
+function generateWhatsAppText() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  const { c, f, r, b } = totals();
+  const dateStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  let text = `🏛️ *i3d Studio — Architectural Consultation & Fee Schedule*\n`;
+  text += `*Client / Project:* ${badge}\n`;
+  text += `*Architect:* Shakhith A.M. (COA: CA/97/21884)\n`;
+  text += `*Date:* ${dateStr}\n`;
+  text += `------------------------------------\n`;
+  text += `📊 *FINANCIAL SUMMARY:*\n`;
+  text += `• Total Civil Cost: ${fmtINR(c)} (${fmtCurrencyExact(c)})\n`;
+  text += `• Consultation Fee: ${fmtINR(f)} (${fmtCurrencyExact(f)})\n`;
+  text += `• Total Received: ${fmtINR(r)} (${f > 0 ? ((r/f)*100).toFixed(1) : 0}%)\n`;
+  text += `• Outstanding Balance: ${fmtINR(b)} (${fmtCurrencyExact(b)})\n`;
+  text += `------------------------------------\n`;
+  text += `📁 *PACKAGE BREAKDOWN (${sections.length} Packages):*\n`;
+
+  sections.forEach((s, idx) => {
+    const { total } = calcFee(s);
+    text += `${idx + 1}. *${s.subtitle}*\n`;
+    text += `   - Cost: ${fmtINR(s.civilCost)} | Fee: ${fmtINR(total)} | Status: ${s.status}\n`;
+  });
+
+  text += `------------------------------------\n`;
+  text += `Interactive 3 Dimensions · Ph: +91 93631 13693\n`;
+  text += `Email: shakhith@gmail.com`;
+
+  return text;
+}
+
+function openShareModal() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  document.querySelectorAll('.share-client-name').forEach(el => el.textContent = badge);
+  const waBox = document.getElementById('wa-text-preview');
+  if (waBox) waBox.textContent = generateWhatsAppText();
+  document.getElementById('share-modal').classList.add('active');
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal').classList.remove('active');
+}
+
+function switchShareTab(tabId, btn) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.m-tab-btn').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  btn.classList.add('active');
+}
+
+function sendToWhatsApp() {
+  const text = generateWhatsAppText();
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
+
+function copyWhatsAppSummary() {
+  const text = generateWhatsAppText();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Summary copied to clipboard ✓");
+  }).catch(() => {
+    showToast("Copy failed, please select and copy manually.");
+  });
+}
+
+function triggerWebShare() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  const text = generateWhatsAppText();
+  if (navigator.share) {
+    navigator.share({
+      title: `i3d Consultation Fee Schedule — ${badge}`,
+      text: text
+    }).catch(() => {});
+  } else {
+    copyWhatsAppSummary();
+  }
+}
+
+// ── JSON IMPORT / EXPORT ──────────────────────────
+function exportSession() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  const payload = {
+    _meta: {
+      architect: "Shakhith A.M.",
+      coa: "CA/97/21884",
+      firm: "i3d — Interactive 3 Dimensions",
+      project: badge,
+      exportedAt: new Date().toISOString()
+    },
+    sections,
+    nextId,
+    includeGST,
+    gstRate,
+    badge
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `i3d_FeeSchedule_${badge}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Session JSON downloaded ✓");
+}
+
+function importSession(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (Array.isArray(d.sections)) {
+        sections = d.sections;
+        if (d.nextId) nextId = d.nextId;
+        if (typeof d.includeGST !== 'undefined') includeGST = d.includeGST;
+        if (d.gstRate) gstRate = d.gstRate;
+        if (d.badge) {
+          const bt = document.getElementById('badge-text');
+          const bi = document.getElementById('badge-input');
+          if (bt) bt.textContent = d.badge;
+          if (bi) bi.value = d.badge;
+        }
+        open.clear();
+        open.add(0);
+        renderAll();
+        autoSave();
+        showToast("Session restored successfully ✓");
+      }
+    } catch (err) {
+      alert('Invalid i3d JSON file format.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── CSV EXPORT ────────────────────────────────────
+function exportCSV() {
+  const badge = document.getElementById('badge-text')?.textContent || 'SNGC';
+  let rows = [
+    ["i3d Studio — Architectural Consultation Charges & Payment Schedule"],
+    ["Project / Client", badge],
+    ["Architect", "Shakhith A.M. (CA/97/21884)"],
+    ["Date", new Date().toLocaleDateString('en-IN')],
+    [],
+    ["Package #", "Scope / Work Package", "Civil Cost (INR)", "Fee Mode", "Fee (INR)", "Milestone #", "Milestone Description", "Amount (INR)", "Date", "Remarks", "Status"]
+  ];
+  
+  sections.forEach((s, idx) => {
+    const { total } = calcFee(s);
+    (s.stages || []).forEach((st, si) => {
+      rows.push([
+        `Package 0${idx+1}`,
+        s.subtitle,
+        s.civilCost,
+        s.feeMode === 'lump' ? 'Lumpsum' : s.feeMode === 'sqft' ? 'Per Sq.Ft' : `${s.feePct}%`,
+        total,
+        `Stage ${si+1}`,
+        st.m,
+        st.amt,
+        st.date,
+        st.rem,
+        st.st.toUpperCase()
+      ]);
+    });
+  });
+  
+  const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `i3d_Consultation_${badge}_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("CSV schedule exported ✓");
+}
+
+// ── MAIN RENDER FUNCTION ──────────────────────────
+function renderAll() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  
+  const { c, f, r, b, d, n, p, gstAmt, grandTotal } = totals();
+  const denom = f || 1;
+  const rcvPct = ((r / denom) * 100).toFixed(1);
+  const duePct = ((d / denom) * 100).toFixed(1);
+  const nxtPct = ((n / denom) * 100).toFixed(1);
+  const pndPct = ((p / denom) * 100).toFixed(1);
+
+  // 1. Hero Executive Overview Card
+  const hero = document.createElement('div');
+  hero.className = 'hero-summary';
+  hero.innerHTML = `
+    <div class="hero-top">
+      <div>
+        <div class="hero-title">Executive Financial Overview</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px">
+          Consolidated Portfolio Breakdown · ${sections.length} Active Work Packages
+        </div>
+      </div>
+      <div class="hero-badge-row">
+        <span class="hero-tag">Collection Rate: <strong style="color:var(--green-bright)">${rcvPct}%</strong></span>
+        <span class="hero-tag">Active Packages: <strong style="color:var(--gold)">${sections.filter(s => s.status === 'IN PROGRESS').length}</strong></span>
+        <span class="hero-tag">Pending Review: <strong style="color:var(--amber)">${sections.filter(s => s.status === 'PENDING').length}</strong></span>
+      </div>
+    </div>
+
+    <div class="summary-metrics-grid">
+      <div class="sum-card">
+        <div class="sum-card-label">TOTAL PROJECT VALUE <span>🏛️</span></div>
+        <div class="sum-card-val val-civil">${fmtINR(c)}</div>
+        <div class="sum-card-sub">${fmtCurrencyExact(c)} civil estimate</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-card-label">CONSULTATION FEES <span>📐</span></div>
+        <div class="sum-card-val val-fee">${fmtINR(f)}</div>
+        <div class="sum-card-sub">${includeGST ? '+ 18% GST applicable' : 'Base professional fee'}</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-card-label">TOTAL RECEIVED <span>✓</span></div>
+        <div class="sum-card-val val-rcv">${fmtINR(r)}</div>
+        <div class="sum-card-sub">${rcvPct}% realized to date</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-card-label">OUTSTANDING BALANCE <span>⏳</span></div>
+        <div class="sum-card-val val-due">${fmtINR(b)}</div>
+        <div class="sum-card-sub">${fmtCurrencyExact(b)} remaining</div>
+      </div>
+    </div>
+
+    <div class="master-prog-wrap">
+      <div class="master-prog-head">
+        <span>PORTFOLIO COLLECTION PROGRESS</span>
+        <span>${fmtINR(r)} OF ${fmtINR(f)} (${rcvPct}%)</span>
+      </div>
+      <div class="prog-track-master">
+        <div class="master-seg ms-rcv" style="width:${rcvPct}%" title="Received: ${rcvPct}%"></div>
+        <div class="master-seg ms-due" style="width:${duePct}%" title="Due: ${duePct}%"></div>
+        <div class="master-seg ms-nxt" style="width:${nxtPct}%" title="Next: ${nxtPct}%"></div>
+        <div class="master-seg ms-pnd" style="width:${pndPct}%" title="Pending: ${pndPct}%"></div>
+      </div>
+      <div class="prog-legend">
+        <div class="legend-item"><div class="ldot ld-r"></div> RECEIVED: ${fmtINR(r)} (${rcvPct}%)</div>
+        <div class="legend-item"><div class="ldot ld-d"></div> DUE NOW: ${fmtINR(d)} (${duePct}%)</div>
+        <div class="legend-item"><div class="ldot ld-n"></div> NEXT STAGE: ${fmtINR(n)} (${nxtPct}%)</div>
+        <div class="legend-item"><div class="ldot ld-p"></div> PENDING: ${fmtINR(p)} (${pndPct}%)</div>
+      </div>
+    </div>
+  `;
+  app.appendChild(hero);
+
+  // 2. Section Controls Header
+  const secControls = document.createElement('div');
+  secControls.className = 'section-controls-bar';
+  secControls.innerHTML = `
+    <div class="sec-count-badge">
+      WORK PACKAGES (<strong>${sections.length}</strong>)
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-toggle ${includeGST ? 'active' : ''}" onclick="toggleGST()">
+        ${includeGST ? '✓ 18% GST INCLUDED' : '+ ADD 18% GST'}
+      </button>
+    </div>
+  `;
+  app.appendChild(secControls);
+
+  // 3. Render Section Cards
+  sections.forEach((s, idx) => {
+    const { base, extra, total } = calcFee(s);
+    const balance = total - (s.received || 0);
+    const isOpen = open.has(idx);
+    const totStages = stTotal(s);
+    const diff = total - totStages;
+    
+    // Stage counts
+    const rcv = (s.stages || []).filter(x => x.st === 'received').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const due = (s.stages || []).filter(x => x.st === 'due').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const nxt = (s.stages || []).filter(x => x.st === 'next').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const pnd = (s.stages || []).filter(x => x.st === 'pending').reduce((a, x) => a + (parseFloat(x.amt) || 0), 0);
+    const dDenominator = totStages || total || 1;
+
+    // Stage rows
+    const rows = (s.stages || []).map((st, si) => {
+      const stagePct = total > 0 ? ((st.amt / total) * 100).toFixed(0) + '%' : '—';
+      return `
+      <tr>
+        <td class="stage-lbl">Stage 0${si+1}</td>
+        <td>
+          <input class="ci" value="${escH(st.m)}" placeholder="Milestone description"
+            onclick="event.stopPropagation()"
+            onchange="updStage(${idx},${si},'m',this.value)"
+            onblur="updStage(${idx},${si},'m',this.value)"/>
+        </td>
+        <td>
+          <input class="ci ci-amt" type="number" step="500" value="${st.amt}"
+            onclick="event.stopPropagation()"
+            onchange="updStage(${idx},${si},'amt',this.value)"/>
+        </td>
+        <td>
+          <div class="ci-pct">${stagePct}</div>
+        </td>
+        <td>
+          <input class="ci ci-date" value="${escH(st.date)}" placeholder="e.g. 15 Mar 2026"
+            onclick="event.stopPropagation()"
+            onchange="updStage(${idx},${si},'date',this.value)"
+            onblur="updStage(${idx},${si},'date',this.value)"/>
+        </td>
+        <td>
+          <input class="ci ci-rem" value="${escH(st.rem)}" placeholder="Payment terms / deliverables"
+            onclick="event.stopPropagation()"
+            onchange="updStage(${idx},${si},'rem',this.value)"
+            onblur="updStage(${idx},${si},'rem',this.value)"/>
+        </td>
+        <td style="text-align:right;white-space:nowrap">
+          <select class="st-sel ${selCls(st.st)}" onclick="event.stopPropagation()" onchange="updStage(${idx},${si},'st',this.value)">
+            <option value="received" ${st.st==='received'?'selected':''}>■ RECEIVED</option>
+            <option value="due"      ${st.st==='due'?'selected':''}>⚠ DUE NOW</option>
+            <option value="next"     ${st.st==='next'?'selected':''}>◎ NEXT STAGE</option>
+            <option value="pending"  ${st.st==='pending'?'selected':''}>○ PENDING</option>
+          </select>
+          <button class="rm-stage" onclick="rmStage(${idx},${si},event)" title="Delete stage">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = `section-card${isOpen ? ' is-open' : ''}`;
+    card.id = `card-${idx}`;
+    
+    // Fee Mode Display snippet
+    let feeDisplayHtml = '';
+    if (s.feeMode === 'lump') {
+      feeDisplayHtml = `
+        <span class="fee-at">Lumpsum &nbsp;·&nbsp; ₹</span>
+        <input class="fee-pct-input" style="width:75px" type="number" min="0" step="1000" value="${s.lumpAmt || 0}"
+          onclick="event.stopPropagation()" onchange="updSec(${idx},'lumpAmt',this.value)"/>
+      `;
+    } else if (s.feeMode === 'sqft') {
+      feeDisplayHtml = `
+        <span class="fee-at">Rate &nbsp;@&nbsp; ₹</span>
+        <input class="fee-pct-input" style="width:45px" type="number" min="0" step="5" value="${s.sqftRate || 0}"
+          onclick="event.stopPropagation()" onchange="updSec(${idx},'sqftRate',this.value)"/>
+        <span class="fee-pct-suffix">/sq.ft</span>
+      `;
+    } else {
+      feeDisplayHtml = `
+        <span class="fee-at">&nbsp;@&nbsp;</span>
+        <input class="fee-pct-input" type="number" min="0.5" max="30" step="0.5" value="${s.feePct}"
+          onclick="event.stopPropagation()" onchange="updSec(${idx},'feePct',this.value)"/>
+        <span class="fee-pct-suffix">%</span>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="sec-head" onclick="togglePanel(${idx})">
+        <div class="sec-head-left">
+          <div class="sec-num">0${idx+1}</div>
+          <div class="sec-info">
+            <div class="title-line">
+              <span class="sec-title-static">Architectural Consultation Charges</span>
+              <span class="fee-inline-wrap" onclick="event.stopPropagation()" title="Click to adjust rate">
+                ${feeDisplayHtml}
+              </span>
+            </div>
+            <div class="sec-subtitle">${escH(s.subtitle)}</div>
+            <div class="sec-descriptor">
+              <span class="desc-static">Site Supervision:</span>
+              <input class="visit-term-input" type="text" value="${escH(s.visitTerms)}"
+                placeholder="e.g. 1 visit/week · at crucial stages · additional at ₹3,000/visit"
+                onclick="event.stopPropagation()"
+                onchange="updSec(${idx},'visitTerms',this.value)"
+                onblur="updSec(${idx},'visitTerms',this.value)"/>
+            </div>
+          </div>
+        </div>
+        <div class="sec-head-right">
+          <span class="status-badge ${secStatusCls(s.status)}" 
+                onclick="event.stopPropagation();cycleStatus(${idx})" 
+                title="Click to cycle status">${s.status}</span>
+          <div class="chevron${isOpen ? ' open' : ''}" id="chv-${idx}">▾</div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="m-label">CIVIL / PROJECT COST <span>🏛️</span></div>
+          <div class="m-val mv-civil">${fmtINR(s.civilCost)}</div>
+          <div class="m-sub" style="color:var(--text-muted)">${fmtCurrencyExact(s.civilCost)}</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">
+            <span>${s.feeMode==='lump' ? 'FEE (LUMPSUM)' : s.feeMode==='sqft' ? 'FEE (PER SQ.FT)' : 'FEE @ ' + s.feePct + '%'}</span>
+            <span>📐</span>
+          </div>
+          <div class="m-val mv-fee">${fmtINR(base)}${extra > 0 ? `<span style="font-size:0.85rem;color:var(--amber)"> +${fmtINR(extra)}</span>` : ''}</div>
+          ${extra > 0 
+            ? `<div class="m-sub">${s.extraVisits} extra visit${s.extraVisits > 1 ? 's' : ''} × ₹${(s.visitRate || 3000).toLocaleString('en-IN')}</div>`
+            : `<div class="m-sub" style="color:var(--text-muted)">${fmtCurrencyExact(total)} total fee</div>`
+          }
+        </div>
+        <div class="metric">
+          <div class="m-label">RECEIVED TO DATE <span>✓</span></div>
+          <div class="m-val mv-received">${fmtINR(s.received)}</div>
+          <div class="m-sub" style="color:var(--green-bright)">${total > 0 ? ((s.received/total)*100).toFixed(0) : 0}% collected</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">BALANCE DUE <span>⏳</span></div>
+          <div class="m-val mv-balance">${fmtINR(balance)}</div>
+          <div class="m-sub" style="color:#e57c63">${fmtCurrencyExact(balance)} remaining</div>
+        </div>
+      </div>
+
+      <div class="sec-body${isOpen ? ' open' : ''}" id="sb-${idx}">
+
+        ${Math.abs(diff) > 5 ? `
+        <div class="recon-banner">
+          <div>
+            ⚠️ <strong>Stage Amount Discrepancy:</strong> Sum of milestone stages is <strong>${fmtCurrencyExact(totStages)}</strong>, while calculated fee is <strong>${fmtCurrencyExact(total)}</strong> (Difference: ${fmtCurrencyExact(diff)}).
+          </div>
+          <button class="recon-btn" onclick="event.stopPropagation();autoBalanceStages(${idx})">⚖️ AUTO-BALANCE STAGES</button>
+        </div>
+        ` : ''}
+
+        <div class="stages-wrap">
+          <div class="stages-heading">
+            <span>PAYMENT SCHEDULE &amp; MILESTONES</span>
+            <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.62rem" onclick="event.stopPropagation();addStage(${idx})">+ ADD MILESTONE</button>
+          </div>
+          
+          <div class="stages-table-container">
+            <table class="stages-table">
+              <thead>
+                <tr>
+                  <th>STAGE</th>
+                  <th>MILESTONE DELIVERABLE</th>
+                  <th style="text-align:right">AMOUNT (₹)</th>
+                  <th style="text-align:center">%</th>
+                  <th>DUE / RECEIVED DATE</th>
+                  <th>TERMS &amp; REMARKS</th>
+                  <th style="text-align:right">STATUS</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr class="stages-total-row">
+                  <td colspan="2" style="font-family:'Inter',sans-serif;font-size:0.68rem;letter-spacing:0.15em;font-weight:700;color:var(--text-dim);">
+                    SCHEDULE SUM TOTAL
+                  </td>
+                  <td style="text-align:right">${fmtCurrencyExact(totStages)}</td>
+                  <td style="text-align:center">${total > 0 ? ((totStages/total)*100).toFixed(0)+'%' : '—'}</td>
+                  <td colspan="3" style="text-align:right;font-size:0.68rem;color:var(--text-dim);font-weight:400">
+                    Received: <strong style="color:var(--green-bright)">${fmtCurrencyExact(rcv)}</strong> · 
+                    Due: <strong style="color:var(--amber)">${fmtCurrencyExact(due)}</strong> · 
+                    Pending: <strong style="color:var(--text-dim)">${fmtCurrencyExact(pnd + nxt)}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="sec-progress-wrap">
+          <div class="prog-track-sec">
+            <div class="pseg ps-r" style="width:${(rcv/dDenominator*100).toFixed(1)}%" title="Received"></div>
+            <div class="pseg ps-d" style="width:${(due/dDenominator*100).toFixed(1)}%" title="Due"></div>
+            <div class="pseg ps-n" style="width:${(nxt/dDenominator*100).toFixed(1)}%" title="Next"></div>
+            <div class="pseg ps-p" style="width:${(pnd/dDenominator*100).toFixed(1)}%" title="Pending"></div>
+          </div>
+        </div>
+
+        <div class="edit-panel">
+          <div class="ep-heading">
+            <span>CONFIGURE FINANCIALS &amp; SITE VISITS — PACKAGE 0${idx+1}</span>
+            <span style="font-size:0.6rem;color:var(--text-dim)">ID: #${s.id}</span>
+          </div>
+          
+          <div class="edit-grid">
+            <div class="ef" style="grid-column: 1 / -1">
+              <label>PACKAGE / SCOPE TITLE</label>
+              <input type="text" value="${escH(s.subtitle)}" onchange="updSec(${idx},'subtitle',this.value)"/>
+            </div>
+
+            <div class="ef">
+              <label>ESTIMATED CIVIL COST (₹)</label>
+              <input type="number" step="10000" value="${s.civilCost}" onchange="updSec(${idx},'civilCost',this.value)"/>
+            </div>
+
+            <div class="ef">
+              <label>FEE CALCULATION MODE</label>
+              <select onchange="updSec(${idx},'feeMode',this.value)">
+                <option value="pct"  ${s.feeMode==='pct'?'selected':''}>PERCENTAGE OF CIVIL COST (%)</option>
+                <option value="lump" ${s.feeMode==='lump'?'selected':''}>FIXED LUMPSUM AMOUNT (₹)</option>
+                <option value="sqft" ${s.feeMode==='sqft'?'selected':''}>RATE PER SQ.FT (₹/sqft)</option>
+              </select>
+            </div>
+
+            ${s.feeMode === 'lump' ? `
+            <div class="ef">
+              <label>LUMPSUM FEE AMOUNT (₹)</label>
+              <input type="number" step="1000" value="${s.lumpAmt || 0}" onchange="updSec(${idx},'lumpAmt',this.value)"/>
+            </div>
+            ` : s.feeMode === 'sqft' ? `
+            <div class="ef">
+              <label>RATE PER SQ.FT (₹)</label>
+              <input type="number" step="5" value="${s.sqftRate || 0}" onchange="updSec(${idx},'sqftRate',this.value)"/>
+            </div>
+            <div class="ef">
+              <label>BUILT-UP AREA (SQ.FT)</label>
+              <input type="number" step="50" value="${s.areaSqft || 0}" onchange="updSec(${idx},'areaSqft',this.value)"/>
+            </div>
+            ` : `
+            <div class="ef">
+              <label>CONSULTATION PERCENTAGE (%)</label>
+              <input type="number" min="0.5" max="30" step="0.25" value="${s.feePct}" onchange="updSec(${idx},'feePct',this.value)"/>
+            </div>
+            `}
+
+            <div class="ef">
+              <label>PACKAGE STATUS</label>
+              <select onchange="updSec(${idx},'status',this.value)">
+                <option value="IN PROGRESS" ${s.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option>
+                <option value="PENDING"     ${s.status==='PENDING'?'selected':''}>PENDING</option>
+                <option value="COMPLETE"    ${s.status==='COMPLETE'?'selected':''}>COMPLETE</option>
+              </select>
+            </div>
+
+            <div class="ef">
+              <label>RATE PER EXTRA VISIT (₹)</label>
+              <input type="number" step="500" value="${s.visitRate || 3000}" onchange="updSec(${idx},'visitRate',this.value)"/>
+            </div>
+          </div>
+
+          <div class="sv-row">
+            <span class="sv-label">ADDITIONAL SITE VISITS</span>
+            <input type="number" min="0" step="1" value="${s.extraVisits || 0}" onchange="updSec(${idx},'extraVisits',this.value)"/>
+            <span class="sv-note">Visits beyond standard schedule billed at ₹${(s.visitRate || 3000).toLocaleString('en-IN')} per inspection.</span>
+            ${(s.extraVisits || 0) > 0 ? `<span class="sv-total">+ ${fmtCurrencyExact((s.extraVisits || 0) * (s.visitRate || 3000))}</span>` : ''}
+          </div>
+
+          <div class="ep-actions">
+            <div style="margin-right:auto;display:flex;gap:6px">
+              <button class="btn btn-ghost" style="padding:5px 9px" onclick="moveSection(${idx},-1,event)" ${idx===0?'disabled style="opacity:0.4"':''}>▲ Move Up</button>
+              <button class="btn btn-ghost" style="padding:5px 9px" onclick="moveSection(${idx},1,event)" ${idx===sections.length-1?'disabled style="opacity:0.4"':''}>▼ Move Down</button>
+              <button class="btn btn-ghost" style="padding:5px 9px" onclick="duplicateSection(${idx},event)">⎘ Duplicate</button>
+            </div>
+            ${sections.length > 1 ? `
+              <button class="btn btn-danger" onclick="rmSection(${idx},event)">✕ REMOVE WORK PACKAGE</button>
+            ` : ''}
+          </div>
+        </div>
+
+      </div>
+    `;
+    app.appendChild(card);
+  });
+
+  // 4. Add Package Full-Width Card
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-sec-card-btn';
+  addBtn.innerHTML = `<span>+</span> ADD NEW WORK PACKAGE / SCOPE`;
+  addBtn.onclick = addSection;
+  app.appendChild(addBtn);
+
+  // 5. Tax & Grand Total Summary Strip
+  if (includeGST) {
+    const taxStrip = document.createElement('div');
+    taxStrip.className = 'tax-summary-strip';
+    taxStrip.innerHTML = `
+      <div class="tax-left">
+        <span class="tax-switch-label">GOVERNMENT GST TAX BREAKDOWN:</span>
+        <button class="btn btn-toggle active" onclick="toggleGST()">18% GST ENABLED</button>
+      </div>
+      <div class="tax-right">
+        <div class="tax-amt-item">
+          <span class="tax-amt-lbl">NET PROFESSIONAL FEE</span>
+          <span class="tax-amt-val" style="color:var(--text)">${fmtCurrencyExact(f)}</span>
+        </div>
+        <div class="tax-amt-item">
+          <span class="tax-amt-lbl">GST @ 18% (CGST 9% + SGST 9%)</span>
+          <span class="tax-amt-val" style="color:var(--amber)">+ ${fmtCurrencyExact(gstAmt)}</span>
+        </div>
+        <div class="tax-amt-item">
+          <span class="tax-amt-lbl">GRAND TOTAL INCL. TAX</span>
+          <span class="tax-amt-val" style="color:var(--green-bright)">${fmtCurrencyExact(grandTotal)}</span>
+        </div>
+      </div>
+    `;
+    app.appendChild(taxStrip);
+  }
+
+  // Update date subtitle
+  const dateEl = document.getElementById('doc-meta-date');
+  if (dateEl) {
+    dateEl.textContent = `Portfolio Ref: ${document.getElementById('badge-text')?.textContent || 'SNGC'} · Updated ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  }
+}
+
+// ── INITIALIZATION ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadFromStorage();
+  renderAll();
+  syncOpen();
+});
+</script>
+</body>
+</html>

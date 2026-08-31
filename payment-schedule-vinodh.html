@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i3d — Payment Schedule · Residence of Mr. Vinodh @ Palakkad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080f18;
+    --surface: #0e1a29;
+    --surface-card: #112135;
+    --surface-hover: #152942;
+    --surface-elevated: #182f4c;
+    --border: #1d334d;
+    --border-soft: #16273c;
+    --border-focus: #d4a853;
+    
+    --gold: #d4a853;
+    --gold-light: #f3d48d;
+    --gold-dim: #8e7238;
+    --gold-bg: rgba(212, 168, 83, 0.12);
+    
+    --green: #2e6b4f;
+    --green-bright: #44c77b;
+    --green-bg: rgba(68, 199, 123, 0.12);
+    --green-border: rgba(68, 199, 123, 0.35);
+    
+    --amber: #f0a32f;
+    --amber-bg: rgba(240, 163, 47, 0.12);
+    --amber-border: rgba(240, 163, 47, 0.35);
+
+    --cyan: #48b0e8;
+    --cyan-bg: rgba(72, 176, 232, 0.12);
+    --cyan-border: rgba(72, 176, 232, 0.35);
+
+    --red: #e05d44;
+    --red-bg: rgba(224, 93, 68, 0.12);
+    
+    --text: #c8d8ec;
+    --text-dim: #7f95b0;
+    --text-muted: #4e627a;
+    --white: #f5f9ff;
+    
+    /* Stage Status Badges */
+    --st-rcv-bg: #0e291e;
+    --st-rcv-txt: #4ee08f;
+    --st-rcv-bdr: #1d573c;
+    
+    --st-due-bg: #302008;
+    --st-due-txt: #f8b032;
+    --st-due-bdr: #674712;
+    
+    --st-nxt-bg: #0f233a;
+    --st-nxt-txt: #56baf0;
+    --st-nxt-bdr: #1e4b78;
+    
+    --st-pnd-bg: #141c28;
+    --st-pnd-txt: #687e9b;
+    --st-pnd-bdr: #263448;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.35);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.55);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #060a10 0%, #0a111a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .brand-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .logo-main {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    background: var(--gold-bg);
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .logo-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.38em;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-top: 6px;
+  }
+  .logo-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: var(--gold-dim);
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  
+  .hdr-right {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+  .hdr-right strong {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: var(--white);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .hdr-right a {
+    color: var(--gold-light);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hdr-right a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar-l {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .project-badge-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .project-badge {
+    background: linear-gradient(135deg, #d4a853, #a67c2e);
+    color: #080f18;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+  .project-badge:hover {
+    background: linear-gradient(135deg, #e4be6c, #ba8e3a);
+    transform: translateY(-1px);
+  }
+  .project-badge .ei { font-size: 0.75rem; opacity: 0.75; }
+  .badge-input {
+    display: none;
+    background: var(--surface-card);
+    border: 1px solid var(--gold);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 6px 12px;
+    border-radius: 4px;
+    outline: none;
+    width: 260px;
+    text-transform: uppercase;
+  }
+  .badge-input.active { display: block; }
+  .project-badge.hidden { display: none; }
+
+  .doc-title-meta {
+    display: flex;
+    flex-direction: column;
+  }
+  .toolbar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .toolbar-sublabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 7px 13px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .18s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn:active { transform: translateY(1px); }
+  
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover {
+    border-color: var(--text-dim);
+    color: var(--white);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #d4a853, #a67c2e);
+    color: #0a111a;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, #e4be6c, #ba8e3a);
+    box-shadow: 0 4px 12px rgba(212,168,83,0.25);
+  }
+
+  .btn-index {
+    background: linear-gradient(135deg, #1b563b, #123d29);
+    color: #4ee08f;
+    border: 1px solid rgba(78, 224, 143, 0.4);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-index:hover {
+    background: linear-gradient(135deg, #256f4e, #1a4f36);
+    border-color: #4ee08f;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .btn-share {
+    background: linear-gradient(135deg, #2578b8, #184c78);
+    color: #f5f9ff;
+    border: 1px solid rgba(86, 186, 240, 0.4);
+    font-weight: 700;
+  }
+  .btn-share:hover {
+    background: linear-gradient(135deg, #328eca, #1e5a8c);
+    border-color: #56baf0;
+    transform: translateY(-1px);
+  }
+
+  /* ── MAIN CONTAINER ── */
+  main {
+    padding: 28px 48px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── EXECUTIVE BANNER / LOCATION CARD ── */
+  .project-header-card {
+    background: linear-gradient(145deg, #0e1c2e, #0a1524);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-header-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-light), var(--gold-dim));
+  }
+  .ph-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.05em;
+  }
+  .ph-location {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gold);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+  .ph-meta-pills {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .ph-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .ph-pill strong { color: var(--white); }
+
+  /* ── 4 SUMMARY METRIC CARDS ── */
+  .summary-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .sum-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 22px;
+    transition: transform .18s, border-color .18s;
+  }
+  .sum-card:hover {
+    transform: translateY(-2px);
+    border-color: #2b4566;
+  }
+  .sum-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sum-card-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .sum-card-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .val-civil { color: var(--white); }
+  .val-fee { color: var(--gold); }
+  .val-rcv { color: var(--green-bright); }
+  .val-time { color: var(--cyan); }
+
+  /* ── TIMELINE & DUAL PROGRESS TRACKER ── */
+  .progress-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .prog-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gold);
+    letter-spacing: 0.16em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  
+  .timeline-bar-track {
+    height: 10px;
+    background: #09121d;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .tseg {
+    height: 100%;
+    transition: width .35s ease;
+  }
+  .ts-rcv { background: linear-gradient(90deg, #2e9f64, #4ee08f); }
+  .ts-due { background: linear-gradient(90deg, #d48b15, #f8b032); }
+  .ts-nxt { background: linear-gradient(90deg, #2578b8, #56baf0); }
+  .ts-pnd { background: #1c2a3d; }
+
+  .prog-legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .ldot {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .ld-r { background: #4ee08f; }
+  .ld-d { background: #f8b032; }
+  .ld-n { background: #56baf0; }
+  .ld-p { background: #2f435e; }
+
+  /* ── SCHEDULE TABLE CONTAINER ── */
+  .table-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 22px;
+  }
+  .table-head-bar {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #122135 0%, #0d1929 100%);
+  }
+  .table-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    color: var(--white);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .schedule-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 14px;
+    background: #091320;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .schedule-table th.num { text-align: right; }
+  .schedule-table th.center { text-align: center; }
+
+  .schedule-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+  }
+  .schedule-table tr:hover td {
+    background: rgba(255, 255, 255, 0.018);
+  }
+
+  .stage-num-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+
+  /* Inline editable inputs */
+  .ci {
+    background: transparent;
+    border: 1px solid transparent;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: all .15s;
+    width: 100%;
+  }
+  .ci:hover {
+    border-color: var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .ci:focus {
+    border-color: var(--gold);
+    color: var(--white);
+    background: var(--surface);
+  }
+  
+  .ci-num {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+    font-weight: 600;
+    width: 120px;
+  }
+  .ci-time {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    width: 90px;
+    color: var(--cyan);
+  }
+  .ci-cost { color: var(--white); }
+  .ci-fee { color: var(--gold-light); }
+  .ci-rcv { color: var(--green-bright); }
+  .ci-rem { color: var(--text-dim); }
+
+  .st-sel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: all .18s;
+  }
+  .ssel-received { background: var(--st-rcv-bg); color: var(--st-rcv-txt); border: 1px solid var(--st-rcv-bdr); }
+  .ssel-due      { background: var(--st-due-bg); color: var(--st-due-txt); border: 1px solid var(--st-due-bdr); }
+  .ssel-next     { background: var(--st-nxt-bg); color: var(--st-nxt-txt); border: 1px solid var(--st-nxt-bdr); }
+  .ssel-pending  { background: var(--st-pnd-bg); color: var(--st-pnd-txt); border: 1px solid var(--st-pnd-bdr); }
+
+  .rm-stage {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: color .15s;
+  }
+  .rm-stage:hover { color: var(--red); background: var(--red-bg); }
+
+  .total-row td {
+    background: #08111d;
+    border-top: 2px solid var(--border);
+    padding: 14px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+  }
+  .total-row-highlight {
+    color: var(--gold);
+  }
+
+  /* ── NOTES & ROUNDING STRIP ── */
+  .notes-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .notes-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .notes-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+  .notes-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    color: var(--white);
+    font-weight: 700;
+  }
+  .notes-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+
+  /* ── SHARE MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(4, 8, 14, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .modal-overlay.active {
+    display: flex;
+    animation: fadeInModal .2s ease;
+  }
+  @keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: var(--surface-card);
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-md);
+  }
+  .modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(180deg, #101f33 0%, #0d192a 100%);
+  }
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .modal-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+  .modal-body { padding: 24px; }
+  .modal-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+  }
+  .m-tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .m-tab-btn.active {
+    background: var(--gold-bg);
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  .wa-preview-box {
+    background: #09131f;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #a9c2df;
+    line-height: 1.6;
+    max-height: 230px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin-bottom: 16px;
+  }
+
+  .feature-box-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .feature-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .feature-box h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .feature-box p {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--gold);
+    color: var(--white);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    box-shadow: var(--shadow-md);
+    display: none;
+    z-index: 99999;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body { background: #fff !important; color: #111 !important; }
+    header { background: #fff !important; border-bottom: 2px solid #8a6f31 !important; padding: 12px 0 !important; }
+    .logo-main { color: #8a6f31 !important; }
+    .hdr-right strong { color: #000 !important; }
+    .hdr-right a { color: #000 !important; text-decoration: none; }
+    .toolbar, .btn, .modal-overlay, #toast, .rm-stage { display: none !important; }
+    main { padding: 10px 0 !important; max-width: 100% !important; }
+    .project-header-card, .progress-card, .table-card, .notes-strip {
+      background: #fff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      color: #111 !important;
+      page-break-inside: avoid;
+    }
+    .ph-title, .table-title, .notes-val { color: #111 !important; }
+    .sum-card { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; }
+    .val-civil, .val-time { color: #111 !important; }
+    .val-fee { color: #8a6f31 !important; }
+    .val-rcv { color: #1e7040 !important; }
+    .schedule-table th { background: #f1f5f9 !important; color: #334155 !important; border-bottom: 1px solid #cbd5e1 !important; }
+    .schedule-table td { border-bottom: 1px solid #e2e8f0 !important; color: #1e293b !important; }
+    .ci { color: #0f172a !important; }
+    .total-row td { background: #f8fafc !important; color: #111 !important; border-top: 2px solid #cbd5e1 !important; }
+    .st-sel { border: 1px solid #94a3b8 !important; }
+  }
+
+  @media (max-width: 1024px) {
+    header, .toolbar, main { padding-left: 20px; padding-right: 20px; }
+    .summary-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-box-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    header { flex-direction: column; align-items: flex-start; }
+    .hdr-right { text-align: left; }
+    .summary-metrics-grid { grid-template-columns: 1fr; }
+    .notes-strip { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-block">
+    <div class="logo-main">
+      i3d <span class="logo-pill">STUDIO</span>
+    </div>
+    <div class="logo-sub">INTERACTIVE 3 DIMENSIONS</div>
+    <div class="logo-tag">Architectural Visualisation &amp; Design Studio</div>
+  </div>
+  <div class="hdr-right">
+    <strong>Shakhith A.M.</strong>
+    Architect · COA Reg: CA/97/21884<br>
+    Ph: +91 93631 13693<br>
+    <a href="mailto:shakhith@gmail.com">shakhith@gmail.com</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-l">
+    <div class="project-badge-wrap">
+      <div class="project-badge" id="badge-label" onclick="startBadgeEdit()" title="Click to rename client/project">
+        <span id="badge-text">MR. VINODH — PALAKKAD</span><span class="ei">✎</span>
+      </div>
+      <input class="badge-input" id="badge-input" type="text" value="MR. VINODH — PALAKKAD"
+        onblur="endBadgeEdit()" onkeydown="if(event.key==='Enter')endBadgeEdit()" maxlength="50"/>
+    </div>
+    <div class="doc-title-meta">
+      <div class="toolbar-label">Residence Payment Schedule &amp; Construction Timeline</div>
+      <div class="toolbar-sublabel" id="doc-meta-date">As per Revised Plan · 18 September 2024</div>
+    </div>
+  </div>
+  <div class="toolbar-actions">
+    <!-- Standalone Index File Generator -->
+    <button class="btn btn-index" onclick="exportAsIndexFile()" title="Download standalone index.html ready for website hosting or mobile sharing">
+      📥 PRINT AS INDEX FILE
+    </button>
+    <!-- Share & WhatsApp Hub -->
+    <button class="btn btn-share" onclick="openShareModal()" title="Share schedule via WhatsApp or Mobile">
+      📲 SHARE / WHATSAPP
+    </button>
+    <button class="btn btn-ghost" onclick="exportCSV()" title="Download Excel/CSV" style="border-color:rgba(78,224,143,0.3);color:#4ee08f">📊 CSV</button>
+    <button class="btn btn-ghost" onclick="exportSession()" title="Backup JSON" style="border-color:rgba(212,168,83,0.45);color:#d4a853">💾 JSON</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('import-input').click()" title="Load JSON" style="border-color:rgba(86,186,240,0.4);color:#56baf0">📂 LOAD</button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSession(event)"/>
+    <button class="btn btn-gold" onclick="addStage()">+ ADD STAGE</button>
+    <button class="btn btn-ghost" onclick="window.print()">🖨️ PRINT / PDF</button>
+  </div>
+</div>
+
+<main id="app">
+  <!-- 1. Executive Banner -->
+  <div class="project-header-card">
+    <div>
+      <div class="ph-title" id="project-main-title">Detailed Estimate for the Residence of Mr. Vinodh</div>
+      <div class="ph-location">📍 Palakkad, Kerala · Residential Villa Construction</div>
+    </div>
+    <div class="ph-meta-pills">
+      <div class="ph-pill">Plan: <strong>As Per Revised Plan</strong></div>
+      <div class="ph-pill">Date: <strong>18 September 2024</strong></div>
+      <div class="ph-pill">Stages: <strong id="stage-count-pill">9 Milestones</strong></div>
+    </div>
+  </div>
+
+  <!-- 2. Financial & Timeline Hero Metrics -->
+  <div class="summary-metrics-grid">
+    <div class="sum-card">
+      <div class="sum-card-label">TOTAL ESTIMATE <span>🏛️</span></div>
+      <div class="sum-card-val val-civil" id="sum-civil-val">₹41.00 L</div>
+      <div class="sum-card-sub" id="sum-civil-sub">₹39,50,000 civil stage sum</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-label">CONSULTATION FEE <span>📐</span></div>
+      <div class="sum-card-val val-fee" id="sum-fee-val">₹1.50 L</div>
+      <div class="sum-card-sub">₹1,50,000 professional fee</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-label">RECEIVED TO DATE <span>✓</span></div>
+      <div class="sum-card-val val-rcv" id="sum-rcv-val">₹10,000</div>
+      <div class="sum-card-sub" id="sum-rcv-sub">Advance paid by Cash</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-label">TOTAL TIME REQUIRED <span>⏱️</span></div>
+      <div class="sum-card-val val-time" id="sum-time-val">18 WEEKS</div>
+      <div class="sum-card-sub">Approx. 4.5 Months Timeline</div>
+    </div>
+  </div>
+
+  <!-- 3. Progress & Timeline Bar -->
+  <div class="progress-card">
+    <div class="prog-card-head">
+      <span>CONSTRUCTION &amp; CONSULTATION MILESTONE PROGRESS</span>
+      <span id="prog-ratio-label">1 OF 9 STAGES INITIATED (₹10,000 RECEIVED)</span>
+    </div>
+    <div class="timeline-bar-track" id="prog-track-bar"></div>
+    <div class="prog-legend">
+      <div class="legend-item"><div class="ldot ld-r"></div> RECEIVED: <span id="leg-rcv">₹10,000</span></div>
+      <div class="legend-item"><div class="ldot ld-d"></div> DUE NOW: <span id="leg-due">₹0</span></div>
+      <div class="legend-item"><div class="ldot ld-n"></div> NEXT STAGE: <span id="leg-nxt">₹20,000</span></div>
+      <div class="legend-item"><div class="ldot ld-p"></div> PENDING: <span id="leg-pnd">₹1,20,000</span></div>
+    </div>
+  </div>
+
+  <!-- 4. Main Payment Schedule Table -->
+  <div class="table-card">
+    <div class="table-head-bar">
+      <div class="table-title">Payment Schedule &amp; Time Required Breakdown</div>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.62rem" onclick="addStage()">+ ADD MILESTONE STAGE</button>
+    </div>
+    <div class="table-responsive">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th style="width:70px">S.NO</th>
+            <th>STAGE &amp; SCOPE DESCRIPTION</th>
+            <th class="center" style="width:130px">TIME REQUIRED</th>
+            <th class="num" style="width:170px">CIVIL AMOUNT (₹)</th>
+            <th class="num" style="width:170px">CONSULTATION (₹)</th>
+            <th class="num" style="width:150px">RECEIVED (₹)</th>
+            <th style="width:150px">PAYMENT REMARKS</th>
+            <th class="center" style="width:120px">STATUS</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody id="stages-tbody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2">SCHEDULE SUM TOTALS</td>
+            <td class="center" style="color:var(--cyan)" id="foot-total-weeks">18 WEEKS</td>
+            <td class="num" style="color:var(--white)" id="foot-total-civil">₹39,50,000</td>
+            <td class="num total-row-highlight" id="foot-total-fee">₹1,50,000</td>
+            <td class="num" style="color:var(--green-bright)" id="foot-total-rcv">₹10,000</td>
+            <td colspan="3" style="font-size:0.7rem;color:var(--text-dim);font-weight:400">
+              Outstanding Balance: <strong style="color:#e57c63" id="foot-bal-val">₹1,40,000</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. Rounding & Approval Strip -->
+  <div class="notes-strip">
+    <div class="notes-left">
+      <div class="notes-label">TOTAL ROUNDED ESTIMATE</div>
+      <div class="notes-val">TOTAL : ₹41,00,000.00</div>
+      <div class="notes-sub">TOTAL AMOUNT : (ROUNDED OFF TO RS. FORTY ONE LAKHS ONLY)</div>
+    </div>
+    <div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-dim)">
+      Architectural &amp; Site Supervision by <strong>Shakhith A.M.</strong><br>
+      Council of Architecture: <strong>CA/97/21884</strong>
+    </div>
+  </div>
+</main>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal-content">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span>📲 Share Payment Schedule</span>
+      </div>
+      <button class="modal-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="m-tab-btn active" onclick="switchShareTab('tab-wa', this)">💬 WhatsApp &amp; Text</button>
+        <button class="m-tab-btn" onclick="switchShareTab('tab-file', this)">📁 Standalone Index File</button>
+        <button class="m-tab-btn" onclick="switchShareTab('tab-web', this)">🌐 Web / Website Link</button>
+      </div>
+
+      <!-- Tab 1: WhatsApp -->
+      <div class="tab-pane active" id="tab-wa">
+        <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px">
+          Live formatted financial summary for <strong>Mr. Vinodh (Palakkad)</strong>:
+        </p>
+        <div class="wa-preview-box" id="wa-text-preview"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="sendToWhatsApp()" style="flex:1;justify-content:center;padding:10px">
+            📱 OPEN IN WHATSAPP
+          </button>
+          <button class="btn btn-ghost" onclick="copyWhatsAppSummary()" style="flex:1;justify-content:center;padding:10px">
+            📋 COPY TEXT SUMMARY
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Standalone Index File -->
+      <div class="tab-pane" id="tab-file">
+        <div class="feature-box-grid">
+          <div class="feature-box">
+            <h4>📥 Single Self-Contained File</h4>
+            <p>Bakes all 9 construction milestones, weeks, fund requirements, and fees into an <strong>index.html</strong> file.</p>
+          </div>
+          <div class="feature-box">
+            <h4>📱 Works on Any Device</h4>
+            <p>Open directly on phones, WhatsApp, or computers with zero setup required.</p>
+          </div>
+        </div>
+        <button class="btn btn-index" onclick="exportAsIndexFile()" style="width:100%;justify-content:center;padding:12px">
+          📥 DOWNLOAD INDEX.HTML FILE NOW
+        </button>
+      </div>
+
+      <!-- Tab 3: Website Hosting -->
+      <div class="tab-pane" id="tab-web">
+        <p style="font-size:0.75rem;color:var(--text);margin-bottom:12px">
+          To host this live schedule online for Mr. Vinodh:
+        </p>
+        <div class="feature-box-grid">
+          <div class="feature-box">
+            <h4>🚀 Free Web URL</h4>
+            <p>1. Download <strong>index.html</strong>.<br>2. Drop at <a href="https://app.netlify.com/drop" target="_blank" style="color:var(--gold)">app.netlify.com/drop</a>.<br>3. Send the link to the client.</p>
+          </div>
+          <div class="feature-box">
+            <h4>🏛️ Host on i3d Domain</h4>
+            <p>Upload to <code>i3d.in/vinodh/index.html</code> via FTP or cPanel.</p>
+          </div>
+        </div>
+        <button class="btn btn-index" onclick="exportAsIndexFile()" style="width:100%;justify-content:center;padding:10px">
+          📥 DOWNLOAD INDEX.HTML NOW
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/**
+ * Payment Schedule Application — Mr. Vinodh Residence @ Palakkad, Kerala
+ * i3d Architectural Visualisation & Design Studio
+ */
+
+// ── PROJECT DATA (Exact from Spreadsheet) ─────────
+let projectData = {
+  clientBadge: "MR. VINODH — PALAKKAD",
+  projectTitle: "Detailed Estimate for the Residence of Mr. Vinodh",
+  location: "Palakkad, Kerala",
+  planVersion: "As per Revised Plan",
+  revisedDate: "18 September 2024",
+  roundedTotal: 4100000,
+  stages: [
+    { sNo: 1, name: "ADVANCE",                              weeks: 0, cost: 1000000, fee: 20000, rcv: 10000, rem: "BY CASH", st: "received" },
+    { sNo: 2, name: "BASEMENT WORKS",                       weeks: 3, cost: 350000,  fee: 20000, rcv: 0,     rem: "",        st: "due" },
+    { sNo: 3, name: "COLUMN, GROUND FLOOR BRICKWORKS",      weeks: 2, cost: 400000,  fee: 20000, rcv: 0,     rem: "",        st: "next" },
+    { sNo: 4, name: "R.C.C (G.FLOOR)",                      weeks: 2, cost: 400000,  fee: 20000, rcv: 0,     rem: "",        st: "pending" },
+    { sNo: 5, name: "COLUMN, FIRST FLOOR BRICKWORKS",       weeks: 2, cost: 350000,  fee: 20000, rcv: 0,     rem: "",        st: "pending" },
+    { sNo: 6, name: "R.C.C (F.FLOOR)",                      weeks: 3, cost: 400000,  fee: 20000, rcv: 0,     rem: "",        st: "pending" },
+    { sNo: 7, name: "G.FLOOR & F.FLOOR WOOD/GRILL WORK",     weeks: 2, cost: 350000,  fee: 10000, rcv: 0,     rem: "",        st: "pending" },
+    { sNo: 8, name: "PLASTERING WORKS (G.F & F.F)",         weeks: 2, cost: 350000,  fee: 10000, rcv: 0,     rem: "",        st: "pending" },
+    { sNo: 9, name: "ELEVATIONAL WORKS & FINISHING",        weeks: 2, cost: 350000,  fee: 10000, rcv: 0,     rem: "",        st: "pending" }
+  ]
+};
+
+// ── UTILITIES ─────────────────────────────────────
+function fmtINR(n) {
+  const num = Math.round(n || 0);
+  const a = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+  if (a >= 10000000) return sign + '₹' + (a / 10000000).toFixed(2) + ' Cr';
+  if (a >= 100000) return sign + '₹' + (a / 100000).toFixed(2) + ' L';
+  return sign + '₹' + a.toLocaleString('en-IN');
+}
+
+function fmtCurrencyExact(n) {
+  return '₹' + Math.round(n || 0).toLocaleString('en-IN');
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+// ── STATUS CLASSIFIERS ────────────────────────────
+function selCls(v) {
+  if (v === 'received') return 'ssel-received';
+  if (v === 'due') return 'ssel-due';
+  if (v === 'next') return 'ssel-next';
+  return 'ssel-pending';
+}
+
+// ── BADGE EDIT ────────────────────────────────────
+function startBadgeEdit() {
+  document.getElementById('badge-label').classList.add('hidden');
+  const i = document.getElementById('badge-input');
+  i.classList.add('active');
+  i.focus();
+  i.select();
+}
+
+function endBadgeEdit() {
+  const i = document.getElementById('badge-input');
+  const v = i.value.trim().toUpperCase() || 'MR. VINODH — PALAKKAD';
+  i.value = v;
+  projectData.clientBadge = v;
+  document.getElementById('badge-text').textContent = v;
+  i.classList.remove('active');
+  document.getElementById('badge-label').classList.remove('hidden');
+  renderAll();
+  autoSave();
+}
+
+// ── MUTATIONS ─────────────────────────────────────
+function updStage(si, field, val) {
+  const st = projectData.stages[si];
+  if (field === 'cost' || field === 'fee' || field === 'rcv' || field === 'weeks' || field === 'sNo') {
+    st[field] = parseFloat(val) || 0;
+  } else {
+    st[field] = val;
+  }
+  
+  // Auto-sync status if received amount covers fee
+  if (field === 'rcv') {
+    if (st.rcv >= st.fee && st.fee > 0) st.st = 'received';
+    else if (st.rcv > 0) st.st = 'received';
+  }
+  if (field === 'st' && val === 'received' && st.rcv === 0) {
+    st.rcv = st.fee;
+  }
+  
+  renderAll();
+  autoSave();
+}
+
+function addStage() {
+  const newNum = projectData.stages.length + 1;
+  projectData.stages.push({
+    sNo: newNum,
+    name: `STAGE ${newNum} WORKS`,
+    weeks: 2,
+    cost: 350000,
+    fee: 15000,
+    rcv: 0,
+    rem: "",
+    st: "pending"
+  });
+  renderAll();
+  autoSave();
+  showToast(`Stage ${newNum} added`);
+}
+
+function rmStage(si, e) {
+  if (e) e.stopPropagation();
+  if (projectData.stages.length <= 1) {
+    showToast("At least 1 stage must remain.");
+    return;
+  }
+  projectData.stages.splice(si, 1);
+  projectData.stages.forEach((st, idx) => st.sNo = idx + 1);
+  renderAll();
+  autoSave();
+  showToast("Stage removed");
+}
+
+// ── CALCULATIONS & TOTALS ─────────────────────────
+function getTotals() {
+  let totalWeeks = 0;
+  let totalCost = 0;
+  let totalFee = 0;
+  let totalRcv = 0;
+  let dueFee = 0;
+  let nextFee = 0;
+  let pendingFee = 0;
+
+  projectData.stages.forEach(st => {
+    totalWeeks += (st.weeks || 0);
+    totalCost += (st.cost || 0);
+    totalFee += (st.fee || 0);
+    totalRcv += (st.rcv || 0);
+
+    if (st.st === 'due') dueFee += (st.fee - st.rcv);
+    else if (st.st === 'next') nextFee += st.fee;
+    else if (st.st === 'pending') pendingFee += st.fee;
+  });
+
+  const balanceFee = totalFee - totalRcv;
+  return { totalWeeks, totalCost, totalFee, totalRcv, balanceFee, dueFee, nextFee, pendingFee };
+}
+
+// ── RENDER FUNCTION ───────────────────────────────
+function renderAll() {
+  const { totalWeeks, totalCost, totalFee, totalRcv, balanceFee, dueFee, nextFee, pendingFee } = getTotals();
+
+  // 1. Metric Cards
+  document.getElementById('sum-civil-val').textContent = fmtINR(projectData.roundedTotal || totalCost);
+  document.getElementById('sum-civil-sub').textContent = `${fmtCurrencyExact(totalCost)} civil stage sum`;
+  document.getElementById('sum-fee-val').textContent = fmtINR(totalFee);
+  document.getElementById('sum-rcv-val').textContent = fmtCurrencyExact(totalRcv);
+  document.getElementById('sum-rcv-sub').textContent = totalRcv > 0 ? `${((totalRcv/totalFee)*100).toFixed(1)}% collected (Cash/Bank)` : `0% collected`;
+  document.getElementById('sum-time-val').textContent = `${totalWeeks} WEEKS`;
+  document.getElementById('stage-count-pill').textContent = `${projectData.stages.length} Milestones`;
+
+  // 2. Progress Bar
+  const denom = totalFee || 1;
+  const rcvW = ((totalRcv / denom) * 100).toFixed(1);
+  const dueW = ((dueFee / denom) * 100).toFixed(1);
+  const nxtW = ((nextFee / denom) * 100).toFixed(1);
+  const pndW = ((pendingFee / denom) * 100).toFixed(1);
+
+  const progTrack = document.getElementById('prog-track-bar');
+  progTrack.innerHTML = `
+    <div class="tseg ts-rcv" style="width:${rcvW}%" title="Received: ${fmtCurrencyExact(totalRcv)}"></div>
+    <div class="tseg ts-due" style="width:${dueW}%" title="Due: ${fmtCurrencyExact(dueFee)}"></div>
+    <div class="tseg ts-nxt" style="width:${nxtW}%" title="Next: ${fmtCurrencyExact(nextFee)}"></div>
+    <div class="tseg ts-pnd" style="width:${pndW}%" title="Pending: ${fmtCurrencyExact(pendingFee)}"></div>
+  `;
+
+  document.getElementById('prog-ratio-label').textContent = 
+    `${projectData.stages.filter(s => s.st === 'received').length} OF ${projectData.stages.length} STAGES RECEIVED (${fmtCurrencyExact(totalRcv)} PAID)`;
+  document.getElementById('leg-rcv').textContent = `${fmtCurrencyExact(totalRcv)} (${rcvW}%)`;
+  document.getElementById('leg-due').textContent = `${fmtCurrencyExact(dueFee)} (${dueW}%)`;
+  document.getElementById('leg-nxt').textContent = `${fmtCurrencyExact(nextFee)} (${nxtW}%)`;
+  document.getElementById('leg-pnd').textContent = `${fmtCurrencyExact(pendingFee)} (${pndW}%)`;
+
+  // 3. Table Rows
+  const tbody = document.getElementById('stages-tbody');
+  tbody.innerHTML = '';
+
+  projectData.stages.forEach((st, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <span class="stage-num-badge">STAGE ${st.sNo}</span>
+      </td>
+      <td>
+        <input class="ci" value="${escH(st.name)}" placeholder="Stage description"
+          onchange="updStage(${idx},'name',this.value)" onblur="updStage(${idx},'name',this.value)"/>
+      </td>
+      <td class="center">
+        <input class="ci ci-time" type="number" min="0" step="1" value="${st.weeks || 0}"
+          onchange="updStage(${idx},'weeks',this.value)"/>
+      </td>
+      <td class="num">
+        <input class="ci ci-num ci-cost" type="number" step="10000" value="${st.cost || 0}"
+          onchange="updStage(${idx},'cost',this.value)"/>
+      </td>
+      <td class="num">
+        <input class="ci ci-num ci-fee" type="number" step="1000" value="${st.fee || 0}"
+          onchange="updStage(${idx},'fee',this.value)"/>
+      </td>
+      <td class="num">
+        <input class="ci ci-num ci-rcv" type="number" step="1000" value="${st.rcv || 0}"
+          onchange="updStage(${idx},'rcv',this.value)"/>
+      </td>
+      <td>
+        <input class="ci ci-rem" value="${escH(st.rem)}" placeholder="e.g. BY CASH"
+          onchange="updStage(${idx},'rem',this.value)" onblur="updStage(${idx},'rem',this.value)"/>
+      </td>
+      <td class="center">
+        <select class="st-sel ${selCls(st.st)}" onchange="updStage(${idx},'st',this.value)">
+          <option value="received" ${st.st==='received'?'selected':''}>■ RECEIVED</option>
+          <option value="due"      ${st.st==='due'?'selected':''}>⚠ DUE NOW</option>
+          <option value="next"     ${st.st==='next'?'selected':''}>◎ NEXT</option>
+          <option value="pending"  ${st.st==='pending'?'selected':''}>○ PENDING</option>
+        </select>
+      </td>
+      <td style="text-align:right">
+        <button class="rm-stage" onclick="rmStage(${idx},event)" title="Delete stage">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 4. Footer Totals
+  document.getElementById('foot-total-weeks').textContent = `${totalWeeks} WEEKS`;
+  document.getElementById('foot-total-civil').textContent = fmtCurrencyExact(totalCost);
+  document.getElementById('foot-total-fee').textContent = fmtCurrencyExact(totalFee);
+  document.getElementById('foot-total-rcv').textContent = fmtCurrencyExact(totalRcv);
+  document.getElementById('foot-bal-val').textContent = fmtCurrencyExact(balanceFee);
+}
+
+// ── LOCAL STORAGE & AUTO SAVE ─────────────────────
+const LS_KEY = 'i3d-schedule-vinodh-palakkad';
+let saveTimer = null;
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(projectData));
+    } catch(e) {}
+  }, 1000);
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (d && Array.isArray(d.stages)) {
+      projectData = d;
+      const bt = document.getElementById('badge-text');
+      const bi = document.getElementById('badge-input');
+      if (bt && d.clientBadge) bt.textContent = d.clientBadge;
+      if (bi && d.clientBadge) bi.value = d.clientBadge;
+      return true;
+    }
+  } catch(e) { return false; }
+}
+
+// ── EXPORT AS SELF-CONTAINED INDEX.HTML ───────────
+function exportAsIndexFile() {
+  let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  
+  // Bake live projectData directly into HTML source
+  const dataJson = JSON.stringify(projectData, null, 2);
+  fullHtml = fullHtml.replace(/let projectData = \{[\s\S]*?\};/, `let projectData = ${dataJson};`);
+  
+  const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'index.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("index.html for Mr. Vinodh downloaded ✓ Ready to share/host!");
+}
+
+// ── WHATSAPP & SHARING ────────────────────────────
+function generateWhatsAppText() {
+  const { totalWeeks, totalCost, totalFee, totalRcv, balanceFee } = getTotals();
+
+  let text = `🏛️ *i3d Studio — Construction & Payment Schedule*\n`;
+  text += `*Project:* Residence of Mr. Vinodh\n`;
+  text += `*Location:* Palakkad, Kerala\n`;
+  text += `*Plan Version:* As per Revised Plan (18 Sep 2024)\n`;
+  text += `------------------------------------\n`;
+  text += `📊 *FINANCIAL SUMMARY:*\n`;
+  text += `• Total Civil Estimate: ₹41,00,000 (Rounded)\n`;
+  text += `• Total Consultation Fee: ${fmtCurrencyExact(totalFee)}\n`;
+  text += `• Received to Date: ${fmtCurrencyExact(totalRcv)} (Advance by Cash)\n`;
+  text += `• Balance Consultation: ${fmtCurrencyExact(balanceFee)}\n`;
+  text += `• Construction Duration: ${totalWeeks} Weeks (~4.5 Months)\n`;
+  text += `------------------------------------\n`;
+  text += `📋 *STAGE-BY-STAGE SCHEDULE:*\n`;
+
+  projectData.stages.forEach(st => {
+    const timeStr = st.weeks > 0 ? ` (${st.weeks} wks)` : '';
+    text += `*Stage ${st.sNo}: ${st.name}*${timeStr}\n`;
+    text += `   - Civil: ${fmtCurrencyExact(st.cost)} | Fee: ${fmtCurrencyExact(st.fee)} | Status: ${st.st.toUpperCase()}\n`;
+  });
+
+  text += `------------------------------------\n`;
+  text += `Architect: Shakhith A.M. (COA: CA/97/21884)\n`;
+  text += `Interactive 3 Dimensions · Ph: +91 93631 13693`;
+
+  return text;
+}
+
+function openShareModal() {
+  const waBox = document.getElementById('wa-text-preview');
+  if (waBox) waBox.textContent = generateWhatsAppText();
+  document.getElementById('share-modal').classList.add('active');
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal').classList.remove('active');
+}
+
+function switchShareTab(tabId, btn) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.m-tab-btn').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  btn.classList.add('active');
+}
+
+function sendToWhatsApp() {
+  const text = generateWhatsAppText();
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
+
+function copyWhatsAppSummary() {
+  const text = generateWhatsAppText();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Summary copied to clipboard ✓");
+  }).catch(() => {
+    showToast("Copy failed, please select and copy manually.");
+  });
+}
+
+// ── JSON IMPORT & EXPORT ──────────────────────────
+function exportSession() {
+  const payload = {
+    _meta: { architect: "Shakhith A.M.", coa: "CA/97/21884", client: "Mr. Vinodh", location: "Palakkad, Kerala", exportedAt: new Date().toISOString() },
+    projectData
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `i3d_PaymentSchedule_Vinodh_Palakkad_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("JSON backup downloaded ✓");
+}
+
+function importSession(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.projectData && Array.isArray(d.projectData.stages)) {
+        projectData = d.projectData;
+        renderAll();
+        autoSave();
+        showToast("Schedule restored successfully ✓");
+      }
+    } catch(err) {
+      alert('Invalid i3d JSON file format.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── CSV EXPORT ────────────────────────────────────
+function exportCSV() {
+  let rows = [
+    ["i3d Studio — Payment Schedule & Timeline Tracker"],
+    ["Project", "Residence of Mr. Vinodh"],
+    ["Location", "Palakkad, Kerala"],
+    ["Plan Version", "As per Revised Plan (18 Sep 2024)"],
+    ["Architect", "Shakhith A.M. (CA/97/21884)"],
+    [],
+    ["S.No", "Stage", "Scope Description", "Time Required (Weeks)", "Civil Amount (INR)", "Consultation Fee (INR)", "Received (INR)", "Remarks", "Status"]
+  ];
+
+  projectData.stages.forEach(st => {
+    rows.push([
+      st.sNo,
+      `Stage ${st.sNo}`,
+      st.name,
+      st.weeks,
+      st.cost,
+      st.fee,
+      st.rcv,
+      st.rem,
+      st.st.toUpperCase()
+    ]);
+  });
+
+  const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `i3d_PaymentSchedule_Vinodh_Palakkad.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("CSV exported successfully ✓");
+}
+
+// ── INITIALIZATION ────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadFromStorage();
+  renderAll();
+});
+</script>
+</body>
+</html>

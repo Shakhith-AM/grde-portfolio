@@ -89,7 +89,11 @@ export const RISK_PROFILES = {
 };
 
 export const OWNER_CODE = "I3D-SHAKHITH-2026";
-export const OWNER_UPI = "interactive.dimensions0007@uboi";
+export const OWNER_BANK_NAME = "ICICI Bank";
+export const OWNER_ACCOUNT_TYPE = "Savings Account";
+export const OWNER_ACCOUNT_NO = "001601021695";
+export const OWNER_ACCOUNT_HOLDER = "SHAKHITH.A.M";
+export const OWNER_IFSC = "ICIC0003505";
 export const OWNER_PHONE = "919363113693";
 export const MONTHLY_AMT = 299;
 export const ANNUAL_AMT = 2499;
