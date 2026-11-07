@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { getAllocation } from '../../utils/calculations';
+import { getAllocation, getBand } from '../../utils/calculations';
 import { CAT_META, CATS } from '../../constants/masterData';
 
-export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balanced", height = 240 }) {
-  const [hoverAge, setHoverAge] = useState(null);
+export function GlidePathChart({ currentAge = 52, onAgeChange, riskProfile = "balanced", height = 240 }) {
+  const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
   const ages = useMemo(() => {
@@ -15,8 +15,10 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
     return list;
   }, [riskProfile]);
 
-  const activeAge = hoverAge !== null ? hoverAge : currentAge;
-  const activeAlloc = useMemo(() => getAllocation(activeAge, riskProfile), [activeAge, riskProfile]);
+  // Single source of truth: strictly derive chart header, marker, band & percentages from selected currentAge
+  const selectedAge = Number(currentAge) || 52;
+  const activeAlloc = useMemo(() => getAllocation(selectedAge, riskProfile), [selectedAge, riskProfile]);
+  const activeBand = useMemo(() => getBand(selectedAge), [selectedAge]);
 
   // Width & padding coordinates
   const width = 800;
@@ -48,20 +50,27 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
     return `M ${forward} L ${backward} Z`;
   };
 
-  const handlePointerMove = (e) => {
-    if (!containerRef.current) return;
+  const computeAgeFromEvent = (e) => {
+    if (!containerRef.current) return selectedAge;
     const rect = containerRef.current.getBoundingClientRect();
     const xRatio = (e.clientX - rect.left - (padLeft / width) * rect.width) / ((chartW / width) * rect.width);
-    const age = Math.round(18 + Math.max(0, Math.min(1, xRatio)) * (100 - 18));
-    setHoverAge(age);
+    return Math.round(18 + Math.max(0, Math.min(1, xRatio)) * (100 - 18));
   };
 
-  const handlePointerClick = (e) => {
-    if (!containerRef.current || !onAgeChange) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const xRatio = (e.clientX - rect.left - (padLeft / width) * rect.width) / ((chartW / width) * rect.width);
-    const age = Math.round(18 + Math.max(0, Math.min(1, xRatio)) * (100 - 18));
-    onAgeChange(age);
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    if (onAgeChange) {
+      onAgeChange(computeAgeFromEvent(e));
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging || !onAgeChange) return;
+    onAgeChange(computeAgeFromEvent(e));
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -74,7 +83,7 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
           </h3>
         </div>
 
-        {/* Live Hover/Scrubbed Pill */}
+        {/* Synchronized Selected Age Pill */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div className="mono" style={{
             background: "rgba(212, 168, 67, 0.12)",
@@ -84,7 +93,7 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
             fontSize: 11,
             color: "var(--gold-pale)"
           }}>
-            Age: <strong style={{ color: "var(--white)" }}>{activeAge}</strong> · E: <span style={{ color: CAT_META.E.hex }}>{activeAlloc.E}%</span> | D: <span style={{ color: CAT_META.D.hex }}>{activeAlloc.D}%</span> | R: <span style={{ color: CAT_META.R.hex }}>{activeAlloc.R}%</span> | G: <span style={{ color: CAT_META.G.hex }}>{activeAlloc.G}%</span>
+            Age: <strong style={{ color: "var(--white)" }}>{selectedAge}</strong> <span style={{ color: "var(--gold)" }}>(Band {activeBand})</span> · E: <span style={{ color: CAT_META.E.hex }}>{activeAlloc.E}%</span> | D: <span style={{ color: CAT_META.D.hex }}>{activeAlloc.D}%</span> | R: <span style={{ color: CAT_META.R.hex }}>{activeAlloc.R}%</span> | G: <span style={{ color: CAT_META.G.hex }}>{activeAlloc.G}%</span>
           </div>
         </div>
       </div>
@@ -92,10 +101,11 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
       {/* SVG Chart Container */}
       <div
         ref={containerRef}
-        onMouseMove={handlePointerMove}
-        onMouseLeave={() => setHoverAge(null)}
-        onClick={handlePointerClick}
-        style={{ width: "100%", cursor: "crosshair", touchAction: "none" }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        style={{ width: "100%", cursor: "pointer", touchAction: "none", userSelect: "none" }}
       >
         <svg
           viewBox={`0 0 ${width} ${height}`}
@@ -171,18 +181,18 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
           <path d={stackedData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(d.age)} ${getY(d.yR)}`).join(" ")} fill="none" stroke="#0a1628" strokeWidth="1.5" />
           <path d={stackedData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(d.age)} ${getY(d.yG)}`).join(" ")} fill="none" stroke="#0a1628" strokeWidth="1.5" />
 
-          {/* Active Age vertical line */}
+          {/* Selected Age vertical line */}
           <line
-            x1={getX(activeAge)}
+            x1={getX(selectedAge)}
             y1={padTop}
-            x2={getX(activeAge)}
+            x2={getX(selectedAge)}
             y2={padTop + chartH}
             stroke="var(--white)"
             strokeWidth="2"
             strokeDasharray="4,3"
           />
           <circle
-            cx={getX(activeAge)}
+            cx={getX(selectedAge)}
             cy={padTop}
             r="4"
             fill="var(--gold)"
@@ -201,7 +211,7 @@ export function GlidePathChart({ currentAge, onAgeChange, riskProfile = "balance
         marginTop: 6,
         letterSpacing: "0.06em"
       }}>
-        <span>💡 Click or drag along the chart to simulate any age milestone</span>
+        <span>💡 Click or drag along the chart or slider to select any age milestone</span>
         <div style={{ display: "flex", gap: 12 }}>
           {CATS.map(cat => (
             <span key={cat} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>

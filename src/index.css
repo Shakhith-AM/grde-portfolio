@@ -205,6 +205,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* ─── Sub-Navigation Responsive Overflow Protection ─── */
+.grde-factor-engine div[style*="marginBottom: 24"],
+.grde-factor-engine div[style*="margin-bottom: 24px"],
+.grde-factor-engine div[style*="margin-bottom: 24"] {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.grde-factor-engine div[style*="marginBottom: 24"] > button,
+.grde-factor-engine div[style*="margin-bottom: 24px"] > button {
+  flex-shrink: 0 !important;
+}
+
 /* ─── Responsive Design ─── */
 @media (max-width: 768px) {
   .grde-header {

@@ -1,23 +1,35 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { calculateFireTrajectory } from '../../utils/calculations';
 import { formatCurrency } from '../../constants/currencies';
+import { STRATEGIC_RETIREMENT_CORPUS_TARGET, ILLUSTRATIVE_SCENARIO_CORPUS_3_5CR } from '../../constants/masterData';
 import confetti from 'canvas-confetti';
-import { Sparkles, TrendingUp, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw } from 'lucide-react';
 
-export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
+const FIRE_GOALS_SCHEMA = "GRDE-FIRE-OCT2026-4CR";
+
+export function WealthProjector({ netWorth = 0, currency = "INR", age = 52 }) {
   const [savedGoals] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("grde_fire_goals_v1") || "{}");
+      const parsed = JSON.parse(localStorage.getItem("grde_fire_goals_v1") || "{}");
+      // Migrate older pre-Oct-2026 records that defaulted to 3.5 Cr so the authoritative ₹4.00 Cr Strategic Target is active
+      if (parsed.schemaVersion !== FIRE_GOALS_SCHEMA) {
+        return {
+          ...parsed,
+          schemaVersion: FIRE_GOALS_SCHEMA,
+          targetCorpus: STRATEGIC_RETIREMENT_CORPUS_TARGET
+        };
+      }
+      return parsed;
     } catch (e) {
       return {};
     }
   });
 
-  const [targetCorpus, setTargetCorpus] = useState(() => savedGoals.targetCorpus || 35000000);
-  const [monthlySip, setMonthlySip] = useState(() => savedGoals.monthlySip || 65000);
+  const [targetCorpus, setTargetCorpus] = useState(() => Number(savedGoals.targetCorpus) || STRATEGIC_RETIREMENT_CORPUS_TARGET);
+  const [monthlySip, setMonthlySip] = useState(() => savedGoals.monthlySip || 64000);
   const [assumedRate, setAssumedRate] = useState(() => savedGoals.assumedRate || 11);
   const [stepUp, setStepUp] = useState(() => (savedGoals.stepUp !== undefined ? savedGoals.stepUp : 5));
-  const [horizonYears, setHorizonYears] = useState(30);
+  const [horizonYears] = useState(30);
 
   // Age inheritance from Portfolio Tracker with optional override toggle
   const [isOverrideAge, setIsOverrideAge] = useState(() => savedGoals.isOverrideAge || false);
@@ -25,21 +37,21 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
     if (savedGoals.isOverrideAge && savedGoals.currentAge) {
       return savedGoals.currentAge;
     }
-    return age || 50;
+    return age || 52;
   });
 
-  // Automatically inherit and sync Portfolio Tracker age whenever it changes (unless user explicitly toggles override)
   useEffect(() => {
     if (!isOverrideAge && age) {
       setCurrentAge(age);
     }
   }, [age, isOverrideAge]);
 
-  // Auto-save goals to localStorage
+  // Auto-save goals to localStorage with schemaVersion
   useEffect(() => {
     try {
       localStorage.setItem("grde_fire_goals_v1", JSON.stringify({
-        targetCorpus,
+        schemaVersion: FIRE_GOALS_SCHEMA,
+        targetCorpus: Number(targetCorpus) || STRATEGIC_RETIREMENT_CORPUS_TARGET,
         monthlySip,
         assumedRate,
         currentAge,
@@ -49,19 +61,21 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
     } catch (e) {}
   }, [targetCorpus, monthlySip, assumedRate, currentAge, stepUp, isOverrideAge]);
 
+  const target = Number(targetCorpus) || STRATEGIC_RETIREMENT_CORPUS_TARGET;
+  const isStrategic4CrTarget = target === STRATEGIC_RETIREMENT_CORPUS_TARGET;
+
   const trajectory = useMemo(() => {
     return calculateFireTrajectory({
       currentNetWorth: netWorth,
       monthlySip: Number(monthlySip) || 0,
       annualGrowthRate: assumedRate,
-      targetCorpus: Number(targetCorpus) || 0,
-      currentAge: Number(currentAge) || (age || 50),
+      targetCorpus: target,
+      currentAge: Number(currentAge) || (age || 52),
       yearsToProject: horizonYears,
       stepUpPct: stepUp
     });
-  }, [netWorth, monthlySip, assumedRate, targetCorpus, currentAge, age, horizonYears, stepUp]);
+  }, [netWorth, monthlySip, assumedRate, target, currentAge, age, horizonYears, stepUp]);
 
-  const target = Number(targetCorpus) || 0;
   const progress = target > 0 ? Math.min(100, (netWorth / target) * 100) : 0;
 
   const triggerConfetti = () => {
@@ -110,12 +124,21 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
         flexWrap: "wrap",
         gap: 10
       }}>
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span className="mono" style={{ fontSize: 11, color: "var(--white)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
             FIRE & Wealth Compounding Simulator
           </span>
-          <span className="mono" style={{ fontSize: 9, color: "var(--text-dim)", marginLeft: 12 }}>
-            Interactive projection with annual step-up
+          <span className="mono" style={{
+            fontSize: 9,
+            color: isStrategic4CrTarget ? "var(--gold)" : "#38bdf8",
+            background: isStrategic4CrTarget ? "rgba(212, 168, 67, 0.12)" : "rgba(56, 189, 248, 0.12)",
+            border: `1px solid ${isStrategic4CrTarget ? "var(--gold-dim)" : "#38bdf866"}`,
+            borderRadius: 999,
+            padding: "2px 10px"
+          }}>
+            {isStrategic4CrTarget
+              ? "STRATEGIC GRDE TARGET: ₹4,00,00,000 (₹4 CRORE)"
+              : "USER-SELECTED SCENARIO (Not Strategic ₹4.00 Cr Target)"}
           </span>
         </div>
 
@@ -132,7 +155,7 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
           }}>
             <Sparkles size={13} style={{ color: "var(--good)" }} />
             <span className="mono" style={{ fontSize: 10, color: "var(--good)", fontWeight: 600 }}>
-              Projected target age: Age {trajectory.reachedAge} (~{trajectory.reachedAge - currentAge} yrs) · Based on current assumptions
+              Projected {formatCurrency(target, currency, true)} milestone: Age {trajectory.reachedAge} (~{trajectory.reachedAge - currentAge} yrs)
             </span>
           </div>
         ) : target > 0 && netWorth >= target ? (
@@ -155,19 +178,38 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
 
       <div style={{ padding: "20px 22px" }}>
         {/* Controls grid */}
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 16 }}>
-          <div style={{ flex: "1 1 180px" }}>
-            <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>
-              Target Corpus ({currency})
-            </label>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 14 }}>
+          <div style={{ flex: "1 1 210px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
+                Target Retirement Corpus ({currency})
+              </label>
+              {!isStrategic4CrTarget && (
+                <button
+                  onClick={() => setTargetCorpus(STRATEGIC_RETIREMENT_CORPUS_TARGET)}
+                  className="mono"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--gold)",
+                    fontSize: 8.5,
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    padding: 0
+                  }}
+                >
+                  Restore ₹4 Cr Target
+                </button>
+              )}
+            </div>
             <input
               type="number"
               value={targetCorpus}
-              onChange={(e) => setTargetCorpus(e.target.value)}
+              onChange={(e) => setTargetCorpus(Number(e.target.value))}
               style={{
                 width: "100%",
                 background: "var(--bg)",
-                border: "1px solid var(--border-2)",
+                border: `1px solid ${isStrategic4CrTarget ? "var(--gold-dim)" : "#38bdf866"}`,
                 borderRadius: 8,
                 padding: "9px 12px",
                 color: "var(--white)",
@@ -176,9 +218,43 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
                 outline: "none"
               }}
             />
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+              <button
+                type="button"
+                onClick={() => setTargetCorpus(STRATEGIC_RETIREMENT_CORPUS_TARGET)}
+                className="mono"
+                style={{
+                  background: isStrategic4CrTarget ? "rgba(212, 168, 67, 0.16)" : "transparent",
+                  border: `1px solid ${isStrategic4CrTarget ? "var(--gold)" : "var(--border)"}`,
+                  color: isStrategic4CrTarget ? "var(--gold-pale)" : "var(--text-dim)",
+                  borderRadius: 4,
+                  padding: "2px 8px",
+                  fontSize: 8.5,
+                  cursor: "pointer"
+                }}
+              >
+                ₹4.00 Cr (Strategic Target)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetCorpus(ILLUSTRATIVE_SCENARIO_CORPUS_3_5CR)}
+                className="mono"
+                style={{
+                  background: target === ILLUSTRATIVE_SCENARIO_CORPUS_3_5CR ? "rgba(56, 189, 248, 0.14)" : "transparent",
+                  border: `1px solid ${target === ILLUSTRATIVE_SCENARIO_CORPUS_3_5CR ? "#38bdf8" : "var(--border)"}`,
+                  color: target === ILLUSTRATIVE_SCENARIO_CORPUS_3_5CR ? "#38bdf8" : "var(--text-dim)",
+                  borderRadius: 4,
+                  padding: "2px 8px",
+                  fontSize: 8.5,
+                  cursor: "pointer"
+                }}
+              >
+                ₹3.50 Cr (User Scenario)
+              </button>
+            </div>
           </div>
 
-          <div style={{ flex: "1 1 160px" }}>
+          <div style={{ flex: "1 1 150px" }}>
             <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em", display: "block", marginBottom: 6 }}>
               Monthly SIP ({currency})
             </label>
@@ -200,7 +276,7 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
             />
           </div>
 
-          <div style={{ flex: "0 0 140px" }}>
+          <div style={{ flex: "0 0 135px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <label className="mono" style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.14em" }}>
                 Current Age
@@ -307,12 +383,13 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
 
         {/* Progress bar to target */}
         <div style={{ marginBottom: 18 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, flexWrap: "wrap", gap: 8 }}>
             <span className="mono" style={{ fontSize: 10, color: "var(--text-dim)" }}>
-              Current Net Worth: <strong style={{ color: "var(--white)" }}>{formatCurrency(netWorth, currency, false)}</strong>
+              Current Base: <strong style={{ color: "var(--white)" }}>{formatCurrency(netWorth, currency, false)}</strong>
             </span>
-            <span className="mono" style={{ fontSize: 10, color: "var(--gold)" }}>
-              Target: <strong style={{ color: "var(--gold-pale)" }}>{formatCurrency(target, currency, false)}</strong> ({progress.toFixed(1)}%)
+            <span className="mono" style={{ fontSize: 10, color: isStrategic4CrTarget ? "var(--gold)" : "#38bdf8" }}>
+              {isStrategic4CrTarget ? "Strategic Retirement Target:" : "User Scenario Target:"}{" "}
+              <strong style={{ color: "var(--gold-pale)" }}>{formatCurrency(target, currency, false)}</strong> ({progress.toFixed(1)}%)
             </span>
           </div>
 
@@ -357,7 +434,7 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
                   fontFamily="JetBrains Mono"
                   textAnchor="end"
                 >
-                  TARGET: {formatCurrency(target, currency, true)}
+                  {isStrategic4CrTarget ? "STRATEGIC TARGET" : "USER SCENARIO"}: {formatCurrency(target, currency, true)}
                 </text>
               </g>
             )}
@@ -411,9 +488,8 @@ export function WealthProjector({ netWorth = 0, currency = "INR", age = 50 }) {
               onChange={(e) => setAssumedRate(Number(e.target.value))}
               style={{ width: "100%", cursor: "pointer" }}
             />
-            {/* Explicit Regulatory Positioning Caption */}
             <div className="mono" style={{ fontSize: 9.5, color: "var(--text-dim)", marginTop: 6, fontStyle: "italic", letterSpacing: "0.02em" }}>
-              Illustrative projection — not a return forecast. Based on user-selected growth assumption.
+              Illustrative projection — not a return forecast. Strategic GRDE retirement target is ₹4,00,00,000 (₹4 Crore).
             </div>
           </div>
 

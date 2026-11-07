@@ -5,7 +5,7 @@ import { ShieldAlert, Building2, Shield, TrendingUp, Check } from 'lucide-react'
 export function OnboardingModal({ onComplete }) {
   const [step, setStep] = useState(0);
   const [holderName, setHolderName] = useState("");
-  const [age, setAge] = useState(35);
+  const [age, setAge] = useState(52);
   const [portfolioValue, setPortfolioValue] = useState("");
 
   const handleFinish = () => {
@@ -14,7 +14,7 @@ export function OnboardingModal({ onComplete }) {
       localStorage.setItem("grde_tracker_v3", JSON.stringify({
         ...existing,
         holderName: holderName.trim(),
-        age: Number(age) || 35,
+        age: Number(age) || 52,
         totalPortfolio: portfolioValue ? Number(portfolioValue) : (existing.totalPortfolio ?? ""),
         values: existing.values ?? {},
         reportDate: existing.reportDate ?? new Date().toISOString().slice(0, 7),

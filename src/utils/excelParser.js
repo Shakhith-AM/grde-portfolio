@@ -1,35 +1,45 @@
 import * as XLSX from 'xlsx';
 import { ASSET_TEMPLATE } from '../constants/masterData';
 
-// Prioritized keyword dictionary mapped to the 18 GRDE asset IDs
+// Prioritized keyword dictionary mapped to October 2026 GRDE asset IDs
 export const ASSET_KEYWORDS = {
-  // G — Gold & Silver
-  g_silver: ['silver', 'silverbees', 'silver bees', 'tatsilv', 'tata silver', 'nippon silver', 'hdfc silver'],
-  g_gold:   ['gold', 'goldbees', 'gold bees', 'gldm', 'sovereign', 'sgb', 'nippon gold', 'hdfc gold', 'icici gold', 'sbi gold', 'physical gold'],
+  // G — Gold (G1–G3 Strategic)
+  g_sgb:    ['sgb', 'sovereign gold', 'sovereign gold bond'],
+  g_phys:   ['physical gold', 'gold coin', 'gold bar', 'bullion'],
+  g_gold:   ['gold', 'goldbees', 'gold bees', 'gldm', 'nippon gold', 'hdfc gold', 'icici gold', 'sbi gold'],
 
   // R — Real Estate / REITs & InvITs
-  r_dc:     ['data centre', 'data center', 'dc reit', 'datacentre'],
+  r_dc_legacy: ['data centre', 'data center', 'dc reit', 'datacentre'],
   r_nexus:  ['nexus', 'retail reit', 'mall reit', 'nexus select'],
   r_krt:    ['krt', 'brookfield', 'embassy', 'office reit b', 'office reit (b)'],
   r_mind:   ['mindspace', 'mind space', 'office reit a', 'office reit (a)', 'office reit'],
   r_indi:   ['indigrid', 'power invit', 'transmission', 'indi grid', 'india grid'],
   r_irb:    ['irb', 'irbinv', 'highways', 'road invit', 'pginvit', 'toll'],
 
-  // D — Debt & Fixed Income
-  d_ult:    ['ultra short', 'nipp ultra', 'low duration', 'money market', 'short duration', 'short term'],
-  d_liq:    ['jio', 'balckrock', 'blackrock', 'liquid', 'overnight', 'cash', 'emergency', 'savings', 'instant redemption'],
-  d_pomis:  ['pomis', 'post office', 'monthly income', 'senior citizen', 'scss'],
-  d_nps:    ['nps', 'tier 1', 'tier i', 'tier-1', 'tier-i', 'national pension', 'pran'],
-  d_inc:    ['wint', 'bond', 'bonds', 'target maturity', 'sdl', 'g-sec', 'gsec', 'debenture', 'duration'],
-  d_fd:     ['fd', 'fd.1', 'fd.2', 'fixed deposit', 'term deposit', 'bank fd', 'corporate fd'],
+  // D — Debt & Defensive Assets (D1–D4)
+  d_dyn:    ['dynamic bond', 'nippon dynamic', 'duration bond fund'],
+  d_liq:    ['jio', 'balckrock', 'blackrock', 'liquid', 'overnight', 'cash', 'emergency', 'ultra short', 'nipp ultra', 'low duration', 'money market'],
+  d_pomis:  ['pomis', 'post office', 'monthly income', 'senior citizen', 'scss', 'fd', 'fd.1', 'fd.2', 'fixed deposit', 'term deposit', 'bank fd'],
+  d_inc:    ['wint', 'bond', 'bonds', 'target maturity', 'sdl', 'g-sec', 'gsec', 'debenture'],
 
-  // E — Equity Compounding Engine
-  e_hc:     ['healthcare', 'health care', 'pharma', 'biotech', 'mirae health', 'medical', 'hospital'],
-  e_etfus:  ['mon100', 'mon 100', 'voo', 'schd', 's&p 500', 'sp500', 'nasdaq', 'etf (us)', 'etf(us)', 'international', 'global', 'us etf'],
-  e_etfin:  ['nifty', 'nifty 50', 'niftybees', 'nifty bees', 'junior bees', 'juniorbees', 'midcap 150', 'sensex', 'etf (ind)', 'etf (ici)', 'etf(ind)', 'etf(ici)', 'indian etf'],
-  e_mf:     ['mutual fund', 'mf legacy', 'mf neo', 'mf: 16', 'flexi cap', 'large cap', 'mid cap', 'small cap',
-             'ppf', 'ppfas', 'parag parikh', 'franklin', 'icici value', 'motilal', 'hdfc baf', 'hdfc smallcap',
-             'aditya birla', 'adhitya', 'sbi large', 'quant', 'mirae large', 'active mf', 'active equity', 'indian mf']
+  // E1 — Indian Equity (Passive, Active & Legacy/Transition)
+  e1_p_hc:      ['healthcare etf', 'health etf', 'pharma etf', 'nifty healthcare'],
+  e1_hc_legacy: ['mirae health', 'mirae asset health', 'healthcare fund'],
+  e1_p_nn50:    ['next 50', 'nifty next 50', 'juniorbees', 'junior bees'],
+  e1_p_n500:    ['nifty 500', '500 etf', 'mon500', 'total market'],
+  e1_p_n50:     ['nifty 50', 'niftybees', 'nifty bees', 'sensex etf'],
+  e1_a_hbaf:    ['hdfc balanced', 'hdfc baf', 'balanced advantage'],
+  e1_a_hsmc:    ['hdfc small', 'hdfc smallcap', 'small cap'],
+  e1_a_momc:    ['motilal', 'motilal oswal midcap', 'midcap fund'],
+  e1_a_ppfas:   ['ppfas', 'parag parikh', 'flexicap', 'flexi cap'],
+  e1_legacy_mf: ['icici value', 'franklin', 'aditya birla', 'adhitya', 'sbi large', 'quant', 'mirae large', 'mf legacy'],
+
+  // E2 — US Equity (VOO, QQQM, SCHD, Momentum & MON100 Transition)
+  e2_voo:       ['voo', 'vanguard s p', 's&p 500', 'sp500'],
+  e2_qqqm:      ['qqqm', 'invesco nasdaq', 'nasdaq 100 growth'],
+  e2_schd:      ['schd', 'schwab dividend', 'us dividend'],
+  e2_mom:       ['invesco momentum', 'momentum etf', 'spmo', 'pdp'],
+  e2_mon100:    ['mon100', 'mon 100', 'motilal nasdaq']
 };
 
 export function matchAssetId(rawText = '') {
@@ -90,7 +100,6 @@ export async function parseExcelOrCsv(file) {
         const mappedMap = {};
         const unmapped = [];
 
-        // Check for tabular header row (search first 6 rows)
         let headerRowIdx = -1;
         let nameColIdx = -1;
         let amountColIdx = -1;
@@ -154,19 +163,21 @@ export async function parseExcelOrCsv(file) {
 
             if (matchedId && cellAmount > 0) {
               const template = ASSET_TEMPLATE.find(t => t.id === matchedId);
-              const displayName = cellCustom || cellName || template.name;
-              if (!mappedMap[matchedId]) {
-                mappedMap[matchedId] = {
-                  id: matchedId,
-                  name: displayName,
-                  category: template.cat,
-                  amount: cellAmount,
-                  rowNumber: r + 1
-                };
-              } else {
-                mappedMap[matchedId].amount += cellAmount;
-                if (displayName && displayName !== mappedMap[matchedId].name) {
-                  mappedMap[matchedId].name = `${mappedMap[matchedId].name} / ${displayName}`;
+              if (template) {
+                const displayName = cellCustom || cellName || template.name;
+                if (!mappedMap[matchedId]) {
+                  mappedMap[matchedId] = {
+                    id: matchedId,
+                    name: displayName,
+                    category: template.cat,
+                    amount: cellAmount,
+                    rowNumber: r + 1
+                  };
+                } else {
+                  mappedMap[matchedId].amount += cellAmount;
+                  if (displayName && displayName !== mappedMap[matchedId].name) {
+                    mappedMap[matchedId].name = `${mappedMap[matchedId].name} / ${displayName}`;
+                  }
                 }
               }
             }
@@ -203,16 +214,18 @@ export async function parseExcelOrCsv(file) {
                   usedCols.add(amountCol);
 
                   const template = ASSET_TEMPLATE.find(t => t.id === matchedId);
-                  if (!mappedMap[matchedId]) {
-                    mappedMap[matchedId] = {
-                      id: matchedId,
-                      name: template.name,
-                      category: template.cat,
-                      amount: foundAmount,
-                      rowNumber: rIdx + 1
-                    };
-                  } else {
-                    mappedMap[matchedId].amount += foundAmount;
+                  if (template) {
+                    if (!mappedMap[matchedId]) {
+                      mappedMap[matchedId] = {
+                        id: matchedId,
+                        name: template.name,
+                        category: template.cat,
+                        amount: foundAmount,
+                        rowNumber: rIdx + 1
+                      };
+                    } else {
+                      mappedMap[matchedId].amount += foundAmount;
+                    }
                   }
                 }
               }
@@ -233,63 +246,38 @@ export async function parseExcelOrCsv(file) {
 }
 
 /**
- * Generates an Excel template (.xlsx) for user to populate monthly SIPs or holdings
+ * Generates an Excel template (.xlsx) for the October 2026 Consolidated GRDE Architecture
  */
 export function generateExcelTemplate() {
   const headers = [
     "Category (G/R/D/E)",
-    "GRDE Asset Class",
-    "Sub-Category",
+    "GRDE Sleeve Code",
+    "Asset / Sleeve Name",
     "Your Fund / Bank / Instrument Name",
-    "Current Invested Value (INR)",
-    "Monthly SIP / Installment (INR)"
+    "Strategic Target at ₹40L (INR)",
+    "Current Invested Value (INR)"
   ];
   
-  const rows = [
-    ["G", "Gold ETFs", "Gold", "Nippon India Gold BeES / GLDM", "", ""],
-    ["G", "Silver ETFs", "Silver", "Tata Silver ETF / SilverBeES", "", ""],
-    ["R", "Mindspace REIT", "REITs · Office", "Mindspace Business Parks REIT", "", ""],
-    ["R", "KRT REIT", "REITs · Office", "Brookfield India / KRT REIT", "", ""],
-    ["R", "Nexus REIT", "REITs · Retail", "Nexus Select Trust REIT", "", ""],
-    ["R", "Data Centre REITs", "REITs · Data Centre", "Data Centre REITs", "", ""],
-    ["R", "IndiGrid InvIT", "InvITs · Power", "India Grid Trust (IndiGrid)", "", ""],
-    ["R", "IRB InvIT", "InvITs · Roads", "IRB InvIT Fund", "", ""],
-    ["D", "Liquid Funds", "Liquidity", "Jio BlackRock / ICICI Liquid Fund", "", ""],
-    ["D", "Ultra Short Duration", "Liquidity", "Nippon India Ultra Short Duration", "", ""],
-    ["D", "Fixed Deposits", "Capital Protection", "Bank Fixed Deposits (FD.1)", "", ""],
-    ["D", "POMIS / Income", "Capital Protection", "Post Office Monthly Income Scheme", "", ""],
-    ["D", "Bonds / Duration", "Income / Duration", "Wint Wealth Bonds / Target Maturity", "", ""],
-    ["D", "NPS Tier I", "Pension", "National Pension System (Active Choice)", "", ""],
-    ["E", "Indian Mutual Funds", "Active Indian Equity", "PPFAS / ICICI Value / Franklin / MO Midcap", "", ""],
-    ["E", "Indian ETFs", "Passive Indian Equity", "Nifty 50 BeES / Junior BeES", "", ""],
-    ["E", "US Equity ETFs", "Global / US Equity", "VOO (S&P 500) / MON100 (Nasdaq) / SCHD", "", ""],
-    ["E", "Healthcare Sector", "Defensive Equity", "Mirae Asset Healthcare Fund", "", ""]
-  ];
+  const rows = ASSET_TEMPLATE.map(a => [
+    a.cat,
+    a.sleeveCode || a.sub,
+    a.name,
+    a.desc,
+    a.refTarget40L || 0,
+    ""
+  ]);
 
-  const wsData = [headers, ...rows];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = [
     { wch: 18 },
-    { wch: 22 },
-    { wch: 22 },
-    { wch: 42 },
-    { wch: 28 },
-    { wch: 30 }
+    { wch: 18 },
+    { wch: 36 },
+    { wch: 48 },
+    { wch: 24 },
+    { wch: 26 }
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "GRDE_Template");
-
-  const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `GRDE_Holdings_Template_v5.3.xlsx`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  XLSX.utils.book_append_sheet(wb, ws, "GRDE_Oct2026_Holdings");
+  XLSX.writeFile(wb, "GRDE_October_2026_Portfolio_Template.xlsx");
 }

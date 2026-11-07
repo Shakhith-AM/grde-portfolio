@@ -6,19 +6,22 @@ import {
   Activity, 
   Briefcase, 
   ShieldCheck, 
-  KeyRound, 
-  Lock 
+  Calendar
 } from 'lucide-react';
 
-export function Navigation({ active, onChange, isUnlocked, isOwner }) {
+export function Navigation({ active, onChange }) {
+  // Public GitHub Pages navigation tabs ONLY (Section E):
+  // Dashboard, Allocator, Blueprint, Portfolio Engine, SIP Planner, ISR & Drift, GRDE Pulse.
+  // Local/private modules (TATASILV Recovery, Podcast Journal, Owner/Admin Codes Console,
+  // Research Console, and Internal Engines) are separated into the Local Development bar.
   const tabs = [
-    { id: "dashboard", label: "Dashboard",        icon: LayoutDashboard, locked: !isUnlocked },
-    { id: "allocator", label: "Allocator",        icon: Sliders,         locked: false },
-    { id: "blueprint", label: "Blueprint",        icon: BookOpen,        locked: false },
-    { id: "tracker",   label: "Portfolio Tracker",icon: Briefcase,       locked: !isUnlocked },
-    { id: "isr",       label: "ISR Analysis",     icon: ShieldCheck,     locked: !isUnlocked },
-    { id: "pulse",     label: "Pulse & Actions",  icon: Activity,        locked: !isUnlocked },
-    ...(isOwner ? [{ id: "codes", label: "Owner Codes", icon: KeyRound, locked: false, owner: true }] : []),
+    { id: "dashboard", label: "Dashboard",           icon: LayoutDashboard },
+    { id: "allocator", label: "Allocator",           icon: Sliders },
+    { id: "blueprint", label: "Blueprint (G·R·D·E)", icon: BookOpen },
+    { id: "tracker",   label: "Portfolio Engine",    icon: Briefcase },
+    { id: "sip",       label: "SIP Planner",         icon: Calendar },
+    { id: "isr",       label: "ISR & Drift",         icon: ShieldCheck },
+    { id: "pulse",     label: "GRDE Pulse",          icon: Activity }
   ];
 
   return (
@@ -29,7 +32,8 @@ export function Navigation({ active, onChange, isUnlocked, isOwner }) {
       border: "1px solid var(--border)",
       borderRadius: 999,
       padding: 4,
-      boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
+      boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+      flexWrap: "wrap"
     }}>
       {tabs.map(t => {
         const isActive = active === t.id;
@@ -45,8 +49,6 @@ export function Navigation({ active, onChange, isUnlocked, isOwner }) {
           >
             <Icon size={13} style={{ opacity: isActive ? 1 : 0.7 }} />
             <span>{t.label}</span>
-            {t.locked && <Lock size={10} style={{ opacity: 0.6, marginLeft: 2 }} />}
-            {t.owner && !isActive && <span style={{ color: "var(--gold)", fontSize: 10 }}>★</span>}
           </button>
         );
       })}

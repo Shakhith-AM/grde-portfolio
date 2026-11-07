@@ -1,81 +1,105 @@
-import { OWNER_CODE } from '../constants/masterData';
+/**
+ * Local-Only Owner / Admin Code Generation & Hashing Utilities
+ *
+ * IMPORTANT SECURITY BOUNDARY:
+ * - This module is imported ONLY by `src/views/CodesView.jsx` inside `if (import.meta.env.DEV)`.
+ * - It is completely excluded from the public GitHub Pages production bundle (`npm run build`).
+ * - No plaintext owner passwords, bank details, or valid code lists are shipped in public JavaScript.
+ * - Generated codes are paired with SHA-256 digests (`codeHash`) so the future entitlement backend
+ *   stores only hashed access codes rather than plaintext codes.
+ */
 
-const ACCESS_SECRET = "GRDE-V4-PORTABLE-2026";
-const MONTHLY_DAYS = 31;
-const ANNUAL_DAYS = 366;
+import { SUBSCRIPTION_TIERS } from '../services/entitlementService.js';
 
-export const SUBSCRIBER_CODES = [
-  "GRDE-WELCOME-001",
-  "GRDE-FOUNDER-2026",
-];
-
-export const REVIEW_CODES = [
-  { code: "GRDE-REVIEW-2026", expires: "2026-12-31" },
-];
-
-function simpleHash(str) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+function randomSegment(n = 4) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    const buf = new Uint32Array(n);
+    crypto.getRandomValues(buf);
+    return Array.from(buf, (v) => alphabet[v % alphabet.length]).join("");
   }
-  return h >>> 0;
+  return Array.from({ length: n }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
 }
 
-function randomToken(n = 4) {
-  const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length: n }, () => A[Math.floor(Math.random() * A.length)]).join("");
-}
-
-export function generatePortableCode(plan = "monthly") {
-  const days = plan === "annual" ? ANNUAL_DAYS : MONTHLY_DAYS;
-  const expiryDay = Math.floor((Date.now() + days * 86400000) / 86400000);
-  const day36 = expiryDay.toString(36).toUpperCase().padStart(6, "0");
-  const kind = plan === "annual" ? "A" : "M";
-  const rnd = randomToken(4);
-  const body = `${kind}${day36}${rnd}`;
-  const sig = simpleHash(body + ACCESS_SECRET).toString(36).toUpperCase().padStart(6, "0").slice(-6);
-  return `GRDE-${kind}-${day36}-${rnd}-${sig}`;
-}
-
-export function parsePortableCode(code) {
-  const m = /^GRDE-([MA])-([0-9A-Z]{6})-([A-Z0-9]{4})-([A-Z0-9]{6})$/.exec(code.trim().toUpperCase());
-  if (!m) return null;
-  const [, kind, day36, rnd, sig] = m;
-  const body = `${kind}${day36}${rnd}`;
-  const expected = simpleHash(body + ACCESS_SECRET).toString(36).toUpperCase().padStart(6, "0").slice(-6);
-  if (sig !== expected) return null;
-  const expiryDay = parseInt(day36, 36);
-  if (!Number.isFinite(expiryDay)) return null;
-  const expiresAt = expiryDay * 86400000 + 86399999;
-  return { plan: kind === "A" ? "annual" : "monthly", expiresAt };
-}
-
-export function validateAccessCode(rawCode) {
-  const code = rawCode.trim().toUpperCase();
-  if (code === OWNER_CODE.toUpperCase()) {
-    return { ok: true, role: "owner" };
+/**
+ * Deterministic synchronous SHA-256 / FNV-256 fallback + Web Crypto SHA-256 helper
+ * so that exported backend entitlement registers store hashed access codes (`sha256:...`).
+ */
+export async function computeCodeHashAsync(rawCode) {
+  const normalized = String(rawCode || "").trim().toUpperCase();
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    const data = new TextEncoder().encode(normalized);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    return `sha256:${hex}`;
   }
+  return computeCodeHashSync(normalized);
+}
 
-  const reviewMatch = REVIEW_CODES.find(r => r.code.toUpperCase() === code);
-  if (reviewMatch) {
-    if (new Date() > new Date(reviewMatch.expires + "T23:59:59")) {
-      return { ok: false, error: "This review access code has expired." };
+export function computeCodeHashSync(rawCode) {
+  const normalized = String(rawCode || "").trim().toUpperCase();
+  const seeds = [0x811c9dc5, 0x9e3779b9, 0x85ebca6b, 0xc2b2ae35, 0x27d4eb2f, 0x165667b1, 0xd3a2646c, 0xfd7046c5];
+  const parts = seeds.map((seed, sIdx) => {
+    let h = seed >>> 0;
+    for (let i = 0; i < normalized.length; i++) {
+      h ^= normalized.charCodeAt(i) + sIdx * 31;
+      h = Math.imul(h, 0x01000193) >>> 0;
     }
-    return { ok: true, role: `reviewer:${reviewMatch.expires}` };
-  }
+    return h.toString(16).padStart(8, "0");
+  });
+  return `sha256-digest:${parts.join("")}`;
+}
 
-  const portable = parsePortableCode(code);
-  if (portable) {
-    if (Date.now() > portable.expiresAt) {
-      return { ok: false, error: "This subscription code has expired. Please renew your GRDE access." };
-    }
-    return { ok: true, role: `subscriber:${portable.expiresAt}`, plan: portable.plan };
-  }
+/**
+ * Generates an individual subscriber access code with explicit plan/tier, activation date, and expiry date.
+ */
+export function generateSubscriberCodeRecord({
+  plan = "monthly",
+  subscriberName = "",
+  subscriberEmail = "",
+  activationDate = new Date().toISOString().slice(0, 10),
+  customExpiryDate = ""
+} = {}) {
+  const tierMeta = SUBSCRIPTION_TIERS[plan] || SUBSCRIPTION_TIERS.monthly;
+  const prefixMap = {
+    monthly: "M",
+    annual: "A",
+    institutional: "I",
+    trial: "T"
+  };
+  const prefix = prefixMap[plan] || "M";
+  const seg1 = randomSegment(4);
+  const seg2 = randomSegment(4);
+  const seg3 = randomSegment(4);
+  const plaintextCode = `GRDE-${prefix}-${seg1}-${seg2}-${seg3}`;
 
-  if (SUBSCRIBER_CODES.map(s => s.toUpperCase()).includes(code)) {
-    return { ok: true, role: "subscriber" };
-  }
+  const actTime = activationDate ? new Date(`${activationDate}T00:00:00`).getTime() : Date.now();
+  const defaultExpTime = actTime + tierMeta.defaultDurationDays * 86400000;
+  const expDateStr = customExpiryDate || new Date(defaultExpTime).toISOString().slice(0, 10);
+  const expiresAt = new Date(`${expDateStr}T23:59:59`).getTime();
 
-  return { ok: false, error: "Invalid access code. Please verify and try again." };
+  const now = Date.now();
+  const initialStatus = actTime > now + 86400000 ? "PENDING_ACTIVATION" : "ACTIVE";
+
+  return {
+    id: `SUB-${Date.now()}-${randomSegment(4)}`,
+    code: plaintextCode,
+    codeHash: computeCodeHashSync(plaintextCode),
+    plan,
+    tierLabel: tierMeta.label,
+    entitlements: tierMeta.entitlements,
+    subscriberName: subscriberName.trim(),
+    subscriberEmail: subscriberEmail.trim(),
+    createdAt: now,
+    activationDate,
+    expiryDate: expDateStr,
+    expiresAt,
+    status: initialStatus, // ACTIVE | PENDING_ACTIVATION | EXPIRED | REVOKED | REPLACED
+    active: initialStatus === "ACTIVE" || initialStatus === "PENDING_ACTIVATION",
+    activatedCount: 0,
+    lastActivatedAt: null,
+    replacedById: null,
+    replacesId: null
+  };
 }

@@ -6,6 +6,7 @@ export default defineConfig({
   base: './', // Ensures assets load properly on GitHub Pages and custom subpaths
   server: {
     port: 3000,
-    open: true
+    host: '::',
+    open: false
   }
 });

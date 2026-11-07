@@ -1,9 +1,9 @@
 import React from 'react';
 import { CURRENCIES } from '../../constants/currencies';
 import { GRDE_VERSION } from '../../constants/masterData';
-import { Lock, Unlock, FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
 
-export function Header({ unlocked, onLock, currency, onCurrencyChange, onOpenExcelModal }) {
+export function Header({ currency, onCurrencyChange, onOpenExcelModal }) {
   return (
     <header className="grde-header" style={{
       borderBottom: "1px solid var(--border)",
@@ -118,47 +118,6 @@ export function Header({ unlocked, onLock, currency, onCurrencyChange, onOpenExc
         }}>
           v{GRDE_VERSION}
         </div>
-
-        {/* Lock status */}
-        {unlocked ? (
-          <button
-            onClick={onLock}
-            title="Lock session"
-            className="mono"
-            style={{
-              background: "rgba(82,168,106,0.1)",
-              border: "1px solid rgba(82,168,106,0.4)",
-              color: "var(--good)",
-              borderRadius: 999,
-              padding: "5px 12px",
-              fontSize: 10,
-              letterSpacing: "0.14em",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6
-            }}
-          >
-            <Unlock size={12} />
-            <span>UNLOCKED</span>
-          </button>
-        ) : (
-          <div className="mono" style={{
-            background: "rgba(214,96,77,0.1)",
-            border: "1px solid rgba(214,96,77,0.3)",
-            color: "var(--danger)",
-            borderRadius: 999,
-            padding: "5px 12px",
-            fontSize: 10,
-            letterSpacing: "0.14em",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6
-          }}>
-            <Lock size={12} />
-            <span>PROTECTED</span>
-          </div>
-        )}
       </div>
     </header>
   );

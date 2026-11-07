@@ -68,13 +68,9 @@ export function AllocatorView({ age, onAgeChange, riskProfile, onRiskProfileChan
     <div>
       {/* Header */}
       <div className="label">Dynamic Risk Engine</div>
-      <h2 style={{ fontSize: 32, margin: "8px 0 6px" }}>
+      <h2 style={{ fontSize: 30, margin: "6px 0 14px" }}>
         Target <span style={{ color: "var(--gold)", fontStyle: "italic" }}>Allocation Model</span>
       </h2>
-      <p style={{ fontSize: 13, color: "var(--text)", margin: "0 0 20px", maxWidth: 720 }}>
-        Your chronological age dictates the delicate equilibrium between growth compounding and capital defense.
-        Drag the interactive age slider or tap the glide path chart to project any point in your lifetime.
-      </p>
 
       {/* Interactive Lifecycle Glide Path Curve */}
       <div style={{ marginBottom: 20 }}>
